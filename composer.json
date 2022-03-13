@@ -1,0 +1,33 @@
+{
+    "name": "fyre/orm",
+    "description": "An ORM library.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "elusivecodes",
+            "email": "elusivecodes@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Fyre\\ORM\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "fyre/db": "^1.1",
+        "fyre/entity": "^1.0",
+        "fyre/inflector": "^1.0",
+        "fyre/lang": "^1.0",
+        "fyre/schema": "^1.0",
+        "fyre/validation": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    }
+}
