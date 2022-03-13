@@ -25,11 +25,24 @@ use function
 class Result implements Countable, IteratorAggregate
 {
 
+    protected const ENTITY_OPTIONS = [
+        'parse' => false,
+        'validate' => false,
+        'clean' => true,
+        'new' => false
+    ];
+
     protected ResultSet $result;
 
     protected Query $query;
 
+    protected bool $eagerLoad;
+
+    protected bool $freed = false;
+
     protected array|null $buffer = null;
+
+    protected array|null $aliasMap = null;
 
     protected array $usedAliases = [];
 
@@ -38,10 +51,11 @@ class Result implements Countable, IteratorAggregate
      * @param ResultSet $result The ResultSet.
      * @param Query $query The Query.
      */
-    public function __construct(ResultSet $result, Query $query)
+    public function __construct(ResultSet $result, Query $query, bool $eagerLoad = false)
     {
         $this->result = $result;
         $this->query = $query;
+        $this->eagerLoad = $eagerLoad;
     }
 
     /**
@@ -50,7 +64,12 @@ class Result implements Countable, IteratorAggregate
      */
     public function all(): array
     {
-        return $this->buffer ??= $this->getBuffer();
+        if ($this->eagerLoad) {
+            return $this->getBuffer();
+        }
+
+        $this->last();
+        return $this->buffer;
     }
 
     /**
@@ -87,7 +106,24 @@ class Result implements Countable, IteratorAggregate
      */
     public function fetch(int $index): Entity|null
     {
-        return $this->all()[$index] ?? null;
+        if ($this->eagerLoad) {
+            return $this->getBuffer()[$index] ?? null;
+        }
+
+        if ($this->freed || $index > $this->count() - 1) {
+            return null;
+        }
+
+        $this->buffer ??= [];
+
+        for ($i = count($this->buffer); $i <= $index; $i++) {
+            $row = $this->result->fetch($i);
+            $data = $this->parseRow($row);
+
+            $this->buffer[] = $this->buildEntity($data);
+        }
+
+        return $this->buffer[$index] ?? null;
     }
 
     /**
@@ -104,7 +140,8 @@ class Result implements Countable, IteratorAggregate
      */
     public function free(): void
     {
-        $this->buffer = null;
+        $this->freed = true;
+        $this->buffer = [];
         $this->result->free();
     }
 
@@ -137,6 +174,42 @@ class Result implements Countable, IteratorAggregate
     }
 
     /**
+     * Build an entity from parsed data.
+     * @param array $data The parsed data.
+     * @return Entity The Entity.
+     */
+    protected function buildEntity(array $data): Entity
+    {
+        $matching = $this->query->getMatching();
+
+        if ($matching) {
+            $data['_matchData'] = $matching->getTarget()
+                ->newEntity($data['_matchData'] ?? [], static::ENTITY_OPTIONS);
+        }
+
+        return $this->query->getModel()
+            ->newEntity($data, static::ENTITY_OPTIONS);
+    }
+
+    /**
+     * Get the alias map.
+     * @return array The alias map.
+     */
+    protected function getAliasMap(): array
+    {
+        if ($this->aliasMap === null) {            
+            $alias = $this->query->getAlias();
+            $contain = $this->query->getContain();
+            $model = $this->query->getModel();
+
+            $this->aliasMap = [$alias => []];
+            static::buildAliasMap($this->aliasMap, $contain, $model);
+        }
+
+        return $this->aliasMap;
+    }
+
+    /**
      * Get the result buffer.
      * @return array The result buffer.
      */
@@ -148,42 +221,20 @@ class Result implements Countable, IteratorAggregate
 
         $rows = $this->result->all();
 
-        $alias = $this->query->getAlias();
-        $contain = $this->query->getContain();
-        $matching = $this->query->getMatching();
-        $model = $this->query->getModel();
-        $type = $this->query->getType();
-
-        $matchingName = null;
-        if ($matching) {
-            $matchingName = $matching->getName();
-            $matchingModel = $matching->getTarget();
-        }
-
-        $aliasMap = [$alias => []];
-        $usedAliases = [$alias];
-
-        static::buildAliasMap($aliasMap, $contain, $model);
-
-        $entityOptions = [
-            'parse' => false,
-            'validate' => false,
-            'clean' => true,
-            'new' => false
-        ];
-
         $entities = [];
 
         foreach ($rows AS $row) {
-            $data = $this->parseRow($row, $aliasMap, $matchingName);
+            $data = $this->parseRow($row);
 
-            if ($matching) {
-                $data['_matchData'] = $matchingModel->newEntity($data['_matchData'] ?? [], $entityOptions);
-            }
-
-            $entities[] = $model->newEntity($data, $entityOptions);
+            $entities[] = $this->buildEntity($data);
         }
 
+        $alias = $this->query->getAlias();
+        $contain = $this->query->getContain();
+        $model = $this->query->getModel();
+        $type = $this->query->getType();
+
+        $usedAliases = [$alias];
         static::loadContain($entities, $contain, $model, $type, $usedAliases);
 
         return $entities;
@@ -192,11 +243,19 @@ class Result implements Countable, IteratorAggregate
     /**
      * Parse a result row.
      * @param array $row The row.
-     * @param array $aliasMap The alias map.
      * @return array The parsed data.
      */
-    protected function parseRow(array $row, array $aliasMap, string|null $matchingAlias): array
+    protected function parseRow(array $row): array
     {
+        $aliasMap = $this->getAliasMap();
+
+        $matching = $this->query->getMatching();
+
+        $matchingName = null;
+        if ($matching) {
+            $matchingName = $matching->getName();
+        }
+
         $data = [];
 
         foreach ($row AS $column => $value) {
@@ -205,10 +264,10 @@ class Result implements Countable, IteratorAggregate
             $parts = explode('__', $column, 2);
 
             $pointer = &$data;
-            if (count($parts) === 2 && ($parts[0] === $matchingAlias || array_key_exists($parts[0], $aliasMap))) {
+            if (count($parts) === 2 && ($parts[0] === $matchingName || array_key_exists($parts[0], $aliasMap))) {
                 [$alias, $column] = $parts;
 
-                if ($alias === $matchingAlias) {
+                if ($alias === $matchingName) {
                     $data['_matchData'] ??= [];
                     $data['_matchData'][$column] = $value;
                 }

@@ -46,6 +46,8 @@ class Query extends QueryBuilder
 
     protected bool|null $autoFields = null;
 
+    protected bool $eagerLoad = false;
+
     protected array $usedAliases = [];
 
     /**
@@ -173,7 +175,7 @@ class Query extends QueryBuilder
             $result = $this->execute();
 
             if ($result instanceof ResultSet) {
-                $this->result = new Result($result, $this);
+                $this->result = new Result($result, $this, $this->eagerLoad);
             } else {
                 $this->result = $result;
             }
@@ -260,7 +262,7 @@ class Query extends QueryBuilder
         $this->joins = [];
         $this->fields = [];
 
-        $this->usedAliases = [];
+        $this->usedAliases = [$this->alias];
 
         switch ($this->action) {
             case 'insert':
@@ -434,6 +436,7 @@ class Query extends QueryBuilder
             if (in_array($name, $this->usedAliases) || !$relationship->canBeJoined()) {
                 $bindingKey = $relationship->getBindingKey();
                 $this->addFields([$bindingKey], $model, $alias);
+                $this->eagerLoad = true;
                 continue;
             }
 
