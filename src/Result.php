@@ -9,6 +9,7 @@ use
     Fyre\DB\ResultSet,
     Fyre\DB\Types\Type,
     Fyre\Entity\Entity,
+    Fyre\ORM\Relationships\Relationship,
     Iterator,
     IteratorAggregate;
 
@@ -34,7 +35,15 @@ class Result implements Countable, IteratorAggregate
 
     protected ResultSet $result;
 
-    protected Query $query;
+    protected Model $model;
+
+    protected string $alias;
+
+    protected array $contain;
+
+    protected Relationship|null $matching;
+
+    protected string $connectionType;
 
     protected bool $eagerLoad;
 
@@ -44,18 +53,22 @@ class Result implements Countable, IteratorAggregate
 
     protected array|null $aliasMap = null;
 
-    protected array $usedAliases = [];
-
     /**
      * New Result constructor.
      * @param ResultSet $result The ResultSet.
-     * @param Query $query The Query.
+     * @param Model $query The Model.
+     * @param array $options The result options.
      */
-    public function __construct(ResultSet $result, Query $query, bool $eagerLoad = false)
+    public function __construct(ResultSet $result, Model $model, array $options = [])
     {
         $this->result = $result;
-        $this->query = $query;
-        $this->eagerLoad = $eagerLoad;
+        $this->model = $model;
+
+        $this->alias = $options['alias'] ?? $this->model->getAlias();
+        $this->contain = $options['contain'] ?? [];
+        $this->matching = $options['matching'] ?? null;
+        $this->connectionType = $options['connectionType'] ?? Model::READ;
+        $this->eagerLoad = $options['eagerLoad'] ?? false;
     }
 
     /**
@@ -190,15 +203,12 @@ class Result implements Countable, IteratorAggregate
      */
     protected function buildEntity(array $data): Entity
     {
-        $matching = $this->query->getMatching();
-
-        if ($matching) {
-            $data['_matchData'] = $matching->getTarget()
+        if ($this->matching) {
+            $data['_matchData'] = $this->matching->getTarget()
                 ->newEntity($data['_matchData'] ?? [], static::ENTITY_OPTIONS);
         }
 
-        return $this->query->getModel()
-            ->newEntity($data, static::ENTITY_OPTIONS);
+        return $this->model->newEntity($data, static::ENTITY_OPTIONS);
     }
 
     /**
@@ -208,12 +218,8 @@ class Result implements Countable, IteratorAggregate
     protected function getAliasMap(): array
     {
         if ($this->aliasMap === null) {            
-            $alias = $this->query->getAlias();
-            $contain = $this->query->getContain();
-            $model = $this->query->getModel();
-
-            $this->aliasMap = [$alias => []];
-            static::buildAliasMap($this->aliasMap, $contain, $model);
+            $this->aliasMap = [$this->alias => []];
+            static::buildAliasMap($this->aliasMap, $this->contain, $this->model);
         }
 
         return $this->aliasMap;
@@ -239,13 +245,8 @@ class Result implements Countable, IteratorAggregate
             $entities[] = $this->buildEntity($data);
         }
 
-        $alias = $this->query->getAlias();
-        $contain = $this->query->getContain();
-        $model = $this->query->getModel();
-        $connectionType = $this->query->getConnectionType();
-
-        $usedAliases = [$alias];
-        static::loadContain($entities, $contain, $model, $connectionType, $usedAliases);
+        $usedAliases = [$this->alias];
+        static::loadContain($entities, $this->contain, $this->model, $this->connectionType, $usedAliases);
 
         return $entities;
     }
@@ -259,11 +260,9 @@ class Result implements Countable, IteratorAggregate
     {
         $aliasMap = $this->getAliasMap();
 
-        $matching = $this->query->getMatching();
-
         $matchingName = null;
-        if ($matching) {
-            $matchingName = $matching->getName();
+        if ($this->matching) {
+            $matchingName = $this->matching->getName();
         }
 
         $data = [];

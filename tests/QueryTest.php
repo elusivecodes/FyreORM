@@ -23,24 +23,6 @@ final class QueryTest extends TestCase
         );
     }
     
-    public function testGetAlias(): void
-    {
-        $this->assertSame(
-            'Test',
-            ModelRegistry::use('Test')->find()->getAlias()
-        );
-    }
-
-    public function testGetModel(): void
-    {
-        $Test = ModelRegistry::use('Test');
-
-        $this->assertSame(
-            $Test,
-            $Test->find()->getModel()
-        );
-    }
-
     public function testClearResult(): void
     {
         $Test = ModelRegistry::use('Test');

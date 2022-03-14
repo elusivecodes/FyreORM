@@ -48,8 +48,6 @@ class Query extends QueryBuilder
 
     protected bool $eagerLoad = false;
 
-    protected array $usedAliases = [];
-
     /**
      * New Query constructor.
      * @param Model $model The Model.
@@ -130,51 +128,6 @@ class Query extends QueryBuilder
     }
 
     /**
-     * Get the alias.
-     * @return string The alias.
-     */
-    public function getAlias(): string
-    {
-        return $this->alias;
-    }
-
-    /**
-     * Get the connection type.
-     * @return string The connection type.
-     */
-    public function getConnectionType(): string
-    {
-        return $this->connectionType;
-    }
-
-    /**
-     * Get the contain relationships.
-     * @return array The contain relationships.
-     */
-    public function getContain(): array
-    {
-        return $this->contain;
-    }
-
-    /**
-     * Get the matching relationship.
-     * @return Relationship|null The matching relationship.
-     */
-    public function getMatching(): Relationship|null
-    {
-        return $this->matching;
-    }
-
-    /**
-     * Get the Model.
-     * @return Model The Model.
-     */
-    public function getModel(): Model
-    {
-        return $this->model;
-    }
-
-    /**
      * Get the query result.
      * @return Result|bool The query result.
      */
@@ -184,7 +137,13 @@ class Query extends QueryBuilder
             $result = $this->execute();
 
             if ($result instanceof ResultSet) {
-                $this->result = new Result($result, $this, $this->eagerLoad);
+                $this->result = new Result($result, $this->model, [
+                    'alias' => $this->alias,
+                    'contain' => $this->contain,
+                    'matching' => $this->matching,
+                    'connectionType' => $this->connectionType,
+                    'eagerLoad' => $this->eagerLoad
+                ]);
             } else {
                 $this->result = $result;
             }
@@ -262,7 +221,7 @@ class Query extends QueryBuilder
         $this->joins = [];
         $this->fields = [];
 
-        $this->usedAliases = [$this->alias];
+        $usedAliases = [$this->alias];
 
         switch ($this->action) {
             case 'insert':
@@ -288,7 +247,7 @@ class Query extends QueryBuilder
 
                 $this->fields += $fields;
 
-                $this->containAll($this->contain, $this->model, $this->alias);
+                $this->containAll($this->contain, $this->model, $this->alias, $usedAliases);
 
                 if ($this->matching) {
                     $name = $this->matching->getName();
@@ -427,13 +386,14 @@ class Query extends QueryBuilder
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
      * @param string $alias The table alias.
+     * @param array $usedAliases The used aliases.
      */
-    protected function containAll(array $contain, Model $model, string $alias): void
+    protected function containAll(array $contain, Model $model, string $alias, array &$usedAliases): void
     {
         foreach ($contain AS $name => $data) {
             $relationship = $model->getRelationship($name);
 
-            if (in_array($name, $this->usedAliases) || !$relationship->canBeJoined()) {
+            if (in_array($name, $usedAliases) || !$relationship->canBeJoined()) {
                 $bindingKey = $relationship->getBindingKey();
                 $this->addFields([$bindingKey], $model, $alias);
                 $this->eagerLoad = true;
@@ -452,9 +412,8 @@ class Query extends QueryBuilder
 
             foreach ($joins AS $joinAlias => $join) {
                 $this->joins[$joinAlias] ??= $join;
+                $usedAliases[] = $joinAlias;
             }
-
-            $this->usedAliases = array_merge($this->usedAliases, array_keys($joins));
 
             if (array_key_exists('fields', $data)) {
                 $this->addFields($data['fields'], $target, $name);
@@ -464,7 +423,7 @@ class Query extends QueryBuilder
                 $this->addFields($target->getPrimaryKey(), $target, $name);
             }
 
-            $this->containAll($data['contain'], $target, $name);
+            $this->containAll($data['contain'], $target, $name, $usedAliases);
         }
     }
 

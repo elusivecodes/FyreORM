@@ -770,46 +770,6 @@ Get the first result.
 $entity = $query->first();
 ```
 
-**Get Alias**
-
-Get the alias.
-
-```php
-$alias = $query->getAlias();
-```
-
-**Get Connection Type**
-
-Get the connection type.
-
-```php
-$connectionType = $query->getConnectionType();
-```
-
-**Get Contain**
-
-Get the contain relationships.
-
-```php
-$contain = $query->getContain();
-```
-
-**Get Matching**
-
-Get the matching relationship.
-
-```php
-$maching = $query->getMatching();
-```
-
-**Get Model**
-
-Get the [*Model*](#models).
-
-```php
-$model = $query->getModel();
-```
-
 **Get Result**
 
 Get the query result.
