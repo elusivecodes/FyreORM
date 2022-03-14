@@ -64,12 +64,22 @@ class Result implements Countable, IteratorAggregate
      */
     public function all(): array
     {
+        if ($this->freed) {
+            return [];
+        }
+
         if ($this->eagerLoad) {
             return $this->getBuffer();
         }
 
-        $this->last();
-        return $this->buffer;
+        $results = [];
+
+        $count = $this->count();
+        for ($i = 0; $i < $count; $i++) {
+            $results[] = $this->fetch($i);
+        }
+
+        return $results;
     }
 
     /**
@@ -116,14 +126,14 @@ class Result implements Countable, IteratorAggregate
 
         $this->buffer ??= [];
 
-        for ($i = count($this->buffer); $i <= $index; $i++) {
-            $row = $this->result->fetch($i);
+        if (!array_key_exists($index, $this->buffer)) {
+            $row = $this->result->fetch($index);
             $data = $this->parseRow($row);
 
-            $this->buffer[] = $this->buildEntity($data);
+            $this->buffer[$index] = $this->buildEntity($data);
         }
 
-        return $this->buffer[$index] ?? null;
+        return $this->buffer[$index];
     }
 
     /**
@@ -232,10 +242,10 @@ class Result implements Countable, IteratorAggregate
         $alias = $this->query->getAlias();
         $contain = $this->query->getContain();
         $model = $this->query->getModel();
-        $type = $this->query->getType();
+        $connectionType = $this->query->getConnectionType();
 
         $usedAliases = [$alias];
-        static::loadContain($entities, $contain, $model, $type, $usedAliases);
+        static::loadContain($entities, $contain, $model, $connectionType, $usedAliases);
 
         return $entities;
     }
@@ -318,10 +328,10 @@ class Result implements Countable, IteratorAggregate
      * @param array $entities The entities.
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
-     * @param string $type The connection type.
+     * @param string $connectionType The connection type.
      * @param array $usedAliases The used aliases.
      */
-    protected static function loadContain(array $entities, array $contain, Model $model, string $type, array &$usedAliases): void
+    protected static function loadContain(array $entities, array $contain, Model $model, string $connectionType, array &$usedAliases): void
     {
         if ($entities === []) {
             return;
@@ -331,7 +341,7 @@ class Result implements Countable, IteratorAggregate
             $relationship = $model->getRelationship($name);
 
             if (!$relationship->canBeJoined() || in_array($name, $usedAliases)) {
-                $relationship->findRelated($entities, $data + ['type' => $type]);
+                $relationship->findRelated($entities, $data + ['type' => $connectionType]);
                 continue;
             }
 
@@ -348,7 +358,7 @@ class Result implements Countable, IteratorAggregate
                 $relations[] = $entity->get($property);
             }
 
-            static::loadContain($relations, $data['contain'], $relationship->getTarget(), $type, $usedAliases);
+            static::loadContain($relations, $data['contain'], $relationship->getTarget(), $connectionType, $usedAliases);
         }
     }
 

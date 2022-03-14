@@ -34,7 +34,7 @@ class Query extends QueryBuilder
 
     protected string $alias;
 
-    protected string $type;
+    protected string $connectionType;
 
     protected bool $subquery;
 
@@ -59,10 +59,10 @@ class Query extends QueryBuilder
     {
         $this->model = $model;
         $this->alias = $options['alias'] ?? $this->model->getAlias();
-        $this->type = $options['type'] ?? Model::WRITE;
+        $this->connectionType = $options['type'] ?? Model::WRITE;
         $this->subquery = $options['subquery'] ?? false;
 
-        parent::__construct($this->model->getConnection($this->type));
+        parent::__construct($this->model->getConnection($this->connectionType));
     }
 
     /**
@@ -139,6 +139,15 @@ class Query extends QueryBuilder
     }
 
     /**
+     * Get the connection type.
+     * @return string The connection type.
+     */
+    public function getConnectionType(): string
+    {
+        return $this->connectionType;
+    }
+
+    /**
      * Get the contain relationships.
      * @return array The contain relationships.
      */
@@ -182,15 +191,6 @@ class Query extends QueryBuilder
         }
 
         return $this->result; 
-    }
-
-    /**
-     * Get the connection type.
-     * @return string The connection type.
-     */
-    public function getType(): string
-    {
-        return $this->type;
     }
 
     /**

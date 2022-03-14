@@ -244,21 +244,24 @@ trait ModelQueryTrait
             $entity->setNew($isNew);
         }
 
+        $connection = $this->getConnection();
+
+        $connection->begin();
+
         if ($this->beforeRules($entity) === false) {
+            $connection->rollback();
             return false;
         }
 
         if ($options['checkRules'] && $this->getRules()->validate($entity) === false) {
+            $connection->rollback();
             return false;
         }
 
         if ($this->afterRules($entity) === false) {
+            $connection->rollback();
             return false;
         }
-
-        $connection = $this->getConnection();
-
-        $connection->begin();
 
         if ($this->beforeSave($entity) === false) {
             $connection->rollback();
@@ -381,8 +384,13 @@ trait ModelQueryTrait
             }
         }
 
+        $connection = $this->getConnection();
+
+        $connection->begin();
+
         foreach ($entities AS $entity) {
             if ($this->beforeRules($entity) === false) {
+                $connection->rollback();
                 return false;
             }
         }
@@ -392,6 +400,7 @@ trait ModelQueryTrait
 
             foreach ($entities AS $entity) {
                 if ($rules->validate($entity) === false) {
+                    $connection->rollback();
                     return false;
                 }
             }
@@ -399,13 +408,10 @@ trait ModelQueryTrait
 
         foreach ($entities AS $entity) {
             if ($this->afterRules($entity) === false) {
+                $connection->rollback();
                 return false;
             }
         }
-
-        $connection = $this->getConnection();
-
-        $connection->begin();
 
         foreach ($entities AS $entity) {
             if ($this->beforeSave($entity) === false) {

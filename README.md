@@ -778,12 +778,28 @@ Get the alias.
 $alias = $query->getAlias();
 ```
 
+**Get Connection Type**
+
+Get the connection type.
+
+```php
+$connectionType = $query->getConnectionType();
+```
+
 **Get Contain**
 
 Get the contain relationships.
 
 ```php
 $contain = $query->getContain();
+```
+
+**Get Matching**
+
+Get the matching relationship.
+
+```php
+$maching = $query->getMatching();
 ```
 
 **Get Model**
@@ -800,14 +816,6 @@ Get the query result.
 
 ```php
 $result = $query->getResult();
-```
-
-**Get Type**
-
-Get the connection type.
-
-```php
-$type = $query->getType();
 ```
 
 **Inner Join With**
@@ -869,7 +877,7 @@ Model results wrap the [*ResultSet*](https://github.com/elusivecodes/fyredb) cla
 - `$name` is a string representing the relationship name.
 - `$data` is an array containing relationship data.
     - `className` is a string representing the target alias, and will default to the relationship name.
-    - `propertyName` is a string representing the entity property name, and will default to the snake case form of the singular relationship name .
+    - `propertyName` is a string representing the entity property name, and will default to the snake case form of the singular relationship name.
     - `foreignKey` is a string representing the foreign key column in the current table, and will default to the snake case singular name of the target alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the target table, and will default to the primary key.
     - `conditions` is an array containing additional conditions.
@@ -887,7 +895,7 @@ $model->belongsTo($name, $data);
     - `foreignKey` is a string representing the foreign key column in the target table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
     - `conditions` is an array containing additional conditions.
-    - `dependent` is a boolean indicating whether to recursively delete related data, and will default to *true*.
+    - `dependent` is a boolean indicating whether to recursively delete related data, and will default to *false*.
 
 ```php
 $model->hasMany($name, $data);
@@ -902,7 +910,7 @@ $model->hasMany($name, $data);
     - `foreignKey` is a string representing the foreign key column in the target table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
     - `conditions` is an array containing additional conditions.
-    - `dependent` is a boolean indicating whether to recursively delete related data, and will default to *true*.
+    - `dependent` is a boolean indicating whether to recursively delete related data, and will default to *false*.
 
 ```php
 $model->hasOne($name, $data);
