@@ -947,7 +947,7 @@ $rules->validate($entity);
 ## Entity Locator
 
 ```php
-use Fyre\ORM\EntityLocator
+use Fyre\ORM\EntityLocator;
 ```
 
 **Add Namespace**
