@@ -132,7 +132,7 @@ $model = ModelRegistry::use('MyModel');
 
 **Get Connection**
 
-Get the [*Connection*](https://github.com/elusivecodes/fyredb).
+Get the [*Connection*](https://github.com/elusivecodes/FyreDB#connections).
 
 - `$type` is a string representing the connection type, and will default to `self::WRITE`.
 
@@ -140,7 +140,7 @@ Get the [*Connection*](https://github.com/elusivecodes/fyredb).
 $connection = $model->getConnection($type);
 ```
 
-Models use [*ConnectionManager*](https://github.com/elusivecodes/fyredb) for database connections, and you can specify the connection to use by setting the `connectionKeys` property of your models, or using the `setConnection` method.
+Models use [*ConnectionManager*](https://github.com/elusivecodes/FyreDB) for database connections, and you can specify the connection to use by setting the `connectionKeys` property of your models, or using the `setConnection` method.
 
 ```php
 protected array $connectionKeys = [
@@ -165,9 +165,9 @@ $query = $model->query($options);
 
 **Set Connection**
 
-Set the [*Connection*](https://github.com/elusivecodes/fyredb).
+Set the [*Connection*](https://github.com/elusivecodes/FyreDB#connections).
 
-- `$connection` is a [*Connection*](https://github.com/elusivecodes/fyredb).
+- `$connection` is a [*Connection*](https://github.com/elusivecodes/FyreDB#connections).
 - `$type` is a string representing the connection type, and will default to `self::WRITE`.
 
 ```php
@@ -242,7 +242,7 @@ $primaryKeys = $model->getPrimaryKey();
 
 **Get Schema**
 
-Get the [*TableSchema*](https://github.com/elusivecodes/fyreschema).
+Get the [*TableSchema*](https://github.com/elusivecodes/FyreSchema#table-schemas).
 
 ```php
 $tableSchema = $model->getSchema();
@@ -313,7 +313,7 @@ protected string $entityClass = MyEntity::class;
 
 Load contained data into entity.
 
-- `$entity` is an [*Entity*](https://github.com/elusivecodes/fyreentity).
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 - `$contain` is an array containing the relationships to contain.
 
 ```php
@@ -322,7 +322,7 @@ $model->loadInto($entity, $contain);
 
 **New Empty Entity**
 
-Build a new empty [*Entity*](https://github.com/elusivecodes/fyreentity).
+Build a new empty [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
 ```php
 $entity = $model->newEmptyEntity();
@@ -330,7 +330,7 @@ $entity = $model->newEmptyEntity();
 
 **New Entity**
 
-Build a new [*Entity*](https://github.com/elusivecodes/fyreentity) using data.
+Build a new [*Entity*](https://github.com/elusivecodes/FyreEntity) using data.
 
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
@@ -364,7 +364,7 @@ $entities = $model->newEntities($data, $options);
 
 Update an Entity using user data.
 
-- `$entity` is an [*Entity*](https://github.com/elusivecodes/fyreentity).
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
@@ -399,9 +399,9 @@ $model->patchEntities($entities, $data, $options);
 
 **Delete**
 
-Delete an [*Entity*](https://github.com/elusivecodes/fyreentity).
+Delete an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
-- `$entity` is an [*Entity*](https://github.com/elusivecodes/fyreentity).
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 - `$options` is an array containing delete options.
     - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
 
@@ -489,9 +489,9 @@ $entity = $model->get($primaryValues, $data);
 
 **Save**
 
-Save an [*Entity*](https://github.com/elusivecodes/fyreentity).
+Save an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
-- `$entity` is an [*Entity*](https://github.com/elusivecodes/fyreentity).
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 - `$options` is an array containing save options.
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
@@ -596,7 +596,7 @@ You can build custom rules by specifying a `buildRules` [callback](#callbacks) i
 
 **Get Validator**
 
-Get the model [*Validator*](https://github.com/elusivecodes/fyrevalidation).
+Get the model [*Validator*](https://github.com/elusivecodes/FyreValidation).
 
 ```php
 $validator = $model->getValidator();
@@ -616,9 +616,9 @@ $model->setRules($rules);
 
 **Set Validator**
 
-Set the model [*Validator*](https://github.com/elusivecodes/fyrevalidation).
+Set the model [*Validator*](https://github.com/elusivecodes/FyreValidation).
 
-- `$validator` is a [*Validator*](https://github.com/elusivecodes/fyrevalidation).
+- `$validator` is a [*Validator*](https://github.com/elusivecodes/FyreValidation).
 
 ```php
 $model->setValidator($validator);
@@ -726,7 +726,7 @@ public function buildValidation(Validator $validator): Validator
 
 ## Queries
 
-Model queries extend the [*QueryBuilder*](https://github.com/elusivecodes/fyredb) class, while providing several additional methods and wrappers for relationship and entity mapping.
+The `\Fyre\ORM\Query` class extends the [*QueryBuilder*](https://github.com/elusivecodes/FyreDB#queries) class, while providing several additional methods and wrappers for relationship and entity mapping.
 
 **All**
 
@@ -827,7 +827,7 @@ $query->notMatching($contain, $conditions);
 
 ## Results
 
-Model results wrap the [*ResultSet*](https://github.com/elusivecodes/fyredb) class, while providing additional handling for entity mapping and eager loading contained results.
+The `\Fyre\ORM\ResultSet` class wraps the [*ResultSet*](https://github.com/elusivecodes/FyreDB#results) class, while providing additional handling for entity mapping and eager loading contained results.
 
 
 ## Relationships
@@ -900,7 +900,7 @@ When loading results, the join table data will be accessible via the `_joinData`
 
 Add a rule.
 
-- `$rule` is a *Closure*, that accepts an [*Entity*](https://github.com/elusivecodes/fyreentity) as the first argument, and should return *false* if the validation failed.
+- `$rule` is a *Closure*, that accepts an [*Entity*](https://github.com/elusivecodes/FyreEntity) as the first argument, and should return *false* if the validation failed.
 
 ```php
 $rules->add($rule);
@@ -935,9 +935,9 @@ $rules->isUnique($fields, $options);
 
 **Validate**
 
-Validate an [*Entity*](https://github.com/elusivecodes/fyreentity).
+Validate an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
-- `$entity` is an [*Entity*](https://github.com/elusivecodes/fyreentity).
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
 ```php
 $rules->validate($entity);
@@ -945,6 +945,10 @@ $rules->validate($entity);
 
 
 ## Entity Locator
+
+```php
+use Fyre\ORM\EntityLocator
+```
 
 **Add Namespace**
 
