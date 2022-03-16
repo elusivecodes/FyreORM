@@ -103,7 +103,7 @@ class ManyToMany extends Relationship
         $data['contain'] = [$targetAlias => $contain];
 
         $allChildren = array_map(
-            function(Entity $child) use ($joinProperty) {
+            function(Entity $child) use ($joinProperty): Entity {
                 $realChild = $child->get($joinProperty);
                 $child->unset($joinProperty);
 

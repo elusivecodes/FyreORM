@@ -198,7 +198,7 @@ trait ModelQueryTrait
     {
         $primaryKeys = $this->getPrimaryKey();
         $primaryKeys = array_map(
-            fn($key) => $this->aliasField($key),
+            fn(string $key): string => $this->aliasField($key),
             $primaryKeys
         );
         $conditions = QueryGenerator::combineConditions($primaryKeys, (array) $primaryValues);

@@ -98,7 +98,7 @@ trait ModelEntityTrait
     public function newEntities(array $data, array $options = []): array
     {
         return array_map(
-            fn($values) => $this->newEntity($values, $data),
+            fn(array $values): Entity => $this->newEntity($values, $data),
             $data
         );
     }

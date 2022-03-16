@@ -128,7 +128,7 @@ trait ModelHelperTrait
 
             $contain = array_reduce(
                 array_reverse($contain),
-                fn($acc, $value) => $value ?
+                fn(array $acc, string $value): array => $value ?
                     [$value => $acc] :
                     $acc,
                 []

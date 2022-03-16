@@ -60,7 +60,7 @@ class RuleSet
             'name' => $name
         ]) ?? 'invalid';
 
-        return function(Entity $item) use ($fields, $name, $options) {
+        return function(Entity $item) use ($fields, $name, $options): bool {
             if ($fields === []) {
                 return true;
             }
@@ -100,7 +100,7 @@ class RuleSet
             'fields' => implode(', ', $fields)
         ]) ?? 'invalid';
 
-        return function(Entity $item) use ($fields, $options) {
+        return function(Entity $item) use ($fields, $options): bool {
             if ($fields === []) {
                 return true;
             }

@@ -318,7 +318,7 @@ class Query extends QueryBuilder
         $this->action = 'updateBatch';
 
         $this->updateKeys = array_map(
-            fn($field) => $this->model->aliasField($field, $this->alias),
+            fn(string $field): string => $this->model->aliasField($field, $this->alias),
             $updateKeys
         );
 
@@ -476,7 +476,7 @@ class Query extends QueryBuilder
                     $this->matching = $relationship;
                 } else if ($matching === false) {
                     $matchingConditions = array_map(
-                        fn($key) => $model->aliasField($key, $alias).' IS NULL',
+                        fn(string $key): string => $model->aliasField($key, $alias).' IS NULL',
                         $model->getPrimaryKey()
                     );
 
