@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Tests\Model;
 
 use
-    Fyre\ORM\Exceptions\ORMException,
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\ModelRegistry;
 
 use function
@@ -464,7 +464,7 @@ trait ContainTest
 
     public function testContainInvalid(): void
     {
-        $this->expectException(ORMException::class);
+        $this->expectException(OrmException::class);
 
         ModelRegistry::use('Users')->find([
             'contain' => [

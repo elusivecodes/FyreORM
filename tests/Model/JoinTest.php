@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Tests\Model;
 
 use
-    Fyre\ORM\Exceptions\ORMException,
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\ModelRegistry;
 
 trait JoinTest
@@ -117,7 +117,7 @@ trait JoinTest
 
     public function testContainLeftJoinInvalid(): void
     {
-        $this->expectException(ORMException::class);
+        $this->expectException(OrmException::class);
 
         ModelRegistry::use('Posts')
             ->find()
@@ -126,7 +126,7 @@ trait JoinTest
 
     public function testContainInnerJoinInvalid(): void
     {
-        $this->expectException(ORMException::class);
+        $this->expectException(OrmException::class);
 
         ModelRegistry::use('Posts')
             ->find()

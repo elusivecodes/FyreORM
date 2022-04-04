@@ -5,7 +5,7 @@ namespace Fyre\ORM\Traits;
 
 use
     Fyre\Entity\Entity,
-    Fyre\ORM\Exceptions\ORMException,
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\Model;
 
 use function
@@ -30,13 +30,13 @@ trait ModelHelperTrait
     /**
      * Check whether all entities are instances of Entity.
      * @param array $entities The entities.
-     * @throws ORMException if an entity is not an instance of Entity.
+     * @throws OrmException if an entity is not an instance of Entity.
      */
     public static function checkEntities(array $entities): void
     {
         foreach ($entities AS $entity) {
             if (!$entity instanceof Entity) {
-                throw ORMException::forInvalidEntity();
+                throw OrmException::forInvalidEntity();
             }
         }
     }
@@ -111,7 +111,7 @@ trait ModelHelperTrait
      * @param bool|null $canBeJoined Whether the relationship can be joined.
      * @param bool $allowOptions Whether to allow query options.
      * @return array The normalized contain data.
-     * @throws ORMException if relationship is invalid.
+     * @throws OrmException if relationship is invalid.
      */
     public static function normalizeContain(string|array $contain, Model $model, bool|null $canBeJoined = null, bool $allowOptions = true): array
     {
@@ -153,7 +153,7 @@ trait ModelHelperTrait
             $relationship = $model->getRelationship($key);
 
             if (!$relationship) {
-                throw ORMException::forInvalidRelationship($key);
+                throw OrmException::forInvalidRelationship($key);
             }
 
             $normalized['contain'][$key] ??= [];

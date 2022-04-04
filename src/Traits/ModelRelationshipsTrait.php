@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Fyre\ORM\Traits;
 
 use
-    Fyre\ORM\Exceptions\ORMException,
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\Relationships\BelongsTo,
     Fyre\ORM\Relationships\HasMany,
     Fyre\ORM\Relationships\HasOne,
@@ -26,20 +26,20 @@ trait ModelRelationshipsTrait
      * Add a Relationship.
      * @param Relationship $relationship The Relationship.
      * @return Model The Model.
-     * @throws ORMException if relationship alias or property is already used.
+     * @throws OrmException if relationship alias or property is already used.
      */
     public function addRelationship(Relationship $relationship): static
     {
         $name = $relationship->getName();
 
         if (array_key_exists($name, $this->relationships)) {
-            throw ORMException::forRelationshipNotUnique($name);
+            throw OrmException::forRelationshipNotUnique($name);
         }
 
         $property = $relationship->getProperty();
 
         if ($this->getSchema()->hasColumn($property)) {
-            throw ORMException::forRelationshipColumnName($property);
+            throw OrmException::forRelationshipColumnName($property);
         }
 
         $this->relationships[$name] = $relationship;

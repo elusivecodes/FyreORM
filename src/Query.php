@@ -8,7 +8,7 @@ use
     Fyre\DB\QueryBuilder,
     Fyre\DB\ResultSet,
     Fyre\Entity\Entity,
-    Fyre\ORM\Exceptions\ORMException,
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\Relationships\Relationship;
 
 use function
@@ -449,7 +449,7 @@ class Query extends QueryBuilder
             $relationship = $model->getRelationship($alias);
 
             if (!$relationship) {
-                throw ORMException::forInvalidRelationship($alias);
+                throw OrmException::forInvalidRelationship($alias);
             }
 
             $model = $relationship->getTarget();

@@ -6,7 +6,7 @@ namespace Fyre\ORM\Traits;
 use
     Fyre\DB\QueryGenerator,
     Fyre\Entity\Entity,
-    Fyre\ORM\Exceptions\ORMException,
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\Model,
     Fyre\ORM\Query;
 
@@ -165,7 +165,7 @@ trait ModelQueryTrait
      * Create a new Query.
      * @param array $data The find data.
      * @return Query The Query.
-     * @throws ORMException if find property does not exist.
+     * @throws OrmException if find property does not exist.
      */
     public function find(array $data = []): Query
     {
@@ -177,7 +177,7 @@ trait ModelQueryTrait
 
         foreach ($data AS $property => $method) {
             if (!array_key_exists($property, static::QUERY_METHODS)) {
-                throw ORMException::forInvalidFindProperty($property);
+                throw OrmException::forInvalidFindProperty($property);
             }
 
             $method = static::QUERY_METHODS[$property];

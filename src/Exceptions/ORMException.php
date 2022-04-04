@@ -7,9 +7,9 @@ use
     RunTimeException;
 
 /**
- * ORMException
+ * OrmException
  */
-class ORMException extends RunTimeException
+class OrmException extends RunTimeException
 {
 
     public static function forInvalidEntity()
