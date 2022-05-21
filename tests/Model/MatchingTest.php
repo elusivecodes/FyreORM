@@ -6,6 +6,7 @@ namespace Tests\Model;
 use
     Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\ModelRegistry,
+    Tests\Mock\Entity\Address,
     Tests\Mock\Entity\Tag;
 
 trait MatchingTest
@@ -66,7 +67,7 @@ trait MatchingTest
     public function testMatchingMerge(): void
     {
         $this->assertSame(
-            'SELECT Users.id AS Users__id, Tags.id AS Tags__id FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id INNER JOIN posts AS Posts ON Posts.user_id = Users.id INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
+            'SELECT Users.id AS Users__id, Addresses.id AS Addresses__id, Tags.id AS Tags__id FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id INNER JOIN posts AS Posts ON Posts.user_id = Users.id INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
             ModelRegistry::use('Users')
                 ->find()
                 ->matching('Addresses')
@@ -136,16 +137,16 @@ trait MatchingTest
 
         $this->assertInstanceOf(
             Tag::class,
-            $user->_matchData
+            $user->_matchingData['Tags']
         );
 
         $this->assertSame(
             'test4',
-            $user->_matchData->tag
+            $user->_matchingData['Tags']->tag
         );
     }
 
-    public function testMatchingDataOverwrite(): void
+    public function testMatchingDataMultiple(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -195,13 +196,23 @@ trait MatchingTest
             ->first();
 
         $this->assertInstanceOf(
+            Address::class,
+            $user->_matchingData['Addresses']
+        );
+
+        $this->assertSame(
+            'Test',
+            $user->_matchingData['Addresses']->suburb
+        );
+    
+        $this->assertInstanceOf(
             Tag::class,
-            $user->_matchData
+            $user->_matchingData['Tags']
         );
 
         $this->assertSame(
             'test4',
-            $user->_matchData->tag
+            $user->_matchingData['Tags']->tag
         );
     }
 

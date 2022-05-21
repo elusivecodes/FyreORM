@@ -42,7 +42,7 @@ class Query extends QueryBuilder
 
     protected array $containJoin = [];
 
-    protected Relationship|null $matching = null;
+    protected array $matching = [];
 
     protected bool|null $autoFields = null;
 
@@ -249,9 +249,8 @@ class Query extends QueryBuilder
 
                 $this->containAll($this->contain, $this->model, $this->alias, $usedAliases);
 
-                if ($this->matching) {
-                    $name = $this->matching->getName();
-                    $target = $this->matching->getTarget();
+                foreach ($this->matching AS $name => $relationship) {
+                    $target = $relationship->getTarget();
 
                     if ($this->autoFields !== false) {
                         $this->autoFields($target, $name);
@@ -473,7 +472,7 @@ class Query extends QueryBuilder
 
             if ($isLastJoin) {
                 if ($matching === true) {
-                    $this->matching = $relationship;
+                    $this->matching[$alias] = $relationship;
                 } else if ($matching === false) {
                     $matchingConditions = array_map(
                         fn(string $key): string => $model->aliasField($key, $alias).' IS NULL',

@@ -41,7 +41,7 @@ class Result implements Countable, IteratorAggregate
 
     protected array $contain;
 
-    protected Relationship|null $matching;
+    protected array $matching = [];
 
     protected string $connectionType;
 
@@ -66,7 +66,7 @@ class Result implements Countable, IteratorAggregate
 
         $this->alias = $options['alias'] ?? $this->model->getAlias();
         $this->contain = $options['contain'] ?? [];
-        $this->matching = $options['matching'] ?? null;
+        $this->matching = $options['matching'] ?? [];
         $this->connectionType = $options['connectionType'] ?? Model::READ;
         $this->eagerLoad = $options['eagerLoad'] ?? false;
     }
@@ -203,9 +203,9 @@ class Result implements Countable, IteratorAggregate
      */
     protected function buildEntity(array $data): Entity
     {
-        if ($this->matching) {
-            $data['_matchData'] = $this->matching->getTarget()
-                ->newEntity($data['_matchData'] ?? [], static::ENTITY_OPTIONS);
+        foreach ($this->matching AS $name => $relationship) {
+            $data['_matchingData'][$name] = $relationship->getTarget()
+                ->newEntity($data['_matchingData'][$name] ?? [], static::ENTITY_OPTIONS);
         }
 
         return $this->model->newEntity($data, static::ENTITY_OPTIONS);
@@ -260,11 +260,6 @@ class Result implements Countable, IteratorAggregate
     {
         $aliasMap = $this->getAliasMap();
 
-        $matchingName = null;
-        if ($this->matching) {
-            $matchingName = $this->matching->getName();
-        }
-
         $data = [];
 
         foreach ($row AS $column => $value) {
@@ -273,12 +268,13 @@ class Result implements Countable, IteratorAggregate
             $parts = explode('__', $column, 2);
 
             $pointer = &$data;
-            if (count($parts) === 2 && ($parts[0] === $matchingName || array_key_exists($parts[0], $aliasMap))) {
+            if (count($parts) === 2 && (array_key_exists($parts[0], $this->matching) || array_key_exists($parts[0], $aliasMap))) {
                 [$alias, $column] = $parts;
 
-                if ($alias === $matchingName) {
-                    $data['_matchData'] ??= [];
-                    $data['_matchData'][$column] = $value;
+                if (array_key_exists($alias, $this->matching)) {
+                    $data['_matchingData'] ??= [];
+                    $data['_matchingData'][$alias] ??= [];
+                    $data['_matchingData'][$alias][$column] = $value;
                 }
 
                 if (array_key_exists($alias, $aliasMap)) {

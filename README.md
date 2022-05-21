@@ -811,7 +811,7 @@ INNER JOIN a relationship table and load matching data.
 $query->matching($contain, $conditions);
 ```
 
-The matching data will be accessible via the `_matchData` property.
+The matching data will be accessible via the `_matchingData` property.
 
 **Not Matching**
 
