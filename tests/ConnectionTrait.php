@@ -38,6 +38,7 @@ trait ConnectionTrait
 
     public static function setUpBeforeClass(): void
     {
+        ConnectionManager::clear();
         ConnectionManager::setConfig('default', [
             'className' => MySQLConnection::class,
             'host' => getenv('DB_HOST'),
