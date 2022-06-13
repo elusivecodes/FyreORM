@@ -5,7 +5,7 @@ namespace Fyre\ORM\Traits;
 
 use
     Fyre\Schema\SchemaRegistry,
-    Fyre\Schema\TableSchema,
+    Fyre\Schema\TableSchemaInterface,
     ReflectionClass;
 
 use function
@@ -109,9 +109,9 @@ trait ModelSchemaTrait
     /**
      * Get the TableSchema.
      * @param string|null $type The connection type.
-     * @return TableSchema The TableSchema.
+     * @return TableSchemaInterface The TableSchema.
      */
-    public function getSchema(string|null $type = null): TableSchema
+    public function getSchema(string|null $type = null): TableSchemaInterface
     {
         return SchemaRegistry::getSchema($this->getConnection($type))
             ->describe($this->getTable());
