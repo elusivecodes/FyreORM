@@ -149,7 +149,7 @@ protected array $connectionKeys = [
 ];
 ```
 
-If the `self::READ` key is omitted, it will fallabck to the `self::WRITE` connection for database reads.
+If the `self::READ` key is omitted, it will fallback to the `self::WRITE` connection for database reads.
 
 **Query**
 
@@ -827,7 +827,7 @@ $query->notMatching($contain, $conditions);
 
 ## Results
 
-The `\Fyre\ORM\ResultSet` class wraps the [*ResultSet*](https://github.com/elusivecodes/FyreDB#results) class, while providing additional handling for entity mapping and eager loading contained results.
+The `\Fyre\ORM\Result` class wraps the [*ResultSet*](https://github.com/elusivecodes/FyreDB#results) class, while providing additional handling for entity mapping and eager loading contained results.
 
 
 ## Relationships
