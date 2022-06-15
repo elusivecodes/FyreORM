@@ -9,6 +9,49 @@ use
 trait CallbacksTest
 {
 
+    public function testBeforeFind(): void
+    {
+        $Others = ModelRegistry::use('Others');
+
+        $others = $Others->newEntities([
+            [
+                'value' => 1
+            ],
+            [
+                'value' => 2
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Others->saveMany($others)
+        );
+
+        $this->assertSame(
+            1,
+            $Others->find()->count()
+        );
+    }
+
+    public function testAfterFind(): void
+    {
+        $Others = ModelRegistry::use('Others');
+
+        $other = $Others->newEntity([
+            'value' => 1
+        ]);
+
+        $this->assertTrue(
+            $Others->save($other)
+        );
+
+        $other = $Others->find()->first();
+
+        $this->assertSame(
+            'Test',
+            $other->test
+        );
+    }
+
     public function testBeforeSave(): void
     {
         $Test = ModelRegistry::use('Test');

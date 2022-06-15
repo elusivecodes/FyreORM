@@ -28,6 +28,7 @@ trait ConnectionTrait
     {
         $connection = ConnectionManager::use();
         $connection->query('TRUNCATE test');
+        $connection->query('TRUNCATE others');
         $connection->query('TRUNCATE users');
         $connection->query('TRUNCATE addresses');
         $connection->query('TRUNCATE posts');
@@ -55,6 +56,7 @@ trait ConnectionTrait
         $connection = ConnectionManager::use();
 
         $connection->query('DROP TABLE IF EXISTS `test`');
+        $connection->query('DROP TABLE IF EXISTS `others`');
         $connection->query('DROP TABLE IF EXISTS `users`');
         $connection->query('DROP TABLE IF EXISTS `addresses`');
         $connection->query('DROP TABLE IF EXISTS `posts`');
@@ -66,6 +68,14 @@ trait ConnectionTrait
             CREATE TABLE `test` (
                 `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `name` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+                PRIMARY KEY (`id`)
+            ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
+        EOT);
+
+        $connection->query(<<<EOT
+            CREATE TABLE `others` (
+                `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `value` INT(10) UNSIGNED NOT NULL,
                 PRIMARY KEY (`id`)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);
@@ -132,6 +142,7 @@ trait ConnectionTrait
     {
         $connection = ConnectionManager::use();
         $connection->query('DROP TABLE IF EXISTS `test`');
+        $connection->query('DROP TABLE IF EXISTS `others`');
         $connection->query('DROP TABLE IF EXISTS `users`');
         $connection->query('DROP TABLE IF EXISTS `addresses`');
         $connection->query('DROP TABLE IF EXISTS `posts`');
