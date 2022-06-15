@@ -11,6 +11,9 @@ use
 
 use function
     array_combine,
+    array_diff_assoc,
+    array_search,
+    array_slice,
     implode,
     in_array;
 
@@ -100,7 +103,7 @@ class RuleSet
             'fields' => implode(', ', $fields)
         ]) ?? 'invalid';
 
-        return function(Entity $item) use ($fields, $options): bool {
+        return function(Entity $item, array|null $batchItems = null) use ($fields, $options): bool {
             if ($fields === []) {
                 return true;
             }
@@ -111,15 +114,32 @@ class RuleSet
                 return true;
             }
 
-            $conditions = QueryGenerator::combineConditions($fields, $values);
+            $batchItems ??= [$item];
+            $itemIndex = array_search($item, $batchItems, true);
+            $others = array_slice($batchItems, 0, $itemIndex);
 
-            if (!$this->model->exists($conditions)) {
-                return true;
+            foreach ($others AS $other) {
+                $otherValues = $other->extract($fields);
+
+                if (array_diff_assoc($values, $otherValues) !== []) {
+                    continue;
+                }
+
+                $item->setError($fields[0], $options['message']);
+
+                return false;
             }
 
-            $item->setError($fields[0], $options['message']);
+    
+            $conditions = QueryGenerator::combineConditions($fields, $values);
 
-            return false;
+            if ($this->model->exists($conditions)) {
+                $item->setError($fields[0], $options['message']);
+    
+                return false;
+            }
+
+            return true;
         };
     }
 
@@ -130,13 +150,33 @@ class RuleSet
      */
     public function validate(Entity $item): bool
     {
+        $result = true;
         foreach ($this->rules AS $rule) {
             if ($rule($item) === false) {
-                return false;
+                $result = false;
             }
         }
 
-        return true;
+        return $result;
+    }
+
+    /**
+     * Validate multiple entities.
+     * @param array $entities The entities.
+     * @return bool TRUE if the validation was successful, otherwise FALSE.
+     */
+    public function validateMany(array $items = []): bool
+    {
+        $result = true;
+        foreach ($items AS $item) {
+            foreach ($this->rules AS $rule) {
+                if ($rule($item, $items) === false) {
+                    $result = false;
+                }
+            }
+        }
+
+        return $result;
     }
 
 }

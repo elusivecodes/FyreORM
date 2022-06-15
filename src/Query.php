@@ -128,6 +128,51 @@ class Query extends QueryBuilder
     }
 
     /**
+     * Get the alias.
+     * @return string The alias.
+     */
+    public function getAlias(): string
+    {
+        return $this->alias;
+    }
+
+    /**
+     * Get the connection type.
+     * @return string The connection type.
+     */
+    public function getConnectionType(): string
+    {
+        return $this->connectionType;
+    }
+
+    /**
+     * Get the contain array.
+     * @return array The contain array.
+     */
+    public function getContain(): array
+    {
+        return $this->contain;
+    }
+
+    /**
+     * Get the matching array.
+     * @return array The matching array.
+     */
+    public function getMatching(): array
+    {
+        return $this->matching;
+    }
+
+    /**
+     * Get the Model.
+     * @return Model The Model.
+     */
+    public function getModel(): Model
+    {
+        return $this->model;
+    }
+
+    /**
      * Get the query result.
      * @return Result|bool The query result.
      */
@@ -137,13 +182,9 @@ class Query extends QueryBuilder
             $result = $this->execute();
 
             if ($result instanceof ResultSet) {
-                $this->result = new Result($result, $this->model, [
-                    'alias' => $this->alias,
-                    'contain' => $this->contain,
-                    'matching' => $this->matching,
-                    'connectionType' => $this->connectionType,
-                    'eagerLoad' => $this->eagerLoad
-                ]);
+                $result = new Result($result, $this, $this->eagerLoad);
+
+                $this->result = $this->model->afterFind($result);
             } else {
                 $this->result = $result;
             }
@@ -392,7 +433,9 @@ class Query extends QueryBuilder
         foreach ($contain AS $name => $data) {
             $relationship = $model->getRelationship($name);
 
-            if (in_array($name, $usedAliases) || !$relationship->canBeJoined()) {
+            $data['strategy'] ??= $relationship->getStrategy();
+
+            if ($data['strategy'] !== 'join' || in_array($name, $usedAliases)) {
                 $bindingKey = $relationship->getBindingKey();
                 $this->addFields([$bindingKey], $model, $alias);
                 $this->eagerLoad = true;

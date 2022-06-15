@@ -174,6 +174,7 @@ trait ModelQueryTrait
         ]);
 
         unset($data['type']);
+        unset($data['strategy']);
 
         foreach ($data AS $property => $method) {
             if (!array_key_exists($property, static::QUERY_METHODS)) {
@@ -185,7 +186,7 @@ trait ModelQueryTrait
             $query->$method($data[$property]);
         }
 
-        return $query;
+        return $this->beforeFind($query);
     }
 
     /**
@@ -398,11 +399,9 @@ trait ModelQueryTrait
         if ($options['checkRules']) {
             $rules = $this->getRules();
 
-            foreach ($entities AS $entity) {
-                if ($rules->validate($entity) === false) {
-                    $connection->rollback();
-                    return false;
-                }
+            if ($rules->validateMany($entities) === false) {
+                $connection->rollback();
+                return false;
             }
         }
 

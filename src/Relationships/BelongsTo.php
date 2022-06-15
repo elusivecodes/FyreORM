@@ -12,14 +12,9 @@ use
 class BelongsTo extends Relationship
 {
 
-    /**
-     * Determine if the relationship can be joined.
-     * @return bool TRUE if the relationship can be joined, otherwise FALSE.
-     */
-    public function canBeJoined(): bool
-    {
-        return true;
-    }
+    protected string $strategy = 'join';
+
+    protected array $validStrategies = ['join', 'select'];
 
     /**
      * Get the binding key.
@@ -39,6 +34,15 @@ class BelongsTo extends Relationship
         return $this->foreignKey ??= static::modelKey(
             $this->getTarget()->getAlias()
         );
+    }
+
+    /**
+     * Determine if the relationship has multiple related items.
+     * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
+     */
+    public function hasMultiple(): bool
+    {
+        return false;
     }
 
     /**

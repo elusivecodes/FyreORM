@@ -22,6 +22,11 @@ class OrmException extends RunTimeException
         return new static('Model find property does not exist: '.$property);
     }
 
+    public static function forInvalidStrategy(string $strategy)
+    {
+        throw new static('Invalid relationship strategy: '.$strategy);
+    }
+
     public static function forInvalidRelationship(string $name)
     {
         return new static('Model relationship does not exist: '.$name);

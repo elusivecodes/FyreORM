@@ -118,6 +118,72 @@ final class RulesTest extends TestCase
         );
     }
 
+    public function testIsUniqueSaveMany(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $rules = new RuleSet($Test);
+
+        $rules->add($rules->isUnique(['name']));
+
+        $Test->setRules($rules);
+
+        $tests = $Test->newEntities([
+            [
+                'name' => 'Test'
+            ],
+            [
+                'name' => 'Test'
+            ]
+        ]);
+
+        $this->assertFalse(
+            $Test->saveMany($tests)
+        );
+
+        $this->assertSame(
+            [
+                'name' => [
+                    'invalid'
+                ]
+            ],
+            $tests[1]->getErrors()
+        );
+    }
+
+    public function testIsUniqueSaveManyNull(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $rules = new RuleSet($Test);
+
+        $rules->add($rules->isUnique(['name']));
+
+        $Test->setRules($rules);
+
+        $tests = $Test->newEntities([
+            [
+                'name' => null
+            ],
+            [
+                'name' => null
+            ]
+        ]);
+
+        $this->assertFalse(
+            $Test->saveMany($tests)
+        );
+
+        $this->assertSame(
+            [
+                'name' => [
+                    'invalid'
+                ]
+            ],
+            $tests[1]->getErrors()
+        );
+    }
+
     public function testExistsIn(): void
     {
         $Users = ModelRegistry::use('Users');

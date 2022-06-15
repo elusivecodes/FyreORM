@@ -6,7 +6,8 @@ namespace Fyre\ORM\Relationships;
 use
     Fyre\Entity\Entity,
     Fyre\ORM\Model,
-    Fyre\ORM\ModelRegistry;
+    Fyre\ORM\ModelRegistry,
+    Fyre\ORM\Query;
 
 use function
     array_key_exists,
@@ -74,10 +75,17 @@ class ManyToMany extends Relationship
      * Find related data for entities.
      * @param array $entities The entities.
      * @param array $data The find data.
+     * @param Query|null $query The Query.
      */
-    public function findRelated(array $entities, array $data): void
+    public function findRelated(array $entities, array $data, Query|null $query = null): void
     {
-        $conditions = $this->containConditions($entities);
+        $data['strategy'] ??= $this->getStrategy();
+
+        if ($query && $data['strategy'] === 'subquery') {
+            $conditions = $this->containConditionSubquery($query);
+        } else {
+            $conditions = $this->containConditions($entities);
+        }
 
         if ($conditions === []) {
             return;

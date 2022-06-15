@@ -12,13 +12,17 @@ use
 class HasOne extends Relationship
 {
 
+    protected string $strategy = 'join';
+
+    protected array $validStrategies = ['join', 'select'];
+
     /**
-     * Determine if the relationship can be joined.
-     * @return bool TRUE if the relationship can be joined, otherwise FALSE.
+     * Determine if the relationship has multiple related items.
+     * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */
-    public function canBeJoined(): bool
+    public function hasMultiple(): bool
     {
-        return true;
+        return false;
     }
 
     /**

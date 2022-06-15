@@ -35,17 +35,9 @@ class Result implements Countable, IteratorAggregate
 
     protected ResultSet $result;
 
-    protected Model $model;
+    protected Query $query;
 
-    protected string $alias;
-
-    protected array $contain;
-
-    protected array $matching = [];
-
-    protected string $connectionType;
-
-    protected bool $eagerLoad;
+    protected bool $eagerLoad = false;
 
     protected bool $freed = false;
 
@@ -56,19 +48,15 @@ class Result implements Countable, IteratorAggregate
     /**
      * New Result constructor.
      * @param ResultSet $result The ResultSet.
-     * @param Model $query The Model.
+     * @param Query $query The Query.
      * @param array $options The result options.
+     * @param bool $eagerLoad Whether to eager load the results.
      */
-    public function __construct(ResultSet $result, Model $model, array $options = [])
+    public function __construct(ResultSet $result, Query $query, bool $eagerLoad = false)
     {
         $this->result = $result;
-        $this->model = $model;
-
-        $this->alias = $options['alias'] ?? $this->model->getAlias();
-        $this->contain = $options['contain'] ?? [];
-        $this->matching = $options['matching'] ?? [];
-        $this->connectionType = $options['connectionType'] ?? Model::READ;
-        $this->eagerLoad = $options['eagerLoad'] ?? false;
+        $this->query = $query;
+        $this->eagerLoad = $eagerLoad;
     }
 
     /**
@@ -203,12 +191,14 @@ class Result implements Countable, IteratorAggregate
      */
     protected function buildEntity(array $data): Entity
     {
-        foreach ($this->matching AS $name => $relationship) {
+        $matching = $this->query->getMatching();
+
+        foreach ($matching AS $name => $relationship) {
             $data['_matchingData'][$name] = $relationship->getTarget()
                 ->newEntity($data['_matchingData'][$name] ?? [], static::ENTITY_OPTIONS);
         }
 
-        return $this->model->newEntity($data, static::ENTITY_OPTIONS);
+        return $this->query->getModel()->newEntity($data, static::ENTITY_OPTIONS);
     }
 
     /**
@@ -218,8 +208,8 @@ class Result implements Countable, IteratorAggregate
     protected function getAliasMap(): array
     {
         if ($this->aliasMap === null) {            
-            $this->aliasMap = [$this->alias => []];
-            static::buildAliasMap($this->aliasMap, $this->contain, $this->model);
+            $this->aliasMap = [$this->query->getAlias() => []];
+            static::buildAliasMap($this->aliasMap, $this->query->getContain(), $this->query->getModel());
         }
 
         return $this->aliasMap;
@@ -245,8 +235,8 @@ class Result implements Countable, IteratorAggregate
             $entities[] = $this->buildEntity($data);
         }
 
-        $usedAliases = [$this->alias];
-        static::loadContain($entities, $this->contain, $this->model, $this->connectionType, $usedAliases);
+        $usedAliases = [$this->query->getAlias()];
+        static::loadContain($entities, $this->query->getContain(), $this->query->getModel(), $this->query, $usedAliases);
 
         return $entities;
     }
@@ -259,6 +249,7 @@ class Result implements Countable, IteratorAggregate
     protected function parseRow(array $row): array
     {
         $aliasMap = $this->getAliasMap();
+        $matching = $this->query->getMatching();
 
         $data = [];
 
@@ -268,10 +259,10 @@ class Result implements Countable, IteratorAggregate
             $parts = explode('__', $column, 2);
 
             $pointer = &$data;
-            if (count($parts) === 2 && (array_key_exists($parts[0], $this->matching) || array_key_exists($parts[0], $aliasMap))) {
+            if (count($parts) === 2 && (array_key_exists($parts[0], $matching) || array_key_exists($parts[0], $aliasMap))) {
                 [$alias, $column] = $parts;
 
-                if (array_key_exists($alias, $this->matching)) {
+                if (array_key_exists($alias, $matching)) {
                     $data['_matchingData'] ??= [];
                     $data['_matchingData'][$alias] ??= [];
                     $data['_matchingData'][$alias][$column] = $value;
@@ -305,7 +296,9 @@ class Result implements Countable, IteratorAggregate
         foreach ($contain AS $name => $data) {
             $relationship = $model->getRelationship($name);
 
-            if (!$relationship->canBeJoined() || array_key_exists($name, $aliasMap)) {
+            $data['strategy'] ??= $relationship->getStrategy();
+
+            if ($data['strategy'] !== 'join' || array_key_exists($name, $aliasMap)) {
                 continue;
             }
 
@@ -323,10 +316,10 @@ class Result implements Countable, IteratorAggregate
      * @param array $entities The entities.
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
-     * @param string $connectionType The connection type.
+     * @param Query $query The Query.
      * @param array $usedAliases The used aliases.
      */
-    protected static function loadContain(array $entities, array $contain, Model $model, string $connectionType, array &$usedAliases): void
+    protected static function loadContain(array $entities, array $contain, Model $model, Query $query, array &$usedAliases): void
     {
         if ($entities === []) {
             return;
@@ -335,8 +328,11 @@ class Result implements Countable, IteratorAggregate
         foreach ($contain AS $name => $data) {
             $relationship = $model->getRelationship($name);
 
-            if (!$relationship->canBeJoined() || in_array($name, $usedAliases)) {
-                $relationship->findRelated($entities, $data + ['type' => $connectionType]);
+            $data['strategy'] ??= $relationship->getStrategy();
+
+            if ($data['strategy'] !== 'join' || in_array($name, $usedAliases)) {
+                $data['type'] ??= $query->getConnectionType();
+                $relationship->findRelated($entities, $data, $query);
                 continue;
             }
 
@@ -353,7 +349,7 @@ class Result implements Countable, IteratorAggregate
                 $relations[] = $entity->get($property);
             }
 
-            static::loadContain($relations, $data['contain'], $relationship->getTarget(), $connectionType, $usedAliases);
+            static::loadContain($relations, $data['contain'], $relationship->getTarget(), $query, $usedAliases);
         }
     }
 

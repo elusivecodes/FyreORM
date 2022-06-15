@@ -866,4 +866,75 @@ trait HasManyTest
         );
     }
 
+    public function testHasManyStrategyFind(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.'
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.'
+                ]
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Posts' => [
+                    'strategy' => 'subquery'
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($post) => $post->id,
+                $user->posts
+            )
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[0]
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[1]
+        );
+
+        $this->assertFalse(
+            $user->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[0]->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[1]->isNew()
+        );
+    }
+
 }

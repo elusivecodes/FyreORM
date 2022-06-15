@@ -498,4 +498,101 @@ trait ManyToManyTest
         );
     }
 
+    public function testManyToManyStrategyFind(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => 'test1'
+                ],
+                [
+                    'tag' => 'test2'
+                ]
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Posts->save($post)
+        );
+
+        $post = $Posts->get(1, [
+            'contain' => [
+                'Tags' => [
+                    'strategy' => 'subquery'
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $post->id
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($tag) => $tag->id,
+                $post->tags
+            )
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($tag) => $tag->_joinData->id,
+                $post->tags
+            )
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $post
+        );
+
+        $this->assertInstanceOf(
+            Tag::class,
+            $post->tags[0]
+        );
+
+        $this->assertInstanceOf(
+            Tag::class,
+            $post->tags[1]
+        );
+
+        $this->assertInstanceOf(
+            Entity::class,
+            $post->tags[0]->_joinData
+        );
+
+        $this->assertInstanceOf(
+            Entity::class,
+            $post->tags[1]->_joinData
+        );
+
+        $this->assertFalse(
+            $post->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[0]->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[1]->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[0]->_joinData->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[1]->_joinData->isNew()
+        );
+    }
+
 }

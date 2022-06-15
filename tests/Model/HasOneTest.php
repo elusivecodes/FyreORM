@@ -433,4 +433,75 @@ trait HasOneTest
         );
     }
 
+    public function testHasOneStrategyFind(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test'
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Addresses' => [
+                    'strategy' => 'select'
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertSame(
+            1,
+            $user->address->id
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Address::class,
+            $user->address
+        );
+
+        $this->assertFalse(
+            $user->isNew()
+        );
+
+        $this->assertFalse(
+            $user->address->isNew()
+        );
+    }
+
+    public function testHasOneStrategyFindSql(): void
+    {
+        $this->assertSame(
+            'SELECT Users.id AS Users__id FROM users AS Users',
+            ModelRegistry::use('Users')
+                ->find([
+                    'fields' => [
+                        'Users.id'
+                    ],
+                    'contain' => [
+                        'Addresses' => [
+                            'strategy' => 'select'
+                        ]
+                    ]
+                ])
+                ->sql()
+        );
+    }
+
 }

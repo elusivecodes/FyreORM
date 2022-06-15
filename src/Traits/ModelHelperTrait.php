@@ -62,7 +62,7 @@ trait ModelHelperTrait
                     continue;
                 }
 
-                if ($relationship->canBeJoined()) {
+                if (!$relationship->hasMultiple()) {
                     $relations = [$relations];
                 }
 
@@ -108,12 +108,10 @@ trait ModelHelperTrait
      * Normalize contain data.
      * @param string|array $contain The contain data.
      * @param Model $model The Model.
-     * @param bool|null $canBeJoined Whether the relationship can be joined.
-     * @param bool $allowOptions Whether to allow query options.
      * @return array The normalized contain data.
      * @throws OrmException if relationship is invalid.
      */
-    public static function normalizeContain(string|array $contain, Model $model, bool|null $canBeJoined = null, bool $allowOptions = true): array
+    public static function normalizeContain(string|array $contain, Model $model): array
     {
         $normalized = [
             'contain' => []
@@ -137,15 +135,12 @@ trait ModelHelperTrait
 
         foreach ($contain AS $key => $value) {
             if (is_numeric($key) || $key === 'contain') {
-                $newContain = static::normalizeContain($value, $model, true);
+                $newContain = static::normalizeContain($value, $model);
                 $normalized = static::mergeContain($normalized, $newContain);
                 continue;
             }
 
-            if ($allowOptions && (
-                ($canBeJoined === false && array_key_exists($key, static::QUERY_METHODS)) ||
-                ($canBeJoined === true && in_array($key, ['fields', 'autoFields']))
-            )) {
+            if (array_key_exists($key, static::QUERY_METHODS) || $key === 'strategy') {
                 $normalized[$key] = $value;
                 continue;
             }
@@ -157,7 +152,7 @@ trait ModelHelperTrait
             }
 
             $normalized['contain'][$key] ??= [];
-            $newContain = static::normalizeContain($value, $relationship->getTarget(), $relationship->canBeJoined());
+            $newContain = static::normalizeContain($value, $relationship->getTarget());
             $normalized['contain'][$key] = static::mergeContain($normalized['contain'][$key], $newContain);
         }
 
@@ -218,7 +213,7 @@ trait ModelHelperTrait
                     continue;
                 }
 
-                if ($relationship->canBeJoined()) {
+                if (!$relationship->hasMultiple()) {
                     $children = [$children];
                 }
 

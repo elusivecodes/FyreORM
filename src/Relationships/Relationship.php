@@ -4,14 +4,18 @@ declare(strict_types=1);
 namespace Fyre\ORM\Relationships;
 
 use
+    Fyre\ORM\Exceptions\OrmException,
     Fyre\ORM\Model,
     Fyre\ORM\ModelRegistry,
+    Fyre\ORM\Query,
     Fyre\Utility\Inflector;
 
 use function
     array_key_exists,
     array_merge,
-    count;
+    count,
+    in_array,
+    str_replace;
 
 /**
  * Relationship
@@ -33,11 +37,13 @@ abstract class Relationship
 
     protected string $bindingKey;
 
+    protected string $strategy = 'select';
+
+    protected array $validStrategies = ['select', 'subquery'];
+
     protected array $conditions = [];
 
     protected bool $dependent = false;
-
-    protected bool $isOwningSide = true;
 
     /**
      * New relationship constructor.
@@ -54,6 +60,7 @@ abstract class Relationship
             'propertyName',
             'foreignKey',
             'bindingKey',
+            'strategy',
             'conditions',
             'dependent'
         ];
@@ -64,6 +71,10 @@ abstract class Relationship
             }
 
             $this->$property = $options[$property];
+        }
+
+        if (!in_array($this->strategy, $this->validStrategies)) {
+            throw OrmException::forInvalidStrategy($this->strategy);
         }
 
         $this->className ??= $this->name;
@@ -104,22 +115,20 @@ abstract class Relationship
     }
 
     /**
-     * Determine if the relationship can be joined.
-     * @return bool TRUE if the relationship can be joined, otherwise FALSE.
-     */
-    public function canBeJoined(): bool
-    {
-        return false;
-    }
-
-    /**
      * Find related data for entities.
      * @param array $entities The entities.
      * @param array $data The find data.
+     * @param Query|null $query The Query.
      */
-    public function findRelated(array $entities, array $data): void
+    public function findRelated(array $entities, array $data, Query|null $query = null): void
     {
-        $conditions = $this->containConditions($entities);
+        $data['strategy'] ??= $this->getStrategy();
+
+        if ($query && $data['strategy'] === 'subquery') {
+            $conditions = $this->containConditionSubquery($query);
+        } else {
+            $conditions = $this->containConditions($entities);
+        }
 
         if ($conditions === []) {
             return;
@@ -127,13 +136,19 @@ abstract class Relationship
 
         $target = $this->getTarget();
         $property = $this->getProperty();
-        $canBeJoined = $this->canBeJoined();
-        $bindingKey = $this->getBindingKey();
-        $foreignKey = $this->getForeignKey();
+        $hasMultiple = $this->hasMultiple();
+
+        if ($this->isOwningSide()) {
+            $sourceKey = $this->getBindingKey();
+            $targetKey = $this->getForeignKey();
+        } else {
+            $sourceKey = $this->getForeignKey();
+            $targetKey = $this->getBindingKey();
+        }
 
         if (array_key_exists('fields', $data) || (array_key_exists('autoFields', $data) && !$data['autoFields'])) {
             $data['fields'] ??= [];
-            $data['fields'][] = $target->aliasField($foreignKey);
+            $data['fields'][] = $target->aliasField($targetKey);
         }
 
         $data['conditions'] = array_merge($conditions, $data['conditions'] ?? []);
@@ -141,24 +156,24 @@ abstract class Relationship
         $allChildren = $target->find($data)->all();
 
         foreach ($entities AS $entity) {
-            $bindingValue = $entity->get($bindingKey);
+            $sourceValue = $entity->get($sourceKey);
 
             $children = [];
             foreach ($allChildren AS $child) {
-                $foreignValue = $child->get($foreignKey);
+                $targetValue = $child->get($targetKey);
 
-                if ($bindingValue !== $foreignValue) {
+                if ($sourceValue !== $targetValue) {
                     continue;
                 }
 
                 $children[] = $child;
 
-                if ($canBeJoined) {
+                if (!$hasMultiple) {
                     break;
                 }
             }
 
-            if ($canBeJoined) {
+            if (!$hasMultiple) {
                 $entity->set($property, $children[0] ?? null);
             } else {
                 $entity->set($property, $children);
@@ -212,7 +227,16 @@ abstract class Relationship
      */
     public function getProperty(): string
     {
-        return $this->propertyName ??= static::propertyName($this->name, !$this->canBeJoined());
+        return $this->propertyName ??= static::propertyName($this->name, $this->hasMultiple());
+    }
+
+    /**
+     * Get the strategy.
+     * @return string The strategy.
+     */
+    public function getStrategy(): string
+    {
+        return $this->strategy;
     }
 
     /**
@@ -231,6 +255,15 @@ abstract class Relationship
     public function getTarget(): Model
     {
         return $this->target ??= ModelRegistry::use($this->className);
+    }
+
+    /**
+     * Determine if the relationship has multiple related items.
+     * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
+     */
+    public function hasMultiple(): bool
+    {
+        return true;
     }
 
     /**
@@ -345,6 +378,42 @@ abstract class Relationship
         } else {
             $containConditions = [$targetKey => $sourceValues[0]];
         }
+
+        return array_merge($containConditions, $this->conditions);
+    }
+
+    /**
+     * Get the subquery contain conditions for a Query.
+     * @param Query $query The Query.
+     * @return array The subquery contain conditions.
+     */
+    protected function containConditionSubquery(Query $query): array
+    {
+        if ($this->isOwningSide()) {
+            $sourceKey = $this->getBindingKey();
+            $targetKey = $this->getForeignKey();
+        } else {
+            $sourceKey = $this->getForeignKey();
+            $targetKey = $this->getBindingKey();
+        }
+
+        $target = $this->getTarget();
+        $targetKey = $target->aliasField($targetKey);
+
+        $alias = $query->getAlias();
+        $sourceKey = $this->source->aliasField($sourceKey, $alias);
+
+        $containConditions = [
+            $targetKey.' IN' => $query->getModel()
+                ->getConnection()
+                ->builder()
+                ->table([
+                    $alias => $query
+                ])
+                ->select([
+                    str_replace('.', '__', $sourceKey)
+                ])
+        ];
 
         return array_merge($containConditions, $this->conditions);
     }

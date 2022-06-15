@@ -641,6 +641,16 @@ public function afterDelete(Entity $entity) {}
 
 If this method returns *false* the delete will not be performed and the transaction will be rolled back.
 
+**After Find**
+
+After find callback
+
+```php
+use Fyre\ORM\Result;
+
+public function afterFind(Result $result): Result {}
+```
+
 **After Rules**
 
 After rules callback.
@@ -676,6 +686,16 @@ public function beforeDelete(Entity $entity) {}
 ```
 
 If this method returns *false* the delete will not be performed.
+
+**Before Find**
+
+Before find callback
+
+```php
+use Fyre\ORM\Query;
+
+public function beforeFind(Query $query): Query {}
+```
 
 **Before Rules**
 
@@ -768,6 +788,46 @@ Get the first result.
 
 ```php
 $entity = $query->first();
+```
+
+**Get Alias**
+
+Get the alias.
+
+```php
+$alias = $query->getAlias();
+```
+
+**Get Connection Type**
+
+Get the connection type.
+
+```php
+$connectionType = $query->getConnectionType();
+```
+
+**Get Contain**
+
+Get the contain array.
+
+```php
+$contain = $query->getContain();
+```
+
+**Get Matching**
+
+Get the matching array.
+
+```php
+$matching = $query->getMatching();
+```
+
+**Get Model**
+
+Get the [*Model*](#models).
+
+```php
+$model = $query->getModel();
 ```
 
 **Get Result**
@@ -941,6 +1001,16 @@ Validate an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
 ```php
 $rules->validate($entity);
+```
+
+**Validate**
+
+Validate multiple entities
+
+- `$entities` is an array containing the entities.
+
+```php
+$rules->validateMany($entities);
 ```
 
 

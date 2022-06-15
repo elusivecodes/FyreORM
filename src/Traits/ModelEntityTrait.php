@@ -212,7 +212,7 @@ trait ModelEntityTrait
 
                     $target = $relationship->getTarget();
 
-                    if ($relationship->canBeJoined()) {
+                    if (!$relationship->hasMultiple()) {
                         $relation = $entity->get($field) ?? $target->newEmptyEntity();
                         $target->patchEntity($relation, $value, $options);
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace Fyre\ORM\Traits;
 
 use
-    Fyre\Entity\Entity;
+    Fyre\Entity\Entity,
+    Fyre\ORM\Query,
+    Fyre\ORM\Result;
 
 /**
  * ModelCallbacksTrait
@@ -19,6 +21,16 @@ trait ModelCallbacksTrait
     public function afterDelete(Entity $entity)
     {
         return true;
+    }
+
+    /**
+     * After find callback.
+     * @param Result $result The Result.
+     * @return Result The Result.
+     */
+    public function afterFind(Result $result): Result
+    {
+        return $result;
     }
 
     /**
@@ -46,6 +58,16 @@ trait ModelCallbacksTrait
     public function beforeDelete(Entity $entity)
     {
         return true;
+    }
+
+    /**
+     * Before find callback.
+     * @param Query $query The Query.
+     * @return Query The Query.
+     */
+    public function beforeFind(Query $query): Query
+    {
+        return $query;
     }
 
     /**

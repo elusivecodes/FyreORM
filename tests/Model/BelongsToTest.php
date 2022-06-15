@@ -431,4 +431,73 @@ trait BelongsToTest
         );
     }
 
+    public function testBelongsToStrategyFind(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'Test'
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Addresses->save($address)
+        );
+
+        $address = $Addresses->get(1, [
+            'contain' => [
+                'Users' => [
+                    'strategy' => 'select'
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $address->id
+        );
+
+        $this->assertSame(
+            1,
+            $address->user->id
+        );
+
+        $this->assertInstanceOf(
+            Address::class,
+            $address
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $address->user
+        );
+
+        $this->assertFalse(
+            $address->isNew()
+        );
+
+        $this->assertFalse(
+            $address->user->isNew()
+        );
+    }
+
+    public function testBelongsToStrategyFindSql(): void
+    {
+        $this->assertSame(
+            'SELECT Addresses.id AS Addresses__id FROM addresses AS Addresses',
+            ModelRegistry::use('Addresses')
+                ->find([
+                    'contain' => [
+                        'Users' => [
+                            'strategy' => 'select'
+                        ]
+                    ]
+                ])
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
+
 }
