@@ -4,18 +4,41 @@ declare(strict_types=1);
 namespace Tests\Mock\Model;
 
 use
-    Fyre\ORM\Model;
+    Fyre\ORM\Model,
+    Fyre\ORM\RuleSet,
+    Fyre\Validation\Rule,
+    Fyre\Validation\Validator;
 
 class Tags extends Model
 {
 
-    protected string $testProperty = 'tag';
-
-    use CallbackTrait;
-
     public function __construct()
     {
+        $this->addBehavior('Test', [
+            'testField' => 'tag'
+        ]);
+
         $this->manyToMany('Posts');
+    }
+
+    public function buildRules(RuleSet $rules): RuleSet
+    {
+        $rules->add(function(array $entities) {
+            foreach ($entities AS $entity) {
+                if ($entity->get('tag') === 'failRules') {
+                    return false;
+                }
+            }
+        });
+
+        return $rules;
+    }
+
+    public function buildValidation(Validator $validator): Validator
+    {
+        $validator->add('tag', Rule::required(), ['on' => 'create']);
+
+        return $validator;
     }
 
 }

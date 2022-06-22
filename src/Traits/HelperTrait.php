@@ -22,9 +22,9 @@ use function
     strtolower;
 
 /**
- * ModelHelperTrait
+ * HelperTrait
  */
-trait ModelHelperTrait
+trait HelperTrait
 {
 
     /**

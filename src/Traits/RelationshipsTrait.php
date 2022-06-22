@@ -15,9 +15,9 @@ use function
     array_key_exists;
 
 /**
- * ModelRelationshipsTrait
+ * RelationshipsTrait
  */
-trait ModelRelationshipsTrait
+trait RelationshipsTrait
 {
 
     protected array $relationships = [];

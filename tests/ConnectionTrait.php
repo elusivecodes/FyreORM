@@ -6,6 +6,7 @@ namespace Tests;
 use
     Fyre\DB\ConnectionManager,
     Fyre\DB\Handlers\MySQL\MySQLConnection,
+    Fyre\ORM\BehaviorRegistry,
     Fyre\ORM\EntityLocator,
     Fyre\ORM\ModelRegistry;
 
@@ -17,6 +18,9 @@ trait ConnectionTrait
 
     public function setUp(): void
     {
+        BehaviorRegistry::clear();
+        BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
+
         ModelRegistry::clear();
         ModelRegistry::addNamespace('Tests\Mock\Model');
 
@@ -29,6 +33,7 @@ trait ConnectionTrait
         $connection = ConnectionManager::use();
         $connection->query('TRUNCATE test');
         $connection->query('TRUNCATE others');
+        $connection->query('TRUNCATE timestamps');
         $connection->query('TRUNCATE users');
         $connection->query('TRUNCATE addresses');
         $connection->query('TRUNCATE posts');
@@ -57,6 +62,7 @@ trait ConnectionTrait
 
         $connection->query('DROP TABLE IF EXISTS `test`');
         $connection->query('DROP TABLE IF EXISTS `others`');
+        $connection->query('DROP TABLE IF EXISTS `timestamps`');
         $connection->query('DROP TABLE IF EXISTS `users`');
         $connection->query('DROP TABLE IF EXISTS `addresses`');
         $connection->query('DROP TABLE IF EXISTS `posts`');
@@ -76,6 +82,15 @@ trait ConnectionTrait
             CREATE TABLE `others` (
                 `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `value` INT(10) UNSIGNED NOT NULL,
+                PRIMARY KEY (`id`)
+            ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
+        EOT);
+
+        $connection->query(<<<EOT
+            CREATE TABLE `timestamps` (
+                `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `created` DATETIME NOT NULL,
+                `modified` DATETIME NOT NULL,
                 PRIMARY KEY (`id`)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);

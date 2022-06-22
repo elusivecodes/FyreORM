@@ -6,17 +6,19 @@ namespace Fyre\ORM;
 use
     Fyre\DB\Connection,
     Fyre\DB\ConnectionManager,
-    Fyre\ORM\Traits\ModelCallbacksTrait,
-    Fyre\ORM\Traits\ModelEntityTrait,
-    Fyre\ORM\Traits\ModelHelperTrait,
-    Fyre\ORM\Traits\ModelParserTrait,
-    Fyre\ORM\Traits\ModelQueryTrait,
-    Fyre\ORM\Traits\ModelRelationshipsTrait,
-    Fyre\ORM\Traits\ModelSchemaTrait,
-    Fyre\ORM\Traits\ModelValidationTrait;
+    Fyre\ORM\Traits\BehaviorTrait,
+    Fyre\ORM\Traits\EntityTrait,
+    Fyre\ORM\Traits\HelperTrait,
+    Fyre\ORM\Traits\ParserTrait,
+    Fyre\ORM\Traits\QueryTrait,
+    Fyre\ORM\Traits\RelationshipsTrait,
+    Fyre\ORM\Traits\SchemaTrait,
+    Fyre\ORM\Traits\ValidationTrait;
 
 use function
-    array_key_exists;
+    array_key_exists,
+    call_user_func_array,
+    method_exists;
 
 /**
  * Model
@@ -48,14 +50,14 @@ class Model
     protected array $connections = [];
 
     use
-        ModelCallbacksTrait,
-        ModelEntityTrait,
-        ModelHelperTrait,
-        ModelParserTrait,
-        ModelQueryTrait,
-        ModelRelationshipsTrait,
-        ModelSchemaTrait,
-        ModelValidationTrait;
+        BehaviorTrait,
+        EntityTrait,
+        HelperTrait,
+        ParserTrait,
+        QueryTrait,
+        RelationshipsTrait,
+        SchemaTrait,
+        ValidationTrait;
 
     /**
      * Get the Connection.
@@ -69,6 +71,26 @@ class Model
         }
 
         return $this->connections[$type] ??= ConnectionManager::use($this->connectionKeys[$type] ?? $this->connectionKeys[static::WRITE]);
+    }
+
+    /**
+     * Handle an event callbacks.
+     * @param string $event The event name.
+     * @return bool TRUE if the callbacks processed successfully, otherwise FALSE.
+     */
+    public function handleEvent(string $event, ...$arguments): bool
+    {
+        if (method_exists($this, $event) && call_user_func_array([$this, $event], $arguments) === false) {
+            return false;
+        }
+
+        foreach ($this->behaviors AS $behavior) {
+            if (method_exists($behavior, $event) && call_user_func_array([$behavior, $event], $arguments) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

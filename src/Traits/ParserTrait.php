@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace Fyre\ORM\Traits;
 
 /**
- * ModelParserTrait
+ * ParserTrait
  */
-trait ModelParserTrait
+trait ParserTrait
 {
 
     /**

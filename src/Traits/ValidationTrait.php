@@ -8,9 +8,9 @@ use
     Fyre\Validation\Validator;
 
 /**
- * ModelValidationTrait
+ * ValidationTrait
  */
-trait ModelValidationTrait
+trait ValidationTrait
 {
 
     protected Validator $validator;

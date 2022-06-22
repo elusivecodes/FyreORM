@@ -212,6 +212,59 @@ trait CallbacksManyToManyTest
         );
     }
 
+    public function testBeforeParseManyToMany(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => '  test1  '
+                ],
+                [
+                    'tag' => '  test2  '
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            'test1',
+            $post->tags[0]->tag
+        );
+
+        $this->assertSame(
+            'test2',
+            $post->tags[1]->tag
+        );
+    }
+
+    public function testAfterParseManyToMany(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => 'test1'
+                ],
+                [
+                    'tag' => 'afterParse'
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $post->tags[1]->test
+        );
+    }
+
     public function testBeforeSaveManyManyToMany(): void
     {
         $Posts = ModelRegistry::use('Posts');
@@ -509,6 +562,99 @@ trait CallbacksManyToManyTest
         $this->assertSame(
             0,
             ModelRegistry::use('PostsTags')->find()->count()
+        );
+    }
+
+    public function testBeforeParseManyToManyMany(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $posts = $Posts->newEntities([
+            [
+                'user_id' => 1,
+                'title' => 'Test 1',
+                'content' => 'This is the content.',
+                'tags' => [
+                    [
+                        'tag' => '  test1  '
+                    ],
+                    [
+                        'tag' => '  test2  '
+                    ]
+                ]
+            ],
+            [
+                'user_id' => 1,
+                'title' => 'Test 2',
+                'content' => 'This is the content.',
+                'tags' => [
+                    [
+                        'tag' => '  test3  '
+                    ],
+                    [
+                        'tag' => '  test4  '
+                    ]
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            'test1',
+            $posts[0]->tags[0]->tag
+        );
+
+        $this->assertSame(
+            'test2',
+            $posts[0]->tags[1]->tag
+        );
+
+        $this->assertSame(
+            'test3',
+            $posts[1]->tags[0]->tag
+        );
+
+        $this->assertSame(
+            'test4',
+            $posts[1]->tags[1]->tag
+        );
+    }
+
+    public function testAfterParseManyToManyMany(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $posts = $Posts->newEntities([
+            [
+                'user_id' => 1,
+                'title' => 'Test 1',
+                'content' => 'This is the content.',
+                'tags' => [
+                    [
+                        'tag' => 'test1'
+                    ],
+                    [
+                        'tag' => 'test2'
+                    ]
+                ]
+            ],
+            [
+                'user_id' => 1,
+                'title' => 'Test 2',
+                'content' => 'This is the content.',
+                'tags' => [
+                    [
+                        'tag' => 'test3'
+                    ],
+                    [
+                        'tag' => 'afterParse'
+                    ]
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $posts[1]->tags[1]->test
         );
     }
 

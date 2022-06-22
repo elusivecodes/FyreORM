@@ -13,6 +13,7 @@ final class ModelTest extends TestCase
 {
 
     use
+        BehaviorTest,
         BelongsToCallbacksTest,
         BelongsToTest,
         CallbacksBelongsToTest,

@@ -11,6 +11,7 @@
     - [Entities](#entities)
     - [Query Methods](#query-methods)
     - [Relationship Methods](#relationship-methods)
+    - [Behavior Methods](#behavior-methods)
     - [Validation](#validation)
     - [Callbacks](#callbacks)
 - [Queries](#queries)
@@ -20,6 +21,9 @@
     - [Has Many](#has-many)
     - [Has One](#has-one)
     - [Many To Many](#many-to-many)
+- [Behavior Registry](#behavior-registry)
+- [Behaviors](#behaviors)
+    - [Timestamp](#timestamp)
 - [Rules](#rules)
 - [Entity Locator](#entity-locator)
 
@@ -582,6 +586,50 @@ $model->removeRelationship($name);
 ```
 
 
+### Behavior Methods
+
+**Add Behavior**
+
+Add a [*Behavior*](#behaviors) to the *Model*.
+
+- `$name` is a string representing the behavior name.
+- `$options` is an array containing behavior options.
+
+```php
+$model->addBehavior($name, $options);
+```
+
+**Get Behavior**
+
+Get a loaded [*Behavior*](#behaviors).
+
+- `$name` is a string representing the behavior name.
+
+```php
+$behavior = $model->getBehavior($name);
+```
+
+**Has Behavior**
+
+Determine if the *Model* has a [*Behavior*](#behaviors).
+
+- `$name` is a string representing the behavior name.
+
+```php
+$hasBehavior = $model->hasBehavior($name);
+```
+
+**Remove Behavior**
+
+Remove a [*Behavior*](#behaviors) from the *Model*.
+
+- `$name` is a string representing the behavior name.
+
+```php
+$model->removeBehavior($name);
+```
+
+
 ### Validation
 
 **Get Rules**
@@ -627,23 +675,21 @@ $model->setValidator($validator);
 
 ### Callbacks
 
-Callbacks can be defined in your models, allowing custom code to run or revert changes at various points during model queries.
+Callbacks can be defined in your models, allowing custom code to run or revert changes at various points during model operations.
 
 **After Delete**
 
-After delete callback.
+Execute a callback after entities are deleted.
 
 ```php
-use Fyre\Entity\Entity;
-
-public function afterDelete(Entity $entity) {}
+public function afterDelete(array $entitites) {}
 ```
 
 If this method returns *false* the delete will not be performed and the transaction will be rolled back.
 
 **After Find**
 
-After find callback
+Execute a callback after performing a find query.
 
 ```php
 use Fyre\ORM\Result;
@@ -653,43 +699,47 @@ public function afterFind(Result $result): Result {}
 
 **After Rules**
 
-After rules callback.
+Execute a callback after model rules are processed.
 
 ```php
 use Fyre\Entity\Entity;
 
-public function afterRules(Entity $entity) {}
+public function afterRules(array $entitites) {}
 ```
 
 If this method returns *false* the save will not be performed.
 
-**After Save**
+**After Parse**
 
-After save callback.
+Execute a callback after parsing user data into an entity.
 
 ```php
-use Fyre\Entity\Entity;
+public function afterParse(Entity $entity) { }
+```
 
-public function afterSave(Entity $entity) {}
+**After Save**
+
+Execute a callback after entities are saved to the database.
+
+```php
+public function afterSave(array $entitites) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
 
 **Before Delete**
 
-Before delete callback.
+Execute a callback before entities are deleted.
 
 ```php
-use Fyre\Entity\Entity;
-
-public function beforeDelete(Entity $entity) {}
+public function beforeDelete(array $entitites) {}
 ```
 
 If this method returns *false* the delete will not be performed.
 
 **Before Find**
 
-Before find callback
+Execute a callback before performing a find query.
 
 ```php
 use Fyre\ORM\Query;
@@ -697,26 +747,32 @@ use Fyre\ORM\Query;
 public function beforeFind(Query $query): Query {}
 ```
 
+**Before Parse**
+
+Execute a callback before parsing user data into an entity.
+
+```php
+use ArrayObject;
+
+public function beforeParse(ArrayObject $data) { }
+```
+
 **Before Rules**
 
 Before rules callback.
 
 ```php
-use Fyre\Entity\Entity;
-
-public function beforeRules(Entity $entity) {}
+public function beforeRules(array $entitites) {}
 ```
 
 If this method returns *false* the save will not be performed.
 
 **Before Save**
 
-Before save callback.
+Execute a callback before entities are saved to the database.
 
 ```php
-use Fyre\Entity\Entity;
-
-public function beforeSave(Entity $entity) {}
+public function beforeSave(array $entitites) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
@@ -958,13 +1014,103 @@ $model->manyToMany($name, $data);
 When loading results, the join table data will be accessible via the `_joinData` property.
 
 
+## Behavior Registry
+
+```php
+use Fyre\ORM\BehaviorRegistry;
+```
+
+**Add Namespace**
+
+Add a namespace for automatically loading behaviors.
+
+- `$namespace` is a string representing the namespace.
+
+```php
+BehaviorRegistry::addNamespace($namespace);
+```
+
+**Clear**
+
+Clear all namespaces and behaviors.
+
+```php
+BehaviorRegistry::clear();
+```
+
+**Find**
+
+Find a behavior class.
+
+- `$name` is a string representing the behavior name.
+
+```php
+$className = BehaviorRegistry::find($name);
+```
+
+**Load**
+
+Load a behavior.
+
+- `$name` is a string representing the behavior name.
+- `$model` is a *Model*.
+- `$options` is an array containing the behavior options, and will default to *[]*.
+
+```php
+$behavior = BehaviorRegistry::load($name, $model, $options);
+```
+
+
+## Behaviors
+
+Behaviors must be attached to a [*Model*](#models) using the `addBehavior` method. Loaded behaviors can be accessed inside a [*Model*](#models) using the class name as a property of `$this`.
+
+```php
+$this->addBehavior('MyBehavior');
+
+$behavior = $this->MyBehavior;
+```
+
+Custom behaviors can be created by extending `\Fyre\ORM\Behavior`, ensuring the `__construct` method accepts [*Model*](#models) as the argument (and optionally an `$options` array as the second parameter).
+
+Behaviors can also include [callbacks](#callbacks) that will be executed during model operations.
+
+**Get Config**
+
+Get the configuration options.
+
+```php
+$config = $behavior->getConfig();
+```
+
+**Get Model**
+
+Get the [*Model*](#models).
+
+```php
+$model = $behavior->getModel();
+```
+
+### Timestamp
+
+The timestamp behavior provided a simple way to automatically update created/modified timestamps when saving data via models.
+
+- `$options` is an array containing behavior options.
+    - `createdField` is a string representing the created field name, and will default to "*created*".
+    - `modifiedField` is a string representing the modified field name, and will default to "*modified*".
+
+```php
+$model->addBehavior('Timestamp', $options);
+```
+
+
 ## Rules
 
 **Add**
 
 Add a rule.
 
-- `$rule` is a *Closure*, that accepts an [*Entity*](https://github.com/elusivecodes/FyreEntity) as the first argument, and should return *false* if the validation failed.
+- `$rule` is a *Closure*, that accepts an array of [entities](https://github.com/elusivecodes/FyreEntity) as the first argument, and should return *false* if the validation failed.
 
 ```php
 $rules->add($rule);
@@ -1007,7 +1153,7 @@ Validate an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 $rules->validate($entity);
 ```
 
-**Validate**
+**Validate Many**
 
 Validate multiple entities
 

@@ -4,19 +4,24 @@ declare(strict_types=1);
 namespace Fyre\ORM\Traits;
 
 use
+    ArrayObject,
+    Fyre\DB\QueryGenerator,
     Fyre\Entity\Entity,
     Fyre\ORM\EntityLocator;
 
 use function
+    array_diff_assoc,
+    array_filter,
     array_key_exists,
     array_map,
+    array_values,
     count,
     is_array;
 
 /**
- * ModelEntityTrait
+ * EntityTrait
  */
-trait ModelEntityTrait
+trait EntityTrait
 {
 
     protected string $entityClass;
@@ -132,6 +137,61 @@ trait ModelEntityTrait
     }
 
     /**
+     * Check if entities already exist, and mark them not new.
+     * @param array $entities The entities.
+     */
+    protected function checkExists(array $entities): void
+    {
+        $primaryKeys = $this->getPrimaryKey();
+
+        $entities = array_values($entities);
+
+        $entities = array_filter(
+            $entities,
+            fn(Entity $entity): bool => $entity->isNew() || $entity->extractDirty($primaryKeys) !== []
+        );
+
+        if ($entities === []) {
+            return;
+        }
+
+        $values = array_map(
+            fn(Entity $item): array => $item->extract($primaryKeys),
+            $entities
+        );
+
+        if ($values === []) {
+            return;
+        }
+
+        $matches = $this->find([
+            'fields' => $primaryKeys,
+            'conditions' => QueryGenerator::normalizeConditions($primaryKeys, $values)
+        ])
+        ->all();
+
+        if ($matches === []) {
+            return;
+        }
+
+        $matchedValues =  array_map(
+            fn(Entity $item): array => $item->extract($primaryKeys),
+            $matches
+        );
+
+        foreach ($values AS $i => $data) {
+            foreach ($matchedValues AS $other) {
+                if (array_diff_assoc($data, $other) === []) {
+                    continue;
+                }
+
+                $entities[$i]->setNew(false);
+                break;
+            }
+        }
+    }
+
+    /**
      * Create an Entity.
      * @return Entity The Entity.
      */
@@ -159,6 +219,10 @@ trait ModelEntityTrait
         $schema = $this->getSchema();
 
         if ($options['parse']) {
+            $data = new ArrayObject($data);
+            $this->handleEvent('beforeParse', $data);
+            $data = $data->getArrayCopy();
+
             $data = $this->parseSchema($data);
         }
 
@@ -270,6 +334,10 @@ trait ModelEntityTrait
 
         if ($options['clean']) {
             $entity->clean();
+        }
+
+        if ($options['parse']) {
+            $this->handleEvent('afterParse', $entity);
         }
     }
 

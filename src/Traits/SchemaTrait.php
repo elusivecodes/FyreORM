@@ -14,9 +14,9 @@ use function
     array_shift;
 
 /**
- * ModelSchemaTrait
+ * SchemaTrait
  */
-trait ModelSchemaTrait
+trait SchemaTrait
 {
 
     protected string $table;

@@ -168,6 +168,34 @@ trait CallbacksTest
         );
     }
 
+    public function testBeforeParse(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $test = $Test->newEntity([
+            'name' => '  Test  '
+        ]);
+
+        $this->assertSame(
+            'Test',
+            $test->name
+        );
+    }
+
+    public function testAfterParse(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $test = $Test->newEntity([
+            'name' => 'afterParse'
+        ]);
+
+        $this->assertSame(
+            1,
+            $test->test
+        );
+    }
+
     public function testBeforeSaveMany(): void
     {
         $Test = ModelRegistry::use('Test');
@@ -311,6 +339,54 @@ trait CallbacksTest
         $this->assertSame(
             2,
             $Test->find()->count()
+        );
+    }
+
+    public function testBeforeParseMany(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $tests = $Test->newEntities([
+            [
+                'name' => '   Test 1   '   
+            ],
+            [
+                'name' => '   Test 2   '
+            ]
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $tests[0]->name
+        );
+
+        $this->assertSame(
+            'Test 2',
+            $tests[1]->name
+        );
+    }
+
+    public function testAfterParseMany(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $tests = $Test->newEntities([
+            [
+                'name' => 'afterParse'   
+            ],
+            [
+                'name' => 'afterParse'
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $tests[0]->test
+        );
+
+        $this->assertSame(
+            1,
+            $tests[1]->test
         );
     }
 

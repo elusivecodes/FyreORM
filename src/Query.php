@@ -182,9 +182,9 @@ class Query extends QueryBuilder
             $result = $this->execute();
 
             if ($result instanceof ResultSet) {
-                $result = new Result($result, $this, $this->eagerLoad);
+                $this->result = new Result($result, $this, $this->eagerLoad);
 
-                $this->result = $this->model->afterFind($result);
+                $this->model->handleEvent('afterFind', $this->result);
             } else {
                 $this->result = $result;
             }

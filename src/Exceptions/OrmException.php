@@ -12,6 +12,16 @@ use
 class OrmException extends RunTimeException
 {
 
+    public static function forBehaviorExists(string $name)
+    {
+        return new static('Model behavior already exists: '.$name);
+    }
+
+    public static function forInvalidBehavior(string $name)
+    {
+        return new static('Model behavior not exist: '.$name);
+    }
+
     public static function forInvalidEntity()
     {
         throw new static('All entities must be an instance of Entity.');
@@ -30,6 +40,11 @@ class OrmException extends RunTimeException
     public static function forInvalidRelationship(string $name)
     {
         return new static('Model relationship does not exist: '.$name);
+    }
+
+    public static function forMissingBehavior(string $name)
+    {
+        return new static('Model behavior not loaded: '.$name);
     }
 
     public static function forRelationshipColumnName(string $property)

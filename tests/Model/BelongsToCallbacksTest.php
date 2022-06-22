@@ -164,6 +164,40 @@ trait BelongsToCallbacksTest
         );
     }
 
+    public function testBelongsToBeforeParse(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => '  Test  '
+            ]
+        ]);
+
+        $this->assertSame(
+            'Test',
+            $address->user->name
+        );
+    }
+
+    public function testBelongsToAfterParse(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'afterParse'
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $address->user->test
+        );
+    }
+
     public function testBelongsToBeforeSaveMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
@@ -393,6 +427,61 @@ trait BelongsToCallbacksTest
         $this->assertSame(
             0,
             ModelRegistry::use('Users')->find()->count()
+        );
+    }
+
+    public function testBelongsToBeforeParseMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => '  Test 1  '
+                ]
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => '  Test 2  '
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $addresses[0]->user->name
+        );
+
+        $this->assertSame(
+            'Test 2',
+            $addresses[1]->user->name
+        );
+    }
+
+    public function testBelongsToAfterParseMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => 'Test 1'
+                ]
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => 'afterParse'
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            1,
+            $addresses[1]->user->test
         );
     }
 
