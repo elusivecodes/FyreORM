@@ -158,6 +158,7 @@ trait ConnectionTrait
         $connection = ConnectionManager::use();
         $connection->query('DROP TABLE IF EXISTS `test`');
         $connection->query('DROP TABLE IF EXISTS `others`');
+        $connection->query('DROP TABLE IF EXISTS `timestamps`');
         $connection->query('DROP TABLE IF EXISTS `users`');
         $connection->query('DROP TABLE IF EXISTS `addresses`');
         $connection->query('DROP TABLE IF EXISTS `posts`');
