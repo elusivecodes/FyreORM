@@ -13,6 +13,7 @@ use function
     array_key_exists,
     array_merge,
     implode,
+    is_array,
     natsort;
 
 /**
@@ -275,13 +276,22 @@ class ManyToMany extends Relationship
                     continue;
                 }
 
+                $joinData = $child->get('_joinData') ?? [];
+
+                if ($joinData instanceof Entity) {
+                    $joinEntity = $joinData;
+                } else if (is_array($joinData)) {
+                    $joinEntity = $joinModel->newEntity($joinData);
+                } else {
+                    $joinEntity = $joinModel->newEmptyEntity();
+                }
+
                 $targetBindingValue = $child->get($targetBindingKey);
 
-                $child = $joinModel->newEmptyEntity();
-                $child->set($foreignKey, $bindingValue);
-                $child->set($targetForeignKey, $targetBindingValue);
+                $joinEntity->set($foreignKey, $bindingValue);
+                $joinEntity->set($targetForeignKey, $targetBindingValue);
 
-                $joinEntities[] = $child;
+                $joinEntities[] = $joinEntity;
             }
         }
 

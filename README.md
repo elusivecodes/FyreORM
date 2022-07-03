@@ -1123,11 +1123,25 @@ Create an "exists in" rule.
 - `$fields` is an array containing the fields.
 - `$name` is the name of the relationship.
 - `$options` is an array containing the rule options.
+    - `targetFields` is an array containing fields to match in the target table, and will default to the primary key(s).
+    - `callback` is a *Closure*, that accepts the [*Query*](#queries) as an argument.
     - `allowNullableNulls` is a boolean indicating whether to allow nullable nulls, and will default to *false*.
     - `message` is a string representing the error message, and will default to `Lang::get('RuleSet.existsIn')`.
 
 ```php
 $rules->existsIn($fields, $name, $options);
+```
+
+**Is Clean**
+
+Create an "is clean" rule.
+
+- `$options` is an array containing the rule options.
+- `$fields` is an array containing the fields.
+    - `message` is a string representing the error message, and will default to `Lang::get('RuleSet.isClean')`.
+
+```php
+$rules->isClean($fields, $options);
 ```
 
 **Is Unique**
@@ -1136,6 +1150,7 @@ Create an "is unique" rule.
 
 - `$fields` is an array containing the fields.
 - `$options` is an array containing the rule options.
+    - `callback` is a *Closure*, that accepts the [*Query*](#queries) as an argument.
     - `allowMultipleNulls` is a boolean indicating whether to allow multiple nulls, and will default to *false*.
     - `message` is a string representing the error message, and will default to `Lang::get('RuleSet.isUnique')`.
 

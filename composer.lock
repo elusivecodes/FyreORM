@@ -135,16 +135,16 @@
         },
         {
             "name": "fyre/entity",
-            "version": "v1.0.6",
+            "version": "v1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreEntity.git",
-                "reference": "63650522af28d9c54972332eee5631780a30bf3d"
+                "reference": "6f7f8697ae293d2776d62aae82c1074965f0ac4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreEntity/zipball/63650522af28d9c54972332eee5631780a30bf3d",
-                "reference": "63650522af28d9c54972332eee5631780a30bf3d",
+                "url": "https://api.github.com/repos/elusivecodes/FyreEntity/zipball/6f7f8697ae293d2776d62aae82c1074965f0ac4c",
+                "reference": "6f7f8697ae293d2776d62aae82c1074965f0ac4c",
                 "shasum": ""
             },
             "require-dev": {
@@ -170,9 +170,9 @@
             "description": "An entity library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreEntity/issues",
-                "source": "https://github.com/elusivecodes/FyreEntity/tree/v1.0.6"
+                "source": "https://github.com/elusivecodes/FyreEntity/tree/v1.0.7"
             },
-            "time": "2022-06-13T08:39:08+00:00"
+            "time": "2022-07-03T07:22:19+00:00"
         },
         {
             "name": "fyre/filesystem",
@@ -259,7 +259,7 @@
         },
         {
             "name": "fyre/lang",
-            "version": "v1.0.6",
+            "version": "v1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreLang.git",
@@ -296,7 +296,7 @@
             "description": "A language utility library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreLang/issues",
-                "source": "https://github.com/elusivecodes/FyreLang/tree/v1.0.6"
+                "source": "https://github.com/elusivecodes/FyreLang/tree/v1.0.7"
             },
             "time": "2022-03-16T11:14:13+00:00"
         },
@@ -342,16 +342,16 @@
         },
         {
             "name": "fyre/schema",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreSchema.git",
-                "reference": "a74193173a07e6531042eab04dd6d876f577e316"
+                "reference": "faa65fb4932762b84f6ef89166e51f255a355667"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreSchema/zipball/a74193173a07e6531042eab04dd6d876f577e316",
-                "reference": "a74193173a07e6531042eab04dd6d876f577e316",
+                "url": "https://api.github.com/repos/elusivecodes/FyreSchema/zipball/faa65fb4932762b84f6ef89166e51f255a355667",
+                "reference": "faa65fb4932762b84f6ef89166e51f255a355667",
                 "shasum": ""
             },
             "require": {
@@ -381,9 +381,9 @@
             "description": "A database schema library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreSchema/issues",
-                "source": "https://github.com/elusivecodes/FyreSchema/tree/v1.1.0"
+                "source": "https://github.com/elusivecodes/FyreSchema/tree/v1.1.1"
             },
-            "time": "2022-06-13T09:38:14+00:00"
+            "time": "2022-07-01T07:58:16+00:00"
         },
         {
             "name": "fyre/typeparser",
@@ -430,20 +430,21 @@
         },
         {
             "name": "fyre/validation",
-            "version": "v1.0.2",
+            "version": "v1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreValidation.git",
-                "reference": "1fa32de5257141512212ee3325f10f5de30016bb"
+                "reference": "ef4e496db6d53f46f3d281db88e96ae3ec49c264"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreValidation/zipball/1fa32de5257141512212ee3325f10f5de30016bb",
-                "reference": "1fa32de5257141512212ee3325f10f5de30016bb",
+                "url": "https://api.github.com/repos/elusivecodes/FyreValidation/zipball/ef4e496db6d53f46f3d281db88e96ae3ec49c264",
+                "reference": "ef4e496db6d53f46f3d281db88e96ae3ec49c264",
                 "shasum": ""
             },
             "require": {
-                "fyre/lang": "^1.0"
+                "fyre/lang": "^1.0",
+                "fyre/typeparser": "^1.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "^9"
@@ -467,9 +468,9 @@
             "description": "A validation library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreValidation/issues",
-                "source": "https://github.com/elusivecodes/FyreValidation/tree/v1.0.2"
+                "source": "https://github.com/elusivecodes/FyreValidation/tree/v1.0.3"
             },
-            "time": "2022-03-16T11:23:23+00:00"
+            "time": "2022-07-03T06:31:45+00:00"
         }
     ],
     "packages-dev": [
@@ -1316,16 +1317,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.5.20",
+            "version": "9.5.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "12bc8879fb65aef2138b26fc633cb1e3620cffba"
+                "reference": "0e32b76be457de00e83213528f6bb37e2a38fcb1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/12bc8879fb65aef2138b26fc633cb1e3620cffba",
-                "reference": "12bc8879fb65aef2138b26fc633cb1e3620cffba",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/0e32b76be457de00e83213528f6bb37e2a38fcb1",
+                "reference": "0e32b76be457de00e83213528f6bb37e2a38fcb1",
                 "shasum": ""
             },
             "require": {
@@ -1359,7 +1360,6 @@
                 "sebastian/version": "^3.0.2"
             },
             "require-dev": {
-                "ext-pdo": "*",
                 "phpspec/prophecy-phpunit": "^2.0.1"
             },
             "suggest": {
@@ -1403,7 +1403,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.5.20"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.5.21"
             },
             "funding": [
                 {
@@ -1415,7 +1415,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-04-01T12:37:26+00:00"
+            "time": "2022-06-19T12:14:25+00:00"
         },
         {
             "name": "sebastian/cli-parser",

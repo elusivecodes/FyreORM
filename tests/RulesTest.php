@@ -6,6 +6,7 @@ namespace Tests;
 use
     Fyre\Validation\Validator,
     Fyre\ORM\ModelRegistry,
+    Fyre\ORM\Query,
     Fyre\ORM\RuleSet,
     PHPUnit\Framework\TestCase;
 
@@ -184,6 +185,60 @@ final class RulesTest extends TestCase
         );
     }
 
+    public function testIsUniqueUpdate(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $rules = new RuleSet($Test);
+
+        $rules->add($rules->isUnique(['name']));
+
+        $Test->setRules($rules);
+
+        $test = $Test->newEntity([
+            'name' => 'Test'
+        ]);
+
+        $this->assertTrue(
+            $Test->save($test)
+        );
+
+        $test->setDirty('name', true);
+
+        $this->assertTrue(
+            $Test->save($test)
+        );
+    }
+
+    public function testIsUniqueCallback(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $rules = new RuleSet($Test);
+
+        $rules->add($rules->isUnique(['name'], [
+            'callback' => fn(Query $q): Query => $q->where(['name !=' => 'Test'])
+        ]));
+
+        $Test->setRules($rules);
+
+        $test1 = $Test->newEntity([
+            'name' => 'Test'
+        ]);
+
+        $test2 = $Test->newEntity([
+            'name' => 'Test'
+        ]);
+
+        $this->assertTrue(
+            $Test->save($test1)
+        );
+
+        $this->assertTrue(
+            $Test->save($test2)
+        );
+    }
+
     public function testExistsIn(): void
     {
         $Users = ModelRegistry::use('Users');
@@ -238,9 +293,7 @@ final class RulesTest extends TestCase
             [
                 'user_id' => [
                     'invalid'
-                ],
-                'title' => [],
-                'content' => []
+                ]
             ],
             $post->getErrors()
         );
@@ -270,9 +323,7 @@ final class RulesTest extends TestCase
             [
                 'user_id' => [
                     'invalid'
-                ],
-                'title' => [],
-                'content' => []
+                ]
             ],
             $post->getErrors()
         );
@@ -296,6 +347,104 @@ final class RulesTest extends TestCase
 
         $this->assertTrue(
             $Posts->save($post)
+        );
+    }
+
+    public function testExistsInTargetFields(): void
+    {
+        $Users = ModelRegistry::use('Users');
+        $Posts = ModelRegistry::use('Posts');
+
+        $rules = new RuleSet($Posts);
+
+        $rules->add($rules->existsIn(['title'], 'Users', [
+            'targetFields' => ['name']
+        ]));
+
+        $Posts->setRules($rules);
+
+        $user = $Users->newEntity([
+            'name' => 'Test'
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.'
+        ]);
+
+        $this->assertTrue(
+            $Posts->save($post)
+        );
+    }
+
+    public function testExistsInCallback(): void
+    {
+        $Users = ModelRegistry::use('Users');
+        $Posts = ModelRegistry::use('Posts');
+
+        $rules = new RuleSet($Posts);
+
+        $rules->add($rules->existsIn(['user_id'], 'Users', [
+            'callback' => fn(Query $q): Query => $q->where(['id !=' => 1])
+        ]));
+
+        $Posts->setRules($rules);
+
+        $user = $Users->newEntity([
+            'name' => 'Test'
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.'
+        ]);
+
+        $this->assertFalse(
+            $Posts->save($post)
+        );
+    }
+
+    public function testIsClean(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $rules = new RuleSet($Test);
+
+        $rules->add($rules->isClean(['name']));
+
+        $Test->setRules($rules);
+
+        $test = $Test->newEntity([
+            'name' => 'Test 1'
+        ]);
+
+        $this->assertTrue(
+            $Test->save($test)
+        );
+
+        $test->name = 'Test 2';
+
+        $this->assertFalse(
+            $Test->save($test)
+        );
+
+        $this->assertSame(
+            [
+                'name' => [
+                    'invalid'
+                ]
+            ],
+            $test->getErrors()
         );
     }
 

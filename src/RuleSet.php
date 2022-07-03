@@ -12,6 +12,7 @@ use
 use function
     array_diff_assoc,
     array_filter,
+    array_intersect,
     array_intersect_assoc,
     array_keys,
     array_map,
@@ -61,6 +62,8 @@ class RuleSet
      */
     public function existsIn(array $fields, string $name, array $options = []): Closure
     {
+        $options['targetFields'] ??= null;
+        $options['callback'] ??= null;
         $options['allowNullableNulls'] ??= false;
         $options['message'] ??= Lang::get('RuleSet.existsIn', [
             'fields' => implode(', ', $fields),
@@ -94,13 +97,18 @@ class RuleSet
 
             $relationship = $this->model->getRelationship($name);
             $target = $relationship->getTarget();
-            $primaryKeys = $target->getPrimaryKey();
+            $options['targetFields'] ??= $target->getPrimaryKey();
 
-            $matches = $target->find([
-                'fields' => $primaryKeys,
-                'conditions' => QueryGenerator::normalizeConditions($primaryKeys, $values)
-            ])
-            ->all();
+            $query = $target->find([
+                'fields' => $options['targetFields'],
+                'conditions' => QueryGenerator::normalizeConditions($options['targetFields'], $values)
+            ]);
+
+            if ($options['callback']) {
+                $query = $options['callback']($query);
+            }
+
+            $matches = $query->all();
 
             $matchedValues =  array_map(
                 fn(Entity $entity): array => $entity->extract($fields),
@@ -134,6 +142,47 @@ class RuleSet
     }
 
     /**
+     * Create an "is clean" rule.
+     * @param array $fields The fields.
+     * @param array $options The options.
+     * @return Closure The rule.
+     */
+    public function isClean(array $fields, array $options = []): Closure
+    {
+        $options['message'] ??= Lang::get('RuleSet.isClean', [
+            'fields' => implode(', ', $fields)
+        ]) ?? 'invalid';
+
+        return function(array $entities) use ($fields, $options): bool {
+            if ($fields === []) {
+                return true;
+            }
+
+            $result = true;
+
+            foreach ($entities AS $entity) {
+                if ($entity->isNew()) {
+                    continue;
+                }
+
+                $dirty = array_intersect($fields, $entity->getDirty());
+
+                if ($dirty === []) {
+                    continue;
+                }
+
+                $result = false;
+
+                foreach ($dirty AS $field) {
+                    $entity->setError($field, $options['message']);
+                }
+            }
+
+            return $result;
+        };
+    }
+
+    /**
      * Create an "is unique" rule.
      * @param array $fields The fields.
      * @param array $options The options.
@@ -141,6 +190,7 @@ class RuleSet
      */
     public function isUnique(array $fields, array $options = []): Closure
     {
+        $options['callback'] ??= null;
         $options['allowMultipleNulls'] ??= false;
         $options['message'] ??= Lang::get('RuleSet.isUnique', [
             'fields' => implode(', ', $fields)
@@ -154,7 +204,7 @@ class RuleSet
             $entities = array_values($entities);
 
             $values = array_map(
-                fn(Entity $item): array => $item->extract($fields),
+                fn(Entity $entity): array => $entity->extract($fields),
                 $entities
             );
 
@@ -169,14 +219,35 @@ class RuleSet
                 return true;
             }
 
-            $matches = $this->model->find([
+            $conditions = QueryGenerator::normalizeConditions($fields, $values);
+
+            $primaryKeys = $this->model->getPrimaryKey();
+
+            $primaryValues = array_map(
+                fn(Entity $entity): array => $entity->extract($primaryKeys),
+                array_filter(
+                    $entities,
+                    fn(Entity $entity): bool => !$entity->isNew()
+                )
+            );
+
+            if ($primaryValues !== []) {
+                $conditions['not'] = QueryGenerator::normalizeConditions($primaryKeys, $primaryValues);
+            }
+
+            $query = $this->model->find([
                 'fields' => $fields,
-                'conditions' => QueryGenerator::normalizeConditions($fields, $values)
-            ])
-            ->all();
+                'conditions' => $conditions
+            ]);
+
+            if ($options['callback']) {
+                $query = $options['callback']($query);
+            }
+
+            $matches = $query->all();
 
             $matchedValues =  array_map(
-                fn(Entity $item): array => $item->extract($fields),
+                fn(Entity $entity): array => $entity->extract($fields),
                 $matches
             );
 
@@ -209,14 +280,14 @@ class RuleSet
 
     /**
      * Validate an entity.
-     * @param Entity $item The Entity.
+     * @param Entity $entity The Entity.
      * @return bool TRUE if the validation was successful, otherwise FALSE.
      */
-    public function validate(Entity $item): bool
+    public function validate(Entity $entity): bool
     {
         $result = true;
         foreach ($this->rules AS $rule) {
-            if ($rule([$item]) === false) {
+            if ($rule([$entity]) === false) {
                 $result = false;
             }
         }

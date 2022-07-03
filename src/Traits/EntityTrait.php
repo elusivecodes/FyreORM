@@ -156,7 +156,7 @@ trait EntityTrait
         }
 
         $values = array_map(
-            fn(Entity $item): array => $item->extract($primaryKeys),
+            fn(Entity $entity): array => $entity->extract($primaryKeys),
             $entities
         );
 
@@ -175,7 +175,7 @@ trait EntityTrait
         }
 
         $matchedValues =  array_map(
-            fn(Entity $item): array => $item->extract($primaryKeys),
+            fn(Entity $entity): array => $entity->extract($primaryKeys),
             $matches
         );
 
