@@ -7,7 +7,7 @@ use
     ArrayObject,
     Fyre\DB\QueryGenerator,
     Fyre\Entity\Entity,
-    Fyre\ORM\EntityLocator;
+    Fyre\Entity\EntityLocator;
 
 use function
     array_diff_assoc,

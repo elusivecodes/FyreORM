@@ -16,7 +16,7 @@ final class BehaviorRegistryTest extends TestCase
     public function testFind(): void
     {
         $this->assertSame(
-            '\Tests\Mock\Behaviors\Test',
+            '\Tests\Mock\Behaviors\TestBehavior',
             BehaviorRegistry::find('Test')
         );
     }

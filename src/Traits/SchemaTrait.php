@@ -11,7 +11,8 @@ use
 use function
     array_intersect,
     array_merge,
-    array_shift;
+    array_shift,
+    preg_replace;
 
 /**
  * SchemaTrait
@@ -21,7 +22,7 @@ trait SchemaTrait
 
     protected string $table;
 
-    protected string $alias;
+    protected string|null $alias = null;
 
     protected array $primaryKey;
 
@@ -52,7 +53,7 @@ trait SchemaTrait
      */
     public function getAlias(): string
     {
-        return $this->alias ??= (new ReflectionClass($this))->getShortName();
+        return $this->alias ??= preg_replace('/Model$/', '', (new ReflectionClass($this))->getShortName());
     }
 
     /**

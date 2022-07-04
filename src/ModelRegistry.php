@@ -71,7 +71,7 @@ abstract class ModelRegistry
     public static function load(string $alias): Model
     {
         foreach (static::$namespaces AS $namespace) {
-            $fullClass = $namespace.$alias;
+            $fullClass = $namespace.$alias.'Model';
 
             if (class_exists($fullClass) && is_subclass_of($fullClass, Model::class)) {
                 return new $fullClass;

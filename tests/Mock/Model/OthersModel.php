@@ -8,7 +8,7 @@ use
     Fyre\ORM\Query,
     Fyre\ORM\Result;
 
-class Others extends Model
+class OthersModel extends Model
 {
 
     public function afterFind(Result $result): Result

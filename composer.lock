@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a00a11a15bca2e9b8f7115c105ecb931",
+    "content-hash": "fdef4f45d952d7e68d6cbd418351df63",
     "packages": [
         {
             "name": "fyre/cache",
@@ -135,17 +135,20 @@
         },
         {
             "name": "fyre/entity",
-            "version": "v1.0.7",
+            "version": "v2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreEntity.git",
-                "reference": "6f7f8697ae293d2776d62aae82c1074965f0ac4c"
+                "reference": "23f966e8ea68cd81b9c5b5eb04fe7db8f6ec8a15"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreEntity/zipball/6f7f8697ae293d2776d62aae82c1074965f0ac4c",
-                "reference": "6f7f8697ae293d2776d62aae82c1074965f0ac4c",
+                "url": "https://api.github.com/repos/elusivecodes/FyreEntity/zipball/23f966e8ea68cd81b9c5b5eb04fe7db8f6ec8a15",
+                "reference": "23f966e8ea68cd81b9c5b5eb04fe7db8f6ec8a15",
                 "shasum": ""
+            },
+            "require": {
+                "fyre/inflector": "^1.0"
             },
             "require-dev": {
                 "fyre/datetime": "^1.0",
@@ -170,9 +173,9 @@
             "description": "An entity library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreEntity/issues",
-                "source": "https://github.com/elusivecodes/FyreEntity/tree/v1.0.7"
+                "source": "https://github.com/elusivecodes/FyreEntity/tree/v2.0"
             },
-            "time": "2022-07-03T07:22:19+00:00"
+            "time": "2022-07-04T08:16:14+00:00"
         },
         {
             "name": "fyre/filesystem",

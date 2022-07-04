@@ -9,21 +9,24 @@ use
     Fyre\Validation\Rule,
     Fyre\Validation\Validator;
 
-class Test extends Model
+class CommentsModel extends Model
 {
 
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'name'
+            'testField' => 'content'
         ]);
+
+        $this->belongsTo('Users');
+        $this->belongsTo('Posts');
     }
 
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(array $entities) {
             foreach ($entities AS $entity) {
-                if ($entity->get('name') === 'failRules') {
+                if ($entity->get('content') === 'failRules') {
                     return false;
                 }
             }
@@ -34,7 +37,7 @@ class Test extends Model
 
     public function buildValidation(Validator $validator): Validator
     {
-        $validator->add('name', Rule::required(), ['on' => 'create']);
+        $validator->add('content', Rule::required(), ['on' => 'create']);
 
         return $validator;
     }

@@ -21,7 +21,7 @@
     },
     "require": {
         "fyre/db": "^1.1",
-        "fyre/entity": "^1.0",
+        "fyre/entity": "^2.0",
         "fyre/inflector": "^1.0",
         "fyre/lang": "^1.0",
         "fyre/schema": "^1.0",

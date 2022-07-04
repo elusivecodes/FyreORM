@@ -12,7 +12,7 @@ use function
     is_string,
     trim;
 
-class Test extends Behavior
+class TestBehavior extends Behavior
 {
 
     protected static array $defaults = [

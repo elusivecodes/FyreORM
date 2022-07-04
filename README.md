@@ -25,7 +25,6 @@
 - [Behaviors](#behaviors)
     - [Timestamp](#timestamp)
 - [Rules](#rules)
-- [Entity Locator](#entity-locator)
 
 
 
@@ -113,26 +112,9 @@ $model = ModelRegistry::use($alias);
 
 ## Models
 
-Custom models can be created by extending the `\Fyre\ORM\Model` class.
-
-```php
-namespace App\Model;
-
-use Fyre\ORM\Model;
-
-class MyModel extends Model
-{
-
-}
-```
+Custom models can be created by extending the `\Fyre\ORM\Model` class, suffixing the class name with "*Model*".
 
 To allow autoloading an instance of your model, add the the namespace to the *ModelRegistry*.
-
-```php
-ModelRegistry::addNamespace('App\Model');
-
-$model = ModelRegistry::use('MyModel');
-```
 
 **Get Connection**
 
@@ -307,7 +289,7 @@ Get the entity class.
 $entityClass = $model->getEntityClass();
 ```
 
-Models will use the *EntityLocator* to find an entity using the model alias, or you can specify a class using the `entityClass` property in your models.
+Models will use the [*EntityLocator*](https://github.com/elusivecodes/FyreEntity#entity-locator) to find an entity using the model alias, or you can specify a class using the `entityClass` property in your models.
 
 ```php
 protected string $entityClass = MyEntity::class;
@@ -1071,7 +1053,7 @@ $this->addBehavior('MyBehavior');
 $behavior = $this->MyBehavior;
 ```
 
-Custom behaviors can be created by extending `\Fyre\ORM\Behavior`, ensuring the `__construct` method accepts [*Model*](#models) as the argument (and optionally an `$options` array as the second parameter).
+Custom behaviors can be created by extending `\Fyre\ORM\Behavior`, suffixing the class name with "*Behavior*", and ensuring the `__construct` method accepts [*Model*](#models) as the argument (and optionally an `$options` array as the second parameter).
 
 Behaviors can also include [callbacks](#callbacks) that will be executed during model operations.
 
@@ -1176,57 +1158,4 @@ Validate multiple entities
 
 ```php
 $rules->validateMany($entities);
-```
-
-
-## Entity Locator
-
-```php
-use Fyre\ORM\EntityLocator;
-```
-
-**Add Namespace**
-
-Add a namespace for locating entities.
-
-- `$namespace` is a string representing the namespace.
-
-```php
-EntityLocator::addNamespace($namespace);
-```
-
-**Clear**
-
-Clear all namespaces and entities.
-
-```php
-EntityLocator::clear();
-```
-
-**Get Default Entity Class**
-
-Get the default entity class name.
-
-```php
-$defaultEntityClass = EntityLocator::getDefaultEntityClass();
-```
-
-**Find**
-
-Find the entity class name for an alias.
-
-- `$alias` is a string representing the alias.
-
-```php
-$className = EntityLocator::find($alias);
-```
-
-**Set Default Entity Class**
-
-Set the default entity class name.
-
-- `$defaultEntityClass` is a string representing the default entity class name.
-
-```php
-EntityLocator::setDefaultEntityClass($defaultEntityClass);
 ```

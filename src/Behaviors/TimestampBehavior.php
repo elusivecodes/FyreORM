@@ -8,9 +8,9 @@ use
     Fyre\ORM\Behavior;
 
 /**
- * Timestamp
+ * TimestampBehavior
  */
-class Timestamp extends Behavior
+class TimestampBehavior extends Behavior
 {
 
     protected static array $defaults = [

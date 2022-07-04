@@ -9,7 +9,7 @@ use
     Fyre\Validation\Rule,
     Fyre\Validation\Validator;
 
-class Tags extends Model
+class TagsModel extends Model
 {
 
     public function __construct()

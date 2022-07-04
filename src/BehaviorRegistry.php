@@ -80,7 +80,7 @@ abstract class BehaviorRegistry
         $namespaces = array_merge(static::$namespaces, ['\Fyre\ORM\Behaviors\\']);
 
         foreach ($namespaces AS $namespace) {
-            $className = $namespace.$name;
+            $className = $namespace.$name.'Behavior';
 
             if (class_exists($className) && is_subclass_of($className, Behavior::class)) {
                 return $className;

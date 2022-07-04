@@ -9,25 +9,27 @@ use
     Fyre\Validation\Rule,
     Fyre\Validation\Validator;
 
-class Posts extends Model
+class UsersModel extends Model
 {
 
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'title'
+            'testField' => 'name'
         ]);
 
-        $this->belongsTo('Users');
+        $this->hasOne('Addresses');
         $this->hasMany('Comments');
-        $this->manyToMany('Tags');
+        $this->hasMany('Posts', [
+            'dependent' => true
+        ]);
     }
 
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(array $entities) {
             foreach ($entities AS $entity) {
-                if ($entity->get('title') === 'failRules') {
+                if ($entity->get('name') === 'failRules') {
                     return false;
                 }
             }
@@ -38,7 +40,7 @@ class Posts extends Model
 
     public function buildValidation(Validator $validator): Validator
     {
-        $validator->add('title', Rule::required(), ['on' => 'create']);
+        $validator->add('name', Rule::required(), ['on' => 'create']);
 
         return $validator;
     }

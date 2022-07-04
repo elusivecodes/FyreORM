@@ -6,8 +6,8 @@ namespace Tests;
 use
     Fyre\DB\ConnectionManager,
     Fyre\DB\Handlers\MySQL\MySQLConnection,
+    Fyre\Entity\EntityLocator,
     Fyre\ORM\BehaviorRegistry,
-    Fyre\ORM\EntityLocator,
     Fyre\ORM\ModelRegistry;
 
 use function
@@ -21,11 +21,11 @@ trait ConnectionTrait
         BehaviorRegistry::clear();
         BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
 
-        ModelRegistry::clear();
-        ModelRegistry::addNamespace('Tests\Mock\Model');
-
         EntityLocator::clear();
         EntityLocator::addNamespace('Tests\Mock\Entity');
+
+        ModelRegistry::clear();
+        ModelRegistry::addNamespace('Tests\Mock\Model');
     }
 
     protected function tearDown(): void
