@@ -280,9 +280,10 @@ class Query extends QueryBuilder
 
         switch ($this->action) {
             case 'select':
+                // subquery
                 if ($this->autoFields !== false) {
                     $this->autoFields($this->model, $this->alias);
-                } else {
+                } else if (!$this->subquery) {
                     $this->addFields($this->model->getPrimaryKey(), $this->model, $this->alias);
                 }
 
@@ -393,7 +394,11 @@ class Query extends QueryBuilder
             }
 
             if ($this->subquery) {
-                $this->fields[] = $field;
+                if (is_numeric($name)) {
+                    $name = $field;
+                }
+
+                $this->fields[$name] = $field;
                 continue;
             }
 

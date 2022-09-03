@@ -388,12 +388,35 @@ trait QueryTest
         );
     }
 
+    public function testFindSubquery(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $this->assertSame(
+            'SELECT Test.id AS Test__id, (SELECT Users.name AS user_name FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id WHERE Users.id = Test.id LIMIT 1) AS user_name FROM test AS Test',
+            $Test->find([
+                'fields' => [
+                    'user_name' => ModelRegistry::use('Users')
+                        ->subquery()
+                        ->select([
+                            'user_name' => 'Users.name'
+                        ])
+                        ->innerJoinWith('Posts')
+                        ->where([
+                            'Users.id = Test.id'
+                        ])
+                        ->limit(1)
+                ]
+            ])->sql()
+        );
+    }
+
     public function testFindSubqueryAlias(): void
     {
         $Test = ModelRegistry::use('Test');
 
         $this->assertSame(
-            'SELECT Test.id AS Test__id, (SELECT Alias.id FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Test.id LIMIT 1) AS user_name FROM test AS Test',
+            'SELECT Test.id AS Test__id, (SELECT Alias.name AS user_name FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Test.id LIMIT 1) AS user_name FROM test AS Test',
             $Test->find([
                 'fields' => [
                     'user_name' => ModelRegistry::use('Users')
@@ -401,7 +424,7 @@ trait QueryTest
                             'alias' => 'Alias'
                         ])
                         ->select([
-                            'Alias.name'
+                            'user_name' => 'Alias.name'
                         ])
                         ->innerJoinWith('Posts')
                         ->where([

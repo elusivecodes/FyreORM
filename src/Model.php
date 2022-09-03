@@ -123,7 +123,7 @@ class Model
      */
     public function subquery(array $options = []): Query
     {
-        $options['alias'] ??= $this->getTable();
+        $options['alias'] ??= $this->getAlias();
 
         return $this->query($options + ['subquery' => true]);
     }

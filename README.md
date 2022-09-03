@@ -165,7 +165,7 @@ $model->setConnection($connection, $type);
 Create a new subquery [*Query*](#queries).
 
 - `$options` is an array containing options for the query.
-    - `alias` is a string representing the table alias, and will default to the table name.
+    - `alias` is a string representing the table alias, and will default to the model alias.
     - `type` is a string representing the connection type, and will default to `self::WRITE`.
 
 ```php
