@@ -48,6 +48,12 @@ class Query extends QueryBuilder
 
     protected bool $eagerLoad = false;
 
+    protected array|null $originalFields = null;
+
+    protected array|null $originalJoins = null;
+
+    protected bool $prepared = false;
+
     /**
      * New Query constructor.
      * @param Model $model The Model.
@@ -238,29 +244,20 @@ class Query extends QueryBuilder
     }
 
     /**
-     * Set the SELECT fields.
-     * @param string|array $fields The fields.
-     * @return QueryBuilder The QueryBuilder.
+     * Prepare the query.
+     * @return Query The Query.
      */
-    public function select(string|array $fields = '*'): static
+    public function prepare(): static
     {
-        $this->autoFields ??= false;
-        $this->addFields((array) $fields, $this->model, $this->alias);
+        if ($this->prepared) {
+            return $this;
+        }
 
-        return $this;
-    }
-
-    /**
-     * Generate the SQL query.
-     * @return string The SQL query.
-     */
-    public function sql(): string
-    {
-        $joins = $this->joins;
         $fields = $this->fields;
+        $joins = $this->joins;
 
-        $this->joins = [];
         $this->fields = [];
+        $this->joins = [];
 
         $usedAliases = [$this->alias];
 
@@ -280,7 +277,6 @@ class Query extends QueryBuilder
 
         switch ($this->action) {
             case 'select':
-                // subquery
                 if ($this->autoFields !== false) {
                     $this->autoFields($this->model, $this->alias);
                 } else if (!$this->subquery) {
@@ -322,10 +318,55 @@ class Query extends QueryBuilder
             $this->joins[$alias] ??= $join;
         }
 
+        $this->originalFields = $fields;
+        $this->originalJoins = $joins;
+        $this->prepared = true;
+
+        return $this;
+    }
+
+    /**
+     * Reset the query.
+     * @return Query The Query.
+     */
+    public function reset()
+    {
+        if ($this->prepared) {
+            $this->fields = $this->originalFields;
+            $this->joins = $this->originalJoins;
+
+            $this->originalFields = null;
+            $this->originalJoins = null;
+            $this->prepared = false;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the SELECT fields.
+     * @param string|array $fields The fields.
+     * @return QueryBuilder The QueryBuilder.
+     */
+    public function select(string|array $fields = '*'): static
+    {
+        $this->autoFields ??= false;
+        $this->addFields((array) $fields, $this->model, $this->alias);
+
+        return $this;
+    }
+
+    /**
+     * Generate the SQL query.
+     * @return string The SQL query.
+     */
+    public function sql(): string
+    {
+        $this->prepare();
+
         $sql = parent::sql();
 
-        $this->joins = $joins;
-        $this->fields = $fields;
+        $this->reset();
 
         return $sql;
     }

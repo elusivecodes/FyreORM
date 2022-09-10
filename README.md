@@ -820,6 +820,14 @@ Get the result count.
 $count = $query->count();
 ```
 
+**Enable Auto Fields**
+
+- `$autoFields` is a boolean indicating whether to enable auto fields, and will default to *true*.
+
+```php
+$query->enableAutoFields($autoFields);
+```
+
 **First**
 
 Get the first result.
