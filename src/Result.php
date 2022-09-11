@@ -34,15 +34,12 @@ class Result implements Countable, IteratorAggregate
     ];
 
     protected ResultSet $result;
-
     protected Query $query;
-
     protected bool $eagerLoad = false;
 
     protected bool $freed = false;
 
     protected array|null $buffer = null;
-
     protected array|null $aliasMap = null;
 
     /**

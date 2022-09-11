@@ -12,7 +12,9 @@ use
     Fyre\ORM\Relationships\Relationship;
 
 use function
+    array_combine,
     array_key_exists,
+    array_keys,
     array_map,
     array_merge,
     count,
@@ -31,28 +33,22 @@ class Query extends QueryBuilder
     protected Result|bool|null $result = null;
 
     protected Model $model;
-
     protected string $alias;
-
     protected string $connectionType;
-
     protected bool $subquery;
 
     protected array $contain = [];
-
     protected array $containJoin = [];
-
     protected array $matching = [];
 
     protected bool|null $autoFields = null;
-
     protected bool $eagerLoad = false;
 
     protected array|null $originalFields = null;
-
     protected array|null $originalJoins = null;
-
     protected bool $prepared = false;
+
+    protected int|null $count = null;
 
     /**
      * New Query constructor.
@@ -100,6 +96,8 @@ class Query extends QueryBuilder
 
         $this->contain = Model::mergeContain($this->contain, $contain['contain'] ?? []);
 
+        $this->dirty();
+
         return $this;
     }
 
@@ -109,7 +107,19 @@ class Query extends QueryBuilder
      */
     public function count(): int
     {
-        return $this->getResult()->count();
+        return $this->count ??= $this->connection->builder()
+            ->table([
+                'count_source' => (clone $this)
+                    ->orderBy([], true)
+                    ->groupBy([], true)
+                    ->limit(null, 0)
+            ])
+            ->select([
+                'count' => 'COUNT(*)'
+            ])
+            ->execute()
+            ->first()
+            ['count'] ?? 0;
     }
 
     /**
@@ -130,6 +140,10 @@ class Query extends QueryBuilder
      */
     public function first(): Entity|null
     {
+        if ($this->result && $this->result instanceof ResultSet) {
+            return $this->result->first();
+        }
+
         return $this->limit(1)->getResult()->first();
     }
 
@@ -346,27 +360,38 @@ class Query extends QueryBuilder
     /**
      * Set the SELECT fields.
      * @param string|array $fields The fields.
+     * @param bool $overwrite Whether to overwrite the existing fields.
      * @return QueryBuilder The QueryBuilder.
      */
-    public function select(string|array $fields = '*'): static
+    public function select(string|array $fields = '*', bool $overwrite = false): static
     {
+        if ($overwrite) {
+            $this->fields = [];
+        }
+
         $this->autoFields ??= false;
         $this->addFields((array) $fields, $this->model, $this->alias);
+
+        $this->action = 'select';
+        $this->dirty();
 
         return $this;
     }
 
     /**
      * Generate the SQL query.
+     * @param bool $reset Whether to reset the prepared query.
      * @return string The SQL query.
      */
-    public function sql(): string
+    public function sql(bool $reset = true): string
     {
         $this->prepare();
 
         $sql = parent::sql();
 
-        $this->reset();
+        if ($reset) {
+            $this->reset();
+        }
 
         return $sql;
     }
@@ -374,45 +399,48 @@ class Query extends QueryBuilder
     /**
      * Set query as an UPDATE.
      * @param array $data The data.
+     * @param bool $overwrite Whether to overwrite the existing data.
      * @return QueryBuilder The QueryBuilder.
      */
-    public function update(array $data): static
+    public function update(array $data, bool $overwrite = false): static
     {
-        $this->action = 'update';
+        $fields = array_map(
+            fn(string $field): string => $this->model->aliasField($field, $this->alias),
+            array_keys($data)
+        );
 
-        $this->data = [];
-        foreach ($data AS $field => $value) {
-            $field = $this->model->aliasField($field, $this->alias);
-            $this->data[$field] = $value;
-        }
+        $data = array_combine($fields, $data);
 
-        return $this;
+        return parent::update($data, $overwrite);
     }
 
     /**
      * Set query as a batch UPDATE.
      * @param array $data The data.
      * @param string|array $updateKeys The key to use for updating.
+     * @param bool $overwrite Whether to overwrite the existing data.
      * @return QueryBuilder The QueryBuilder.
      */
-    public function updateBatch(array $data, string|array $updateKeys): static
+    public function updateBatch(array $data, string|array $updateKeys, bool $overwrite = false): static
     {
-        $this->action = 'updateBatch';
+        $data = array_map(
+            function(array $values): array {
+                $fields = array_map(
+                    fn(string $field): string => $this->model->aliasField($field, $this->alias),
+                    array_keys($values)
+                );
 
-        $this->updateKeys = array_map(
-            fn(string $field): string => $this->model->aliasField($field, $this->alias),
-            $updateKeys
+                return array_combine($fields, $values);
+            },
+            $data
         );
 
-        foreach ($data AS $index => $values) {
-            $this->data[$index] = [];
-            foreach ($values AS $field => $value) {
-                $field = $this->model->aliasField($field, $this->alias);
-                $this->data[$index][$field] = $value;
-            }
-        }
+        $updateKeys = array_map(
+            fn(string $field): string => $this->model->aliasField($field, $this->alias),
+            (array) $updateKeys
+        );
 
-        return $this;
+        return parent::updateBatch($data, $updateKeys, $overwrite);
     }
 
     /**
@@ -575,7 +603,20 @@ class Query extends QueryBuilder
             $sourceAlias = $alias;
         }
 
+        $this->dirty();
+
         return $this;
+    }
+
+    /**
+     * Mark the query as dirty.
+     */
+    protected function dirty(): void
+    {
+        parent::dirty();
+
+        $this->count = null;
+        $this->result = null;
     }
 
 }

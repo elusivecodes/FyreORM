@@ -22,39 +22,101 @@ final class QueryTest extends TestCase
             ModelRegistry::use('Test')->find()
         );
     }
-    
-    public function testClearResult(): void
+
+    public function testCount(): void
     {
         $Test = ModelRegistry::use('Test');
 
-        $test = $Test->newEntity([
-            'name' => 'Test'
+        $tests = $Test->newEntities([
+            [
+                'name' => 'Test 1'
+            ],
+            [
+                'name' => 'Test 2'
+            ]
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Test->saveMany($tests)
+        );
+
+        $this->assertSame(
+            2,
+            $Test->find()
+                ->count()
+        );
+    }
+
+    public function testCountWithLimit(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $tests = $Test->newEntities([
+            [
+                'name' => 'Test 1'
+            ],
+            [
+                'name' => 'Test 2'
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Test->saveMany($tests)
+        );
+
+        $this->assertSame(
+            2,
+            $Test->find()
+                ->limit(1)
+                ->count()
+        );
+    }
+
+    public function testDirty(): void
+    {
+        $Test = ModelRegistry::use('Test');
+
+        $tests = $Test->newEntities([
+            [
+                'name' => 'Test 1'
+            ],
+            [
+                'name' => 'Test 2'
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Test->saveMany($tests)
         );
 
         $query = $Test->find();
 
+        $result1 = $query->first();
+
         $this->assertInstanceOf(
             Test::class,
-            $query->first()
+            $result1
+        );
+
+        $this->assertSame(
+            'Test 1',
+            $result1->name
         );
 
         $query->where([
             'name' => 'Test 2'
         ]);
 
+        $result2 = $query->first();
+
         $this->assertInstanceOf(
             Test::class,
-            $query->first()
+            $result2
         );
 
-        $query->clearResult();
-
-        $this->assertNull(
-            $query->first()
+        $this->assertSame(
+            'Test 2',
+            $result2->name
         );
     }
 
