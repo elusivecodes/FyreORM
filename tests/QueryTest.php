@@ -99,6 +99,11 @@ final class QueryTest extends TestCase
         );
 
         $this->assertSame(
+            'Test',
+            $result1->getSource()
+        );
+
+        $this->assertSame(
             'Test 1',
             $result1->name
         );
@@ -112,6 +117,11 @@ final class QueryTest extends TestCase
         $this->assertInstanceOf(
             Test::class,
             $result2
+        );
+
+        $this->assertSame(
+            'Test',
+            $result2->getSource()
         );
 
         $this->assertSame(

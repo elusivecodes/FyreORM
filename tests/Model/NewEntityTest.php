@@ -16,9 +16,16 @@ trait NewEntityTest
 
     public function testNewEmptyEntity(): void
     {
+        $test = ModelRegistry::use('Test')->newEmptyEntity();
+
         $this->assertInstanceOf(
             Test::class,
-            ModelRegistry::use('Test')->newEmptyEntity()
+            $test
+        );
+
+        $this->assertSame(
+            'Test',
+            $test->getSource()
         );
     }
 
@@ -31,6 +38,11 @@ trait NewEntityTest
         $this->assertInstanceOf(
             Test::class,
             $test
+        );
+
+        $this->assertSame(
+            'Test',
+            $test->getSource()
         );
 
         $this->assertSame(
@@ -66,6 +78,16 @@ trait NewEntityTest
         $this->assertInstanceOf(
             User::class,
             $address->user
+        );
+
+        $this->assertSame(
+            'Addresses',
+            $address->getSource()
+        );
+
+        $this->assertSame(
+            'Users',
+            $address->user->getSource()
         );
 
         $this->assertTrue(
@@ -118,6 +140,21 @@ trait NewEntityTest
             $user->posts[1]
         );
 
+        $this->assertSame(
+            'Users',
+            $user->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[1]->getSource()
+        );
+
         $this->assertTrue(
             $user->isNew()
         );
@@ -162,6 +199,16 @@ trait NewEntityTest
         $this->assertInstanceOf(
             Address::class,
             $user->address
+        );
+
+        $this->assertSame(
+            'Users',
+            $user->getSource()
+        );
+
+        $this->assertSame(
+            'Addresses',
+            $user->address->getSource()
         );
 
         $this->assertTrue(
@@ -212,6 +259,21 @@ trait NewEntityTest
         $this->assertInstanceOf(
             Tag::class,
             $post->tags[1]
+        );
+
+        $this->assertSame(
+            'Posts',
+            $post->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $post->tags[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $post->tags[1]->getSource()
         );
 
         $this->assertTrue(
@@ -315,6 +377,46 @@ trait NewEntityTest
             Tag::class,
             $user->posts[1]->tags[1]
         );
+
+        $this->assertSame(
+            'Users',
+            $user->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[1]->getSource()
+        );
+
+        $this->assertSame(
+            'Addresses',
+            $user->address->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $user->posts[0]->tags[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $user->posts[0]->tags[1]->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $user->posts[1]->tags[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $user->posts[1]->tags[1]->getSource()
+        );
     }
 
     public function testNewEntityAssociated(): void
@@ -371,6 +473,21 @@ trait NewEntityTest
         $this->assertInstanceOf(
             Post::class,
             $user->posts[1]
+        );
+
+        $this->assertSame(
+            'Users',
+            $user->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[1]->getSource()
         );
 
         $this->assertNull(

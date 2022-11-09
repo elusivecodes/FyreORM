@@ -199,7 +199,12 @@ trait EntityTrait
     {
         $className = $this->getEntityClass();
 
-        return new $className();
+        $entity = new $className();
+
+        $alias = $this->getAlias();
+        $entity->setSource($alias);
+
+        return $entity;
     }
 
     /**

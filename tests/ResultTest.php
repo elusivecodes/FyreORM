@@ -52,6 +52,11 @@ final class ResultTest extends TestCase
         );
 
         $this->assertSame(
+            'Test',
+            $test->getSource()
+        );
+
+        $this->assertSame(
             2,
             $test->id
         );
@@ -84,6 +89,11 @@ final class ResultTest extends TestCase
         );
 
         $this->assertSame(
+            'Test',
+            $test->getSource()
+        );
+
+        $this->assertSame(
             1,
             $test->id
         );
@@ -113,6 +123,11 @@ final class ResultTest extends TestCase
         $this->assertInstanceOf(
             Test::class,
             $test
+        );
+
+        $this->assertSame(
+            'Test',
+            $test->getSource()
         );
 
         $this->assertSame(
