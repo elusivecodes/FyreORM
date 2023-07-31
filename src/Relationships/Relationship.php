@@ -47,6 +47,7 @@ abstract class Relationship
      * New relationship constructor.
      * @param string $name The relationship name.
      * @param array $options The relationship options.
+     * @throws OrmException if the strategy is not valid.
      */
     public function __construct(string $name, array $options = [])
     {

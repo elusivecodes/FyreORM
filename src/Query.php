@@ -549,6 +549,7 @@ class Query extends QueryBuilder
      * @param string $type The JOIN type.
      * @param bool|null $matching Whether this is a matching/noMatching join.
      * @return Query The Query.
+     * @throws OrmException if a relationship is not valid.
      */
     protected function containJoin(string $contain, array $conditions, string $type = 'LEFT', bool|null $matching = null): static
     {

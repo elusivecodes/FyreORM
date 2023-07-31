@@ -23,7 +23,7 @@ class OrmException extends RunTimeException
 
     public static function forInvalidEntity()
     {
-        throw new static('All entities must be an instance of Entity.');
+        return new static('All entities must be an instance of Entity.');
     }
 
     public static function forInvalidFindProperty(string $property)
@@ -33,7 +33,7 @@ class OrmException extends RunTimeException
 
     public static function forInvalidStrategy(string $strategy)
     {
-        throw new static('Invalid relationship strategy: '.$strategy);
+        return new static('Invalid relationship strategy: '.$strategy);
     }
 
     public static function forInvalidRelationship(string $name)

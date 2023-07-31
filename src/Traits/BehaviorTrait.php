@@ -22,6 +22,7 @@ trait BehaviorTrait
      * @param string $name The behavior name.
      * @param array $options The behavior options.
      * @return Model The Model.
+     * @throws OrmException if the behavior exists.
      */
     public function addBehavior(string $name, array $options = []): static
     {
@@ -58,6 +59,7 @@ trait BehaviorTrait
      * Remove a Behavior from the Model.
      * @param string $name The behavior name.
      * @return Model The Model.
+     * @throws OrmException if the behavior does not exist.
      */
     public function removeBehavior(string $name): static
     {

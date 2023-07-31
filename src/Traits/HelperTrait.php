@@ -107,7 +107,7 @@ trait HelperTrait
      * @param string|array $contain The contain data.
      * @param Model $model The Model.
      * @return array The normalized contain data.
-     * @throws OrmException if relationship is invalid.
+     * @throws OrmException if a relationship is not valid.
      */
     public static function normalizeContain(string|array $contain, Model $model): array
     {
