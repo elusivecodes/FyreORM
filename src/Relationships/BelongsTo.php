@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
-use
-    Fyre\Entity\Entity;
+use Fyre\Entity\Entity;
 
 /**
  * BelongsTo

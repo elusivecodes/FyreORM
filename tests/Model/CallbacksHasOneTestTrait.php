@@ -3,23 +3,21 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map;
+use function array_map;
 
-trait HasOneCallbacksTest
+trait CallbacksHasOneTestTrait
 {
 
-    public function testHasOneBeforeSave(): void
+    public function testBeforeSaveHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failBeforeSave',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'failBeforeSave'
             ]
         ]);
 
@@ -50,14 +48,14 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneAfterSave(): void
+    public function testAfterSaveHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failAfterSave',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'failAfterSave'
             ]
         ]);
 
@@ -88,14 +86,14 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneBeforeRules(): void
+    public function testBeforeRulesBelongsToHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failBeforeRules',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'failBeforeRules'
             ]
         ]);
 
@@ -126,14 +124,14 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneAfterRules(): void
+    public function testAfterRulesHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failAfterRules',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'failAfterRules'
             ]
         ]);
 
@@ -164,67 +162,41 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneBeforeDelete(): void
+    public function testBeforeParseHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failBeforeDelete',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => '  Test  '
             ]
         ]);
 
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $this->assertFalse(
-            $Users->delete($user)
-        );
-
         $this->assertSame(
-            1,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            1,
-            ModelRegistry::use('Addresses')->find()->count()
+            'Test',
+            $user->address->suburb
         );
     }
 
-    public function testHasOneAfterDelete(): void
+    public function testAfterParseHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failAfterDelete',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'afterParse'
             ]
         ]);
 
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $this->assertFalse(
-            $Users->delete($user)
-        );
-
         $this->assertSame(
             1,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            1,
-            ModelRegistry::use('Addresses')->find()->count()
+            $user->address->test
         );
     }
 
-    public function testHasOneBeforeSaveMany(): void
+    public function testBeforeSaveManyHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -236,9 +208,9 @@ trait HasOneCallbacksTest
                 ]
             ],
             [
-                'name' => 'failBeforeSave',
+                'name' => 'Test 2',
                 'address' => [
-                    'suburb' => 'Test 2'
+                    'suburb' => 'failBeforeSave'
                 ]
             ]
         ]);
@@ -282,7 +254,7 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneAfterSaveMany(): void
+    public function testAfterSaveManyHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -294,9 +266,9 @@ trait HasOneCallbacksTest
                 ]
             ],
             [
-                'name' => 'failAfterSave',
+                'name' => 'Test 2',
                 'address' => [
-                    'suburb' => 'Test 2'
+                    'suburb' => 'failAfterSave'
                 ]
             ]
         ]);
@@ -340,7 +312,7 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneBeforeRulesMany(): void
+    public function testBeforeRulesManyHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -352,9 +324,9 @@ trait HasOneCallbacksTest
                 ]
             ],
             [
-                'name' => 'failBeforeRules',
+                'name' => 'Test 2',
                 'address' => [
-                    'suburb' => 'Test 2'
+                    'suburb' => 'failBeforeRules'
                 ]
             ]
         ]);
@@ -398,7 +370,7 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneAfterRulesMany(): void
+    public function testAfterRulesManyHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -410,9 +382,9 @@ trait HasOneCallbacksTest
                 ]
             ],
             [
-                'name' => 'failAfterRules',
+                'name' => 'Test 2',
                 'address' => [
-                    'suburb' => 'Test 2'
+                    'suburb' => 'failAfterRules'
                 ]
             ]
         ]);
@@ -456,7 +428,37 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneBeforeDeleteMany(): void
+    public function testBeforeParseHasOneMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => '  Test 1  '
+                ]
+            ],
+            [
+                'name' => 'Test 2',
+                'address' => [
+                    'suburb' => '  Test 2  '
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $users[0]->address->suburb
+        );
+
+        $this->assertSame(
+            'Test 2',
+            $users[1]->address->suburb
+        );
+    }
+
+    public function testAfterParseHasOneMany(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -468,78 +470,27 @@ trait HasOneCallbacksTest
                 ]
             ],
             [
-                'name' => 'failBeforeDelete',
+                'name' => 'Test 2',
                 'address' => [
-                    'suburb' => 'Test 2'
+                    'suburb' => 'afterParse'
                 ]
             ]
         ]);
 
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $this->assertFalse(
-            $Users->deleteMany($users)
-        );
-
         $this->assertSame(
-            2,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            2,
-            ModelRegistry::use('Addresses')->find()->count()
+            1,
+            $users[1]->address->test
         );
     }
 
-    public function testHasOneAfterDeleteMany(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => 'Test 1'
-                ]
-            ],
-            [
-                'name' => 'failAfterDelete',
-                'address' => [
-                    'suburb' => 'Test 2'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $this->assertFalse(
-            $Users->deleteMany($users)
-        );
-
-        $this->assertSame(
-            2,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            2,
-            ModelRegistry::use('Addresses')->find()->count()
-        );
-    }
-
-    public function testHasOneValidation(): void
+    public function testValidationHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => '',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => ''
             ]
         ]);
 
@@ -570,14 +521,14 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneValidationNoCheckRules(): void
+    public function testValidationNoCheckRulesHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => '',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => ''
             ]
         ]);
 
@@ -610,14 +561,14 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneRules(): void
+    public function testRulesHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failRules',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'failRules'
             ]
         ]);
 
@@ -648,14 +599,14 @@ trait HasOneCallbacksTest
         );
     }
 
-    public function testHasOneRulesNoCheckRules(): void
+    public function testRulesNoCheckRulesHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'failRules',
+            'name' => 'Test',
             'address' => [
-                'suburb' => 'Test'
+                'suburb' => 'failRules'
             ]
         ]);
 

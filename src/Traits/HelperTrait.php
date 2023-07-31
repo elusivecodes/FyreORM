@@ -3,23 +3,21 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    Fyre\Entity\Entity,
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\Model;
+use Fyre\Entity\Entity;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Model;
 
-use function
-    array_key_exists,
-    array_merge,
-    array_reduce,
-    array_reverse,
-    explode,
-    in_array,
-    is_numeric,
-    is_string,
-    lcfirst,
-    preg_replace,
-    strtolower;
+use function array_key_exists;
+use function array_merge;
+use function array_reduce;
+use function array_reverse;
+use function explode;
+use function in_array;
+use function is_numeric;
+use function is_string;
+use function lcfirst;
+use function preg_replace;
+use function strtolower;
 
 /**
  * HelperTrait

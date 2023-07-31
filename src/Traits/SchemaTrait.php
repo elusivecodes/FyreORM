@@ -3,16 +3,14 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    Fyre\Schema\SchemaRegistry,
-    Fyre\Schema\TableSchemaInterface,
-    ReflectionClass;
+use Fyre\Schema\SchemaRegistry;
+use Fyre\Schema\TableSchema;
+use ReflectionClass;
 
-use function
-    array_intersect,
-    array_merge,
-    array_shift,
-    preg_replace;
+use function array_intersect;
+use function array_merge;
+use function array_shift;
+use function preg_replace;
 
 /**
  * SchemaTrait
@@ -110,9 +108,9 @@ trait SchemaTrait
     /**
      * Get the TableSchema.
      * @param string|null $type The connection type.
-     * @return TableSchemaInterface The TableSchema.
+     * @return TableSchema The TableSchema.
      */
-    public function getSchema(string|null $type = null): TableSchemaInterface
+    public function getSchema(string|null $type = null): TableSchema
     {
         return SchemaRegistry::getSchema($this->getConnection($type))
             ->describe($this->getTable());

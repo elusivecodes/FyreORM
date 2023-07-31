@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map;
+use function array_map;
 
-trait ContainTest
+trait ContainTestTrait
 {
 
     public function testContainInsert(): void

@@ -3,13 +3,10 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
-use
-    Fyre\DB\QueryGenerator,
-    Fyre\Entity\Entity,
-    Fyre\ORM\Model;
+use Fyre\DB\QueryGenerator;
+use Fyre\Entity\Entity;
 
-use function
-    array_map;
+use function array_map;
 
 /**
  * HasMany

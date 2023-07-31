@@ -3,47 +3,45 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map,
-    range;
+use function array_map;
+use function range;
 
-trait QueryTest
+trait QueryTestTrait
 {
 
     public function testInsert(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
         $this->assertSame(
             1,
-            $test->id
+            $item->id
         );
 
         $this->assertFalse(
-            $test->isNew()
+            $item->isNew()
         );
 
         $this->assertFalse(
-            $test->isDirty()
+            $item->isDirty()
         );
     }
 
     public function testInsertMany(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -53,37 +51,37 @@ trait QueryTest
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertSame(
             [1, 2],
             array_map(
-                fn($test) => $test->id,
-                $tests
+                fn($item) => $item->id,
+                $items
             )
         );
 
         $this->assertFalse(
-            $tests[0]->isNew()
+            $items[0]->isNew()
         );
 
         $this->assertFalse(
-            $tests[1]->isNew()
+            $items[1]->isNew()
         );
 
         $this->assertFalse(
-            $tests[0]->isDirty()
+            $items[0]->isDirty()
         );
 
         $this->assertFalse(
-            $tests[1]->isDirty()
+            $items[1]->isDirty()
         );
     }
 
     public function testInsertManyBatch(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $data = [];
 
@@ -93,61 +91,61 @@ trait QueryTest
             ];
         }
 
-        $tests = $Test->newEntities($data);
+        $items = $Items->newEntities($data);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertSame(
             range(1, 1000),
             array_map(
-                fn($test) => $test->id,
-                $tests
+                fn($item) => $item->id,
+                $items
             )
         );
     }
 
     public function testUpdate(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
-        $Test->patchEntity($test, [
+        $Items->patchEntity($item, [
             'name' => 'Test 2'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
         $this->assertFalse(
-            $test->isDirty()
+            $item->isDirty()
         );
 
-        $test = $Test->get(1);
+        $item = $Items->get(1);
 
         $this->assertSame(
             [
                 'id' => 1,
                 'name' => 'Test 2'
             ],
-            $test->toArray()
+            $item->toArray()
         );
     }
 
     public function testUpdateMany(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -157,18 +155,18 @@ trait QueryTest
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertFalse(
-            $tests[0]->isDirty()
+            $items[0]->isDirty()
         );
 
         $this->assertFalse(
-            $tests[1]->isDirty()
+            $items[1]->isDirty()
         );
 
-        $Test->patchEntities($tests, [
+        $Items->patchEntities($items, [
             [
                 'name' => 'Test 3'
             ],
@@ -178,10 +176,10 @@ trait QueryTest
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $tests = $Test->find()->all();
+        $items = $Items->find()->all();
 
         $this->assertSame(
             [
@@ -195,15 +193,15 @@ trait QueryTest
                 ]
             ],
             array_map(
-                fn($test) => $test->toArray(),
-                $tests,
+                fn($item) => $item->toArray(),
+                $items,
             )
         );
     }
 
     public function testUpdateManyBatch(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $data = [];
 
@@ -213,27 +211,27 @@ trait QueryTest
             ];
         }
 
-        $tests = $Test->newEntities($data);
+        $items = $Items->newEntities($data);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $data = [];
 
-        foreach ($tests AS $i => $test) {
+        foreach ($items AS $i => $item) {
             $data[] = [
                 'name' => 'Test '.($i + 1)
             ];
         }
 
-        $Test->patchEntities($tests, $data);
+        $Items->patchEntities($items, $data);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $tests = $Test->find()->all();
+        $items = $Items->find()->all();
 
         $this->assertSame(
             array_map(
@@ -241,39 +239,39 @@ trait QueryTest
                 range(1, 1000)
             ),
             array_map(
-                fn($test) => $test->name,
-                $tests
+                fn($item) => $item->name,
+                $items
             )
         );
     }
 
     public function testDelete(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
         $this->assertTrue(
-            $Test->delete($test)
+            $Items->delete($item)
         );
 
         $this->assertSame(
             0,
-            $Test->find()->count()
+            $Items->find()->count()
         );
     }
 
     public function testDeleteMany(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -283,24 +281,24 @@ trait QueryTest
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertTrue(
-            $Test->deleteMany($tests)
+            $Items->deleteMany($items)
         );
 
         $this->assertSame(
             0,
-            $Test->find()->count()
+            $Items->find()->count()
         );
     }
 
     public function testGet(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -310,73 +308,73 @@ trait QueryTest
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $test = $Test->get(2);
+        $item = $Items->get(2);
 
         $this->assertSame(
             2,
-            $test->id
+            $item->id
         );
     }
 
     public function testGetInvalid(): void
     {
         $this->assertNull(
-            ModelRegistry::use('Test')->get(1)
+            ModelRegistry::use('Items')->get(1)
         );
     }
 
     public function testExists(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
         $this->assertTrue(
-            $Test->exists(['name' => 'Test'])
+            $Items->exists(['name' => 'Test'])
         );
     }
 
     public function testExistsNotExists(): void
     {
         $this->assertFalse(
-            ModelRegistry::use('Test')->exists(['name' => 'Test'])
+            ModelRegistry::use('Items')->exists(['name' => 'Test'])
         );
     }
 
     public function testFindOptionSql(): void
     {
         $this->assertSame(
-            'SELECT Test.id AS Test__id, CONCAT(Test.name, " ", Test2.name) AS title FROM test AS Test LEFT JOIN test AS Test2 ON Test2.id = Test.id WHERE Test.id = 1 ORDER BY Test.name DESC GROUP BY Test.id HAVING title = \'Test Test\' LIMIT 1 FOR UPDATE',
-            ModelRegistry::use('Test')->find([
+            'SELECT Items.id AS Items__id, CONCAT(Items.name, " ", Items2.name) AS title FROM items AS Items LEFT JOIN items AS Items2 ON Items2.id = Items.id WHERE Items.id = 1 GROUP BY Items.id ORDER BY Items.name DESC HAVING title = \'Test Test\' LIMIT 1 FOR UPDATE',
+            ModelRegistry::use('Items')->find([
                 'fields' => [
-                    'title' => 'CONCAT(Test.name, " ", Test2.name)'
+                    'title' => 'CONCAT(Items.name, " ", Items2.name)'
                 ],
                 'join' => [
-                    'Test2' => [
-                        'table' => 'test',
+                    'Items2' => [
+                        'table' => 'items',
                         'type' => 'LEFT',
                         'conditions' => [
-                            'Test2.id = Test.id'
+                            'Items2.id = Items.id'
                         ]
                     ]
                 ],
                 'conditions' => [
-                    'Test.id' => 1
-                ],
-                'order' => [
-                    'Test.name' => 'DESC'
+                    'Items.id' => 1
                 ],
                 'group' => [
-                    'Test.id'
+                    'Items.id'
+                ],
+                'order' => [
+                    'Items.name' => 'DESC'
                 ],
                 'having' => [
                     'title' => 'Test Test'
@@ -390,11 +388,11 @@ trait QueryTest
 
     public function testFindSubquery(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertSame(
-            'SELECT Test.id AS Test__id, (SELECT Users.name AS user_name FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id WHERE Users.id = Test.id LIMIT 1) AS user_name FROM test AS Test',
-            $Test->find([
+            'SELECT Items.id AS Items__id, (SELECT Users.name AS user_name FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id WHERE Users.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
+            $Items->find([
                 'fields' => [
                     'user_name' => ModelRegistry::use('Users')
                         ->subquery()
@@ -403,7 +401,7 @@ trait QueryTest
                         ])
                         ->innerJoinWith('Posts')
                         ->where([
-                            'Users.id = Test.id'
+                            'Users.id = Items.id'
                         ])
                         ->limit(1)
                 ]
@@ -413,11 +411,11 @@ trait QueryTest
 
     public function testFindSubqueryAlias(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertSame(
-            'SELECT Test.id AS Test__id, (SELECT Alias.name AS user_name FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Test.id LIMIT 1) AS user_name FROM test AS Test',
-            $Test->find([
+            'SELECT Items.id AS Items__id, (SELECT Alias.name AS user_name FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
+            $Items->find([
                 'fields' => [
                     'user_name' => ModelRegistry::use('Users')
                         ->subquery([
@@ -428,7 +426,7 @@ trait QueryTest
                         ])
                         ->innerJoinWith('Posts')
                         ->where([
-                            'Alias.id = Test.id'
+                            'Alias.id = Items.id'
                         ])
                         ->limit(1)
                 ]
@@ -438,17 +436,17 @@ trait QueryTest
 
     public function testFindAutoFields(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
-        $test = $Test->get(1, [
+        $item = $Items->get(1, [
             'autoFields' => false
         ]);
 
@@ -456,7 +454,7 @@ trait QueryTest
             [
                 'id' => 1
             ],
-            $test->toArray()
+            $item->toArray()
         );
     }
 

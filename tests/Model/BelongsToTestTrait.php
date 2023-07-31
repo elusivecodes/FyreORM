@@ -3,12 +3,11 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry,
-    Tests\Mock\Entity\Address,
-    Tests\Mock\Entity\User;
+use Fyre\ORM\ModelRegistry;
+use Tests\Mock\Entity\Address;
+use Tests\Mock\Entity\User;
 
-trait BelongsToTest
+trait BelongsToTestTrait
 {
 
     public function testBelongsToInsert(): void

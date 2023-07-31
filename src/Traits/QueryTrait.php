@@ -3,23 +3,21 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    Fyre\DB\QueryGenerator,
-    Fyre\Entity\Entity,
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\Model,
-    Fyre\ORM\Query;
+use Fyre\DB\QueryGenerator;
+use Fyre\Entity\Entity;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Model;
+use Fyre\ORM\Query;
 
-use function
-    array_chunk,
-    array_filter,
-    array_key_exists,
-    array_map,
-    array_merge,
-    array_shift,
-    call_user_func,
-    count,
-    range;
+use function array_chunk;
+use function array_filter;
+use function array_key_exists;
+use function array_map;
+use function array_merge;
+use function array_shift;
+use function call_user_func;
+use function count;
+use function range;
 
 /**
  * QueryTrait

@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace Tests\Mock\Behaviors;
 
-use
-    ArrayObject,
-    Fyre\Entity\Entity,
-    Fyre\ORM\Behavior;
+use ArrayObject;
+use Fyre\Entity\Entity;
+use Fyre\ORM\Behavior;
 
-use function
-    is_string,
-    trim;
+use function is_string;
+use function trim;
 
 class TestBehavior extends Behavior
 {

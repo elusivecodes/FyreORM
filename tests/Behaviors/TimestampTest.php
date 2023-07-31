@@ -3,21 +3,17 @@ declare(strict_types=1);
 
 namespace Tests\Behaviors;
 
-use
-    Fyre\DateTime\DateTimeInterface,
-    Fyre\ORM\BehaviorRegistry,
-    Fyre\ORM\ModelRegistry,
-    PHPUnit\Framework\TestCase,
-    Tests\ConnectionTrait;
+use Fyre\DateTime\DateTime;
+use Fyre\ORM\ModelRegistry;
+use PHPUnit\Framework\TestCase;
+use Tests\ConnectionTrait;
 
-use function
-    sleep;
+use function sleep;
 
 final class TimestampTest extends TestCase
 {
 
-    use
-        ConnectionTrait;
+    use ConnectionTrait;
 
     public function testTimestampsCreate()
     {
@@ -34,12 +30,12 @@ final class TimestampTest extends TestCase
         $timestamp = $Timestamps->find()->first();
 
         $this->assertInstanceOf(
-            DateTimeInterface::class,
+            DateTime::class,
             $timestamp->created
         );
 
         $this->assertInstanceOf(
-            DateTimeInterface::class,
+            DateTime::class,
             $timestamp->modified
         );
     }

@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use
-    Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Exceptions\OrmException;
 
-use function
-    class_exists,
-    in_array,
-    is_subclass_of,
-    trim;
+use function class_exists;
+use function in_array;
+use function is_subclass_of;
+use function trim;
 
 abstract class BehaviorRegistry
 {
@@ -52,6 +50,27 @@ abstract class BehaviorRegistry
     }
 
     /**
+     * Get the namespaces.
+     * @return array The namespaces.
+     */
+    public static function getNamespaces(): array
+    {
+        return static::$namespaces;
+    }
+
+    /**
+     * Determine if a namespace exists.
+     * @param string $namespace The namespace.
+     * @return bool TRUE if the namespace exists, otherwise FALSE.
+     */
+    public static function hasNamespace(string $namespace): bool
+    {
+        $namespace = static::normalizeNamespace($namespace);
+
+        return in_array($namespace, static::$namespaces);
+    }
+
+    /**
      * Load a behavior.
      * @param string $name The behavior name.
      * @param Model $model The Model.
@@ -68,6 +87,28 @@ abstract class BehaviorRegistry
         }
 
         return new $className($model, $options);
+    }
+
+    /**
+     * Remove a namespace.
+     * @param string $namespace The namespace.
+     * @return bool TRUE If the namespace was removed, otherwise FALSE.
+     */
+    public static function removeNamespace(string $namespace): bool
+    {
+        $namespace = static::normalizeNamespace($namespace);
+
+        foreach (static::$namespaces AS $i => $otherNamespace) {
+            if ($otherNamespace !== $namespace) {
+                continue;
+            }
+
+            array_splice(static::$namespaces, $i, 1);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

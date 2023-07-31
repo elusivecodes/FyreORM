@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use
-    Fyre\DB\ConnectionManager,
-    Fyre\DB\Handlers\MySQL\MySQLConnection,
-    Fyre\Entity\EntityLocator,
-    Fyre\ORM\BehaviorRegistry,
-    Fyre\ORM\ModelRegistry;
+use Fyre\DB\ConnectionManager;
+use Fyre\DB\Handlers\MySQL\MySQLConnection;
+use Fyre\Entity\EntityLocator;
+use Fyre\ORM\BehaviorRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    getenv;
+use function getenv;
 
 trait ConnectionTrait
 {
@@ -31,7 +29,7 @@ trait ConnectionTrait
     protected function tearDown(): void
     {
         $connection = ConnectionManager::use();
-        $connection->query('TRUNCATE test');
+        $connection->query('TRUNCATE items');
         $connection->query('TRUNCATE others');
         $connection->query('TRUNCATE timestamps');
         $connection->query('TRUNCATE users');
@@ -60,7 +58,7 @@ trait ConnectionTrait
 
         $connection = ConnectionManager::use();
 
-        $connection->query('DROP TABLE IF EXISTS `test`');
+        $connection->query('DROP TABLE IF EXISTS `items`');
         $connection->query('DROP TABLE IF EXISTS `others`');
         $connection->query('DROP TABLE IF EXISTS `timestamps`');
         $connection->query('DROP TABLE IF EXISTS `users`');
@@ -71,7 +69,7 @@ trait ConnectionTrait
         $connection->query('DROP TABLE IF EXISTS `posts_tags`');
 
         $connection->query(<<<EOT
-            CREATE TABLE `test` (
+            CREATE TABLE `items` (
                 `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `name` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
                 PRIMARY KEY (`id`)
@@ -156,7 +154,7 @@ trait ConnectionTrait
     public static function tearDownAfterClass(): void
     {
         $connection = ConnectionManager::use();
-        $connection->query('DROP TABLE IF EXISTS `test`');
+        $connection->query('DROP TABLE IF EXISTS `items`');
         $connection->query('DROP TABLE IF EXISTS `others`');
         $connection->query('DROP TABLE IF EXISTS `timestamps`');
         $connection->query('DROP TABLE IF EXISTS `users`');

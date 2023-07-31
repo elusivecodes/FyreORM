@@ -3,13 +3,12 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\Entity\Entity,
-    Fyre\ORM\ModelRegistry,
-    Tests\Mock\Entity\Post,
-    Tests\Mock\Entity\Tag;
+use Fyre\Entity\Entity;
+use Fyre\ORM\ModelRegistry;
+use Tests\Mock\Entity\Post;
+use Tests\Mock\Entity\Tag;
 
-trait ManyToManyTest
+trait ManyToManyTestTrait
 {
 
     public function testManyToManyInsert(): void

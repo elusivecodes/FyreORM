@@ -3,22 +3,21 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\Behavior,
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Behavior;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\ModelRegistry;
 
-trait BehaviorTest
+trait BehaviorTestTrait
 {
 
     public function testAddBehavior(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Mock');
+        $Items->addBehavior('Mock');
 
         $this->assertTrue(
-            $Test->hasBehavior('Mock')
+            $Items->hasBehavior('Mock')
         );
     }
 
@@ -26,60 +25,60 @@ trait BehaviorTest
     {
         $this->expectException(OrmException::class);
 
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Mock');
-        $Test->addBehavior('Mock');
+        $Items->addBehavior('Mock');
+        $Items->addBehavior('Mock');
     }
 
     public function testAddBehaviorInvalid(): void
     {
         $this->expectException(OrmException::class);
 
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Invalid');
+        $Items->addBehavior('Invalid');
     }
 
     public function testHasBehaviorInvalid(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertFalse(
-            $Test->hasBehavior('Invalid')
+            $Items->hasBehavior('Invalid')
         );
     }
 
     public function testGetBehavior(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Mock');
+        $Items->addBehavior('Mock');
 
         $this->assertInstanceOf(
             Behavior::class,
-            $Test->getBehavior('Mock')
+            $Items->getBehavior('Mock')
         );
     }
 
     public function testGetBehaviorInvalid(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertNull(
-            $Test->getBehavior('Invalid')
+            $Items->getBehavior('Invalid')
         );
     }
 
     public function testRemoveBehavior(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Mock');
-        $Test->removeBehavior('Mock');
+        $Items->addBehavior('Mock');
+        $Items->removeBehavior('Mock');
 
         $this->assertFalse(
-            $Test->hasBehavior('Mock')
+            $Items->hasBehavior('Mock')
         );
     }
 
@@ -87,9 +86,9 @@ trait BehaviorTest
     {
         $this->expectException(OrmException::class);
 
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->removeBehavior('Invalid');
+        $Items->removeBehavior('Invalid');
     }
 
 }

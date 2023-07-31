@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry,
-    Tests\Mock\Entity\Post,
-    Tests\Mock\Entity\User;
+use Fyre\ORM\ModelRegistry;
+use Tests\Mock\Entity\Post;
+use Tests\Mock\Entity\User;
 
-use function
-    array_map;
+use function array_map;
 
-trait HasManyTest
+trait HasManyTestTrait
 {
 
     public function testHasManyInsert(): void

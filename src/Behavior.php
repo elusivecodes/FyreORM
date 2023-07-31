@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use function
-    array_replace_recursive;
+use function array_replace;
 
 /**
  * Behavior
@@ -27,7 +26,7 @@ abstract class Behavior
     {
         $this->model = $model;
 
-        $this->config = array_replace_recursive(static::$defaults, $options);
+        $this->config = array_replace(static::$defaults, $options);
     }
 
     /**

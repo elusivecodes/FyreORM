@@ -3,22 +3,20 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use
-    Fyre\DB\Connection,
-    Fyre\DB\ConnectionManager,
-    Fyre\ORM\Traits\BehaviorTrait,
-    Fyre\ORM\Traits\EntityTrait,
-    Fyre\ORM\Traits\HelperTrait,
-    Fyre\ORM\Traits\ParserTrait,
-    Fyre\ORM\Traits\QueryTrait,
-    Fyre\ORM\Traits\RelationshipsTrait,
-    Fyre\ORM\Traits\SchemaTrait,
-    Fyre\ORM\Traits\ValidationTrait;
+use Fyre\DB\Connection;
+use Fyre\DB\ConnectionManager;
+use Fyre\ORM\Traits\BehaviorTrait;
+use Fyre\ORM\Traits\EntityTrait;
+use Fyre\ORM\Traits\HelperTrait;
+use Fyre\ORM\Traits\ParserTrait;
+use Fyre\ORM\Traits\QueryTrait;
+use Fyre\ORM\Traits\RelationshipsTrait;
+use Fyre\ORM\Traits\SchemaTrait;
+use Fyre\ORM\Traits\ValidationTrait;
 
-use function
-    array_key_exists,
-    call_user_func_array,
-    method_exists;
+use function array_key_exists;
+use function call_user_func_array;
+use function method_exists;
 
 /**
  * Model
@@ -49,15 +47,14 @@ class Model
 
     protected array $connections = [];
 
-    use
-        BehaviorTrait,
-        EntityTrait,
-        HelperTrait,
-        ParserTrait,
-        QueryTrait,
-        RelationshipsTrait,
-        SchemaTrait,
-        ValidationTrait;
+    use BehaviorTrait;
+    use EntityTrait;
+    use HelperTrait;
+    use ParserTrait;
+    use QueryTrait;
+    use RelationshipsTrait;
+    use SchemaTrait;
+    use ValidationTrait;
 
     /**
      * Get the Connection.

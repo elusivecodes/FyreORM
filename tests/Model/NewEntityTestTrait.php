@@ -3,59 +3,58 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry,
-    Tests\Mock\Entity\Address,
-    Tests\Mock\Entity\Post,
-    Tests\Mock\Entity\Tag,
-    Tests\Mock\Entity\Test,
-    Tests\Mock\Entity\User;
+use Fyre\ORM\ModelRegistry;
+use Tests\Mock\Entity\Address;
+use Tests\Mock\Entity\Item;
+use Tests\Mock\Entity\Post;
+use Tests\Mock\Entity\Tag;
+use Tests\Mock\Entity\User;
 
-trait NewEntityTest
+trait NewEntityTestTrait
 {
 
     public function testNewEmptyEntity(): void
     {
-        $test = ModelRegistry::use('Test')->newEmptyEntity();
+        $item = ModelRegistry::use('Items')->newEmptyEntity();
 
         $this->assertInstanceOf(
-            Test::class,
-            $test
+            Item::class,
+            $item
         );
 
         $this->assertSame(
-            'Test',
-            $test->getSource()
+            'Items',
+            $item->getSource()
         );
     }
 
     public function testNewEntity(): void
     {
-        $test = ModelRegistry::use('Test')->newEntity([
+        $item = ModelRegistry::use('Items')->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertInstanceOf(
-            Test::class,
-            $test
+            Item::class,
+            $item
+        );
+
+        $this->assertSame(
+            'Items',
+            $item->getSource()
         );
 
         $this->assertSame(
             'Test',
-            $test->getSource()
-        );
-
-        $this->assertSame(
-            'Test',
-            $test->get('name')
+            $item->get('name')
         );
 
         $this->assertTrue(
-            $test->isNew()
+            $item->isNew()
         );
 
         $this->assertTrue(
-            $test->isDirty()
+            $item->isDirty()
         );
     }
 

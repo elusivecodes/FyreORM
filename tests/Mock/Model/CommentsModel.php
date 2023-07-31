@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace Tests\Mock\Model;
 
-use
-    Fyre\ORM\Model,
-    Fyre\ORM\RuleSet,
-    Fyre\Validation\Rule,
-    Fyre\Validation\Validator;
+use Fyre\ORM\Model;
+use Fyre\ORM\RuleSet;
+use Fyre\Validation\Rule;
+use Fyre\Validation\Validator;
 
 class CommentsModel extends Model
 {

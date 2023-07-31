@@ -3,18 +3,17 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry,
-    Fyre\Schema\SchemaRegistry;
+use Fyre\ORM\ModelRegistry;
+use Fyre\Schema\SchemaRegistry;
 
-trait SchemaTest
+trait SchemaTestTrait
 {
 
     public function testAliasField(): void
     {
         $this->assertSame(
-            'Test.name',
-            ModelRegistry::use('Test')->aliasField('name')
+            'Items.name',
+            ModelRegistry::use('Items')->aliasField('name')
         );
     }
 
@@ -30,7 +29,7 @@ trait SchemaTest
     {
         $this->assertSame(
             'name',
-            ModelRegistry::use('Test')->getDisplayName()
+            ModelRegistry::use('Items')->getDisplayName()
         );
     }
 
@@ -38,17 +37,17 @@ trait SchemaTest
     {
         $this->assertSame(
             ['id'],
-            ModelRegistry::use('Test')->getPrimaryKey()
+            ModelRegistry::use('Items')->getPrimaryKey()
         );
     }
 
     public function testGetSchema(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertSame(
-            SchemaRegistry::getSchema($Test->getConnection())->describe('test'),
-            $Test->getSchema()
+            SchemaRegistry::getSchema($Items->getConnection())->describe('items'),
+            $Items->getSchema()
         );
     }
 
@@ -77,31 +76,31 @@ trait SchemaTest
 
     public function testSetDisplayName(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertSame(
-            $Test,
-            $Test->setDisplayName('value')
+            $Items,
+            $Items->setDisplayName('value')
         );
 
         $this->assertSame(
             'value',
-            $Test->getDisplayName()
+            $Items->getDisplayName()
         );
     }
 
     public function testSetTable(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $this->assertSame(
-            $Test,
-            $Test->setTable('test_table')
+            $Items,
+            $Items->setTable('test_table')
         );
 
         $this->assertSame(
             'test_table',
-            $Test->getTable()
+            $Items->getTable()
         );
     }
 

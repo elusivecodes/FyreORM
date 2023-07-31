@@ -3,23 +3,21 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map;
+use function array_map;
 
-trait CallbacksBelongsToTest
+trait BelongsToCallbacksTestTrait
 {
 
-    public function testBeforeSaveBelongsTo(): void
+    public function testBelongsToBeforeSave(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failBeforeSave',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'failBeforeSave'
             ]
         ]);
 
@@ -50,14 +48,14 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testAfterSaveBelongsTo(): void
+    public function testBelongsToAfterSave(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failAfterSave',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'failAfterSave'
             ]
         ]);
 
@@ -88,14 +86,14 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testBeforeRulesBelongsTo(): void
+    public function testBelongsToBeforeRules(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failBeforeRules',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'failBeforeRules'
             ]
         ]);
 
@@ -126,14 +124,14 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testAfterRulesBelongsTo(): void
+    public function testBelongsToAfterRules(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failAfterRules',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'failAfterRules'
             ]
         ]);
 
@@ -164,67 +162,41 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testBeforeDeleteBelongsTo(): void
+    public function testBelongsToBeforeParse(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failBeforeDelete',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => '  Test  '
             ]
         ]);
 
-        $this->assertTrue(
-            $Addresses->save($address)
-        );
-
-        $this->assertFalse(
-            $Addresses->delete($address)
-        );
-
         $this->assertSame(
-            1,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            1,
-            ModelRegistry::use('Users')->find()->count()
+            'Test',
+            $address->user->name
         );
     }
 
-    public function testAfterDeleteBelongsTo(): void
+    public function testBelongsToAfterParse(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failAfterDelete',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'afterParse'
             ]
         ]);
 
-        $this->assertTrue(
-            $Addresses->save($address)
-        );
-
-        $this->assertFalse(
-            $Addresses->delete($address)
-        );
-
         $this->assertSame(
             1,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            1,
-            ModelRegistry::use('Users')->find()->count()
+            $address->user->test
         );
     }
 
-    public function testBeforeSaveManyBelongsTo(): void
+    public function testBelongsToBeforeSaveMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
@@ -236,9 +208,9 @@ trait CallbacksBelongsToTest
                 ]
             ],
             [
-                'suburb' => 'failBeforeSave',
+                'suburb' => 'Test 2',
                 'user' => [
-                    'name' => 'Test 2'
+                    'name' => 'failBeforeSave'
                 ]
             ]
         ]);
@@ -282,7 +254,7 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testAfterSaveManyBelongsTo(): void
+    public function testBelongsToAfterSaveMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
@@ -294,9 +266,9 @@ trait CallbacksBelongsToTest
                 ]
             ],
             [
-                'suburb' => 'failAfterSave',
+                'suburb' => 'Test 2',
                 'user' => [
-                    'name' => 'Test 2'
+                    'name' => 'failAfterSave'
                 ]
             ]
         ]);
@@ -340,7 +312,7 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testBeforeRulesManyBelongsTo(): void
+    public function testBelongsToBeforeRulesMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
@@ -352,9 +324,9 @@ trait CallbacksBelongsToTest
                 ]
             ],
             [
-                'suburb' => 'failBeforeRules',
+                'suburb' => 'Test 2',
                 'user' => [
-                    'name' => 'Test 2'
+                    'name' => 'failBeforeRules'
                 ]
             ]
         ]);
@@ -398,7 +370,7 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testAfterRulesManyBelongsTo(): void
+    public function testBelongsToAfterRulesMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
@@ -410,9 +382,9 @@ trait CallbacksBelongsToTest
                 ]
             ],
             [
-                'suburb' => 'failAfterRules',
+                'suburb' => 'Test 2',
                 'user' => [
-                    'name' => 'Test 2'
+                    'name' => 'failAfterRules'
                 ]
             ]
         ]);
@@ -456,7 +428,37 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testBeforeDeleteManyBelongsTo(): void
+    public function testBelongsToBeforeParseMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => '  Test 1  '
+                ]
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => '  Test 2  '
+                ]
+            ]
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $addresses[0]->user->name
+        );
+
+        $this->assertSame(
+            'Test 2',
+            $addresses[1]->user->name
+        );
+    }
+
+    public function testBelongsToAfterParseMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
@@ -468,78 +470,27 @@ trait CallbacksBelongsToTest
                 ]
             ],
             [
-                'suburb' => 'failBeforeDelete',
+                'suburb' => 'Test 2',
                 'user' => [
-                    'name' => 'Test 2'
+                    'name' => 'afterParse'
                 ]
             ]
         ]);
 
-        $this->assertTrue(
-            $Addresses->saveMany($addresses)
-        );
-
-        $this->assertFalse(
-            $Addresses->deleteMany($addresses)
-        );
-
         $this->assertSame(
-            2,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            2,
-            ModelRegistry::use('Users')->find()->count()
+            1,
+            $addresses[1]->user->test
         );
     }
 
-    public function testAfterDeleteManyBelongsTo(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $addresses = $Addresses->newEntities([
-            [
-                'suburb' => 'Test 1',
-                'user' => [
-                    'name' => 'Test 1'
-                ]
-            ],
-            [
-                'suburb' => 'failAfterDelete',
-                'user' => [
-                    'name' => 'Test 2'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Addresses->saveMany($addresses)
-        );
-
-        $this->assertFalse(
-            $Addresses->deleteMany($addresses)
-        );
-
-        $this->assertSame(
-            2,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            2,
-            ModelRegistry::use('Users')->find()->count()
-        );
-    }
-
-    public function testValidationBelongsTo(): void
+    public function testBelongsToValidation(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => '',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => ''
             ]
         ]);
 
@@ -570,14 +521,14 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testValidationNoCheckRulesBelongsTo(): void
+    public function testBelongsToValidationNoCheckRules(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => '',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => ''
             ]
         ]);
 
@@ -610,14 +561,14 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testRulesBelongsTo(): void
+    public function testBelongsToRules(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failRules',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'failRules'
             ]
         ]);
 
@@ -648,14 +599,14 @@ trait CallbacksBelongsToTest
         );
     }
 
-    public function testRulesNoCheckRulesBelongsTo(): void
+    public function testBelongsToRulesNoCheckRules(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
-            'suburb' => 'failRules',
+            'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
+                'name' => 'failRules'
             ]
         ]);
 

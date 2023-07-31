@@ -3,19 +3,18 @@ declare(strict_types=1);
 
 namespace Tests\Behaviors;
 
-use
-    Fyre\ORM\BehaviorRegistry,
-    Fyre\ORM\ModelRegistry,
-    PHPUnit\Framework\TestCase;
+use Fyre\ORM\BehaviorRegistry;
+use Fyre\ORM\ModelRegistry;
+use PHPUnit\Framework\TestCase;
 
 final class BehaviorTest extends TestCase
 {
 
     public function testGetConfig(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Mock', [
+        $Items->addBehavior('Mock', [
             'value' => 1
         ]);
 
@@ -23,19 +22,19 @@ final class BehaviorTest extends TestCase
             [
                 'value' => 1
             ],
-            $Test->getBehavior('Mock')->getConfig()
+            $Items->getBehavior('Mock')->getConfig()
         );
     }
 
     public function testGetModel(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->addBehavior('Mock');
+        $Items->addBehavior('Mock');
 
         $this->assertSame(
-            $Test,
-            $Test->getBehavior('Mock')->getModel()
+            $Items,
+            $Items->getBehavior('Mock')->getModel()
         );
     }
 

@@ -3,18 +3,16 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
-use
-    Fyre\Entity\Entity,
-    Fyre\ORM\Model,
-    Fyre\ORM\ModelRegistry,
-    Fyre\ORM\Query;
+use Fyre\Entity\Entity;
+use Fyre\ORM\Model;
+use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Query;
 
-use function
-    array_key_exists,
-    array_merge,
-    implode,
-    is_array,
-    natsort;
+use function array_key_exists;
+use function array_merge;
+use function implode;
+use function is_array;
+use function natsort;
 
 /**
  * ManyToMany

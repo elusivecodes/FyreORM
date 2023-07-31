@@ -3,10 +3,9 @@ declare(strict_types=1);
 
 namespace Tests\Mock\Model;
 
-use
-    Fyre\ORM\Model,
-    Fyre\ORM\Query,
-    Fyre\ORM\Result;
+use Fyre\ORM\Model;
+use Fyre\ORM\Query;
+use Fyre\ORM\Result;
 
 class OthersModel extends Model
 {

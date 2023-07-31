@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\ModelRegistry;
 
-trait JoinTest
+trait JoinTestTrait
 {
 
     public function testContainLeftJoinSql(): void

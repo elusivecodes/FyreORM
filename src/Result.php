@@ -3,22 +3,19 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use
-    ArrayIterator,
-    Countable,
-    Fyre\DB\ResultSet,
-    Fyre\DB\Types\Type,
-    Fyre\Entity\Entity,
-    Fyre\ORM\Relationships\Relationship,
-    Iterator,
-    IteratorAggregate;
+use ArrayIterator;
+use Countable;
+use Fyre\DB\ResultSet;
+use Fyre\DB\Types\Type;
+use Fyre\Entity\Entity;
+use Iterator;
+use IteratorAggregate;
 
-use function
-    array_key_exists,
-    array_merge,
-    count,
-    explode,
-    in_array;
+use function array_key_exists;
+use function array_merge;
+use function count;
+use function explode;
+use function in_array;
 
 /**
  * Result

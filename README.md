@@ -1,6 +1,6 @@
 # FyreORM
 
-**FyreORM** is a free, database ORM for *PHP*.
+**FyreORM** is a free, open-source database ORM for *PHP*.
 
 
 ## Table Of Contents
@@ -79,6 +79,34 @@ Get the default model class name.
 $defaultModelClass = ModelRegistry::getDefaultModelClass();
 ```
 
+**Get Namespaces**
+
+Get the namespaces.
+
+```php
+$namespaces = ModelRegistry::getNamespaces();
+```
+
+**Has Namespace**
+
+Check if a namespace exists.
+
+- `$namespace` is a string representing the namespace.
+
+```php
+$hasNamespace = ModelRegistry::hasNamespace($namespace);
+```
+
+**Is Loaded**
+
+Check if a model is loaded.
+
+- `$alias` is a string representing the model alias.
+
+```php
+$isLoaded = ModelRegistry::isLoaded($alias);
+```
+
 **Load**
 
 Load a [*Model*](#models).
@@ -89,6 +117,16 @@ Load a [*Model*](#models).
 $model = ModelRegistry::load($alias);
 ```
 
+**Remove Namespace**
+
+Remove a namespace.
+
+- `$namespace` is a string representing the namespace.
+
+```php
+$removed = ModelRegistry::removeNamespace($namespace);
+```
+
 **Set Default Model Class**
 
 Set the default model class name.
@@ -97,6 +135,16 @@ Set the default model class name.
 
 ```php
 ModelRegistry::setDefaultModelClass($defaultModelClass);
+```
+
+**Unload**
+
+Unload a model.
+
+- `$alias` is a string representing the model alias.
+
+```php
+$unloaded = ModelRegistry::unload($alias);
 ```
 
 **Use**
@@ -1038,6 +1086,24 @@ Find a behavior class.
 $className = BehaviorRegistry::find($name);
 ```
 
+**Get Namespaces**
+
+Get the namespaces.
+
+```php
+$namespaces = BehaviorRegistry::getNamespaces();
+```
+
+**Has Namespace**
+
+Check if a namespace exists.
+
+- `$namespace` is a string representing the namespace.
+
+```php
+$hasNamespace = BehaviorRegistry::hasNamespace($namespace);
+```
+
 **Load**
 
 Load a behavior.
@@ -1048,6 +1114,16 @@ Load a behavior.
 
 ```php
 $behavior = BehaviorRegistry::load($name, $model, $options);
+```
+
+**Remove Namespace**
+
+Remove a namespace.
+
+- `$namespace` is a string representing the namespace.
+
+```php
+$removed = BehaviorRegistry::removeNamespace($namespace);
 ```
 
 

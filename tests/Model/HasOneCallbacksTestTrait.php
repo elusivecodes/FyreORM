@@ -3,23 +3,21 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map;
+use function array_map;
 
-trait CallbacksHasOneTest
+trait HasOneCallbacksTestTrait
 {
 
-    public function testBeforeSaveHasOne(): void
+    public function testHasOneBeforeSave(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failBeforeSave',
             'address' => [
-                'suburb' => 'failBeforeSave'
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -50,14 +48,14 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testAfterSaveHasOne(): void
+    public function testHasOneAfterSave(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failAfterSave',
             'address' => [
-                'suburb' => 'failAfterSave'
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -88,14 +86,14 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testBeforeRulesBelongsToHasOne(): void
+    public function testHasOneBeforeRules(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failBeforeRules',
             'address' => [
-                'suburb' => 'failBeforeRules'
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -126,14 +124,14 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testAfterRulesHasOne(): void
+    public function testHasOneAfterRules(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failAfterRules',
             'address' => [
-                'suburb' => 'failAfterRules'
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -164,335 +162,382 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testBeforeParseHasOne(): void
+    public function testHasOneBeforeDelete(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failBeforeDelete',
             'address' => [
-                'suburb' => '  Test  '
+                'suburb' => 'Test'
             ]
         ]);
 
-        $this->assertSame(
-            'Test',
-            $user->address->suburb
+        $this->assertTrue(
+            $Users->save($user)
         );
-    }
 
-    public function testAfterParseHasOne(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'address' => [
-                'suburb' => 'afterParse'
-            ]
-        ]);
+        $this->assertFalse(
+            $Users->delete($user)
+        );
 
         $this->assertSame(
             1,
-            $user->address->test
-        );
-    }
-
-    public function testBeforeSaveManyHasOne(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => 'Test 1'
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'address' => [
-                    'suburb' => 'failBeforeSave'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Users->saveMany($users)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->user_id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            0,
             $Users->find()->count()
         );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Addresses')->find()->count()
-        );
-    }
-
-    public function testAfterSaveManyHasOne(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => 'Test 1'
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'address' => [
-                    'suburb' => 'failAfterSave'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Users->saveMany($users)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->user_id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            0,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Addresses')->find()->count()
-        );
-    }
-
-    public function testBeforeRulesManyHasOne(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => 'Test 1'
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'address' => [
-                    'suburb' => 'failBeforeRules'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Users->saveMany($users)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->user_id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            0,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Addresses')->find()->count()
-        );
-    }
-
-    public function testAfterRulesManyHasOne(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => 'Test 1'
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'address' => [
-                    'suburb' => 'failAfterRules'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Users->saveMany($users)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($user) => $user->address->user_id,
-                $users
-            )
-        );
-
-        $this->assertSame(
-            0,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Addresses')->find()->count()
-        );
-    }
-
-    public function testBeforeParseHasOneMany(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => '  Test 1  '
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'address' => [
-                    'suburb' => '  Test 2  '
-                ]
-            ]
-        ]);
-
-        $this->assertSame(
-            'Test 1',
-            $users[0]->address->suburb
-        );
-
-        $this->assertSame(
-            'Test 2',
-            $users[1]->address->suburb
-        );
-    }
-
-    public function testAfterParseHasOneMany(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'address' => [
-                    'suburb' => 'Test 1'
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'address' => [
-                    'suburb' => 'afterParse'
-                ]
-            ]
-        ]);
 
         $this->assertSame(
             1,
-            $users[1]->address->test
+            ModelRegistry::use('Addresses')->find()->count()
         );
     }
 
-    public function testValidationHasOne(): void
+    public function testHasOneAfterDelete(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failAfterDelete',
             'address' => [
-                'suburb' => ''
+                'suburb' => 'Test'
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $this->assertFalse(
+            $Users->delete($user)
+        );
+
+        $this->assertSame(
+            1,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            1,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneBeforeSaveMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => 'Test 1'
+                ]
+            ],
+            [
+                'name' => 'failBeforeSave',
+                'address' => [
+                    'suburb' => 'Test 2'
+                ]
+            ]
+        ]);
+
+        $this->assertFalse(
+            $Users->saveMany($users)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->user_id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneAfterSaveMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => 'Test 1'
+                ]
+            ],
+            [
+                'name' => 'failAfterSave',
+                'address' => [
+                    'suburb' => 'Test 2'
+                ]
+            ]
+        ]);
+
+        $this->assertFalse(
+            $Users->saveMany($users)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->user_id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneBeforeRulesMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => 'Test 1'
+                ]
+            ],
+            [
+                'name' => 'failBeforeRules',
+                'address' => [
+                    'suburb' => 'Test 2'
+                ]
+            ]
+        ]);
+
+        $this->assertFalse(
+            $Users->saveMany($users)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->user_id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneAfterRulesMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => 'Test 1'
+                ]
+            ],
+            [
+                'name' => 'failAfterRules',
+                'address' => [
+                    'suburb' => 'Test 2'
+                ]
+            ]
+        ]);
+
+        $this->assertFalse(
+            $Users->saveMany($users)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($user) => $user->address->user_id,
+                $users
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneBeforeDeleteMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => 'Test 1'
+                ]
+            ],
+            [
+                'name' => 'failBeforeDelete',
+                'address' => [
+                    'suburb' => 'Test 2'
+                ]
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $this->assertFalse(
+            $Users->deleteMany($users)
+        );
+
+        $this->assertSame(
+            2,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            2,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneAfterDeleteMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'address' => [
+                    'suburb' => 'Test 1'
+                ]
+            ],
+            [
+                'name' => 'failAfterDelete',
+                'address' => [
+                    'suburb' => 'Test 2'
+                ]
+            ]
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $this->assertFalse(
+            $Users->deleteMany($users)
+        );
+
+        $this->assertSame(
+            2,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            2,
+            ModelRegistry::use('Addresses')->find()->count()
+        );
+    }
+
+    public function testHasOneValidation(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => '',
+            'address' => [
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -523,14 +568,14 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testValidationNoCheckRulesHasOne(): void
+    public function testHasOneValidationNoCheckRules(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => '',
             'address' => [
-                'suburb' => ''
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -563,14 +608,14 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testRulesHasOne(): void
+    public function testHasOneRules(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failRules',
             'address' => [
-                'suburb' => 'failRules'
+                'suburb' => 'Test'
             ]
         ]);
 
@@ -601,14 +646,14 @@ trait CallbacksHasOneTest
         );
     }
 
-    public function testRulesNoCheckRulesHasOne(): void
+    public function testHasOneRulesNoCheckRules(): void
     {
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test',
+            'name' => 'failRules',
             'address' => [
-                'suburb' => 'failRules'
+                'suburb' => 'Test'
             ]
         ]);
 

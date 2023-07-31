@@ -3,24 +3,22 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use
-    Closure,
-    Fyre\DB\QueryGenerator,
-    Fyre\Entity\Entity,
-    Fyre\Lang\Lang;
+use Closure;
+use Fyre\DB\QueryGenerator;
+use Fyre\Entity\Entity;
+use Fyre\Lang\Lang;
 
-use function
-    array_diff_assoc,
-    array_filter,
-    array_intersect,
-    array_intersect_assoc,
-    array_keys,
-    array_map,
-    array_merge,
-    array_slice,
-    array_values,
-    implode,
-    in_array;
+use function array_diff_assoc;
+use function array_filter;
+use function array_intersect;
+use function array_intersect_assoc;
+use function array_keys;
+use function array_map;
+use function array_merge;
+use function array_slice;
+use function array_values;
+use function implode;
+use function in_array;
 
 /**
  * RuleSet

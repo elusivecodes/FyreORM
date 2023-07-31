@@ -3,43 +3,41 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use
-    Fyre\Validation\Validator,
-    Fyre\ORM\ModelRegistry,
-    Fyre\ORM\Query,
-    Fyre\ORM\RuleSet,
-    PHPUnit\Framework\TestCase;
+use Fyre\Validation\Validator;
+use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Query;
+use Fyre\ORM\RuleSet;
+use PHPUnit\Framework\TestCase;
 
 final class RulesTest extends TestCase
 {
 
-    use
-        ConnectionTrait;
+    use ConnectionTrait;
 
     public function testIsUnique(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name']));
 
-        $Test->setRules($rules);
+        $Items->setRules($rules);
 
-        $test1 = $Test->newEntity([
+        $item1 = $Items->newEntity([
             'name' => 'Test'
         ]);
 
-        $test2 = $Test->newEntity([
+        $item2 = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test1)
+            $Items->save($item1)
         );
 
         $this->assertFalse(
-            $Test->save($test2)
+            $Items->save($item2)
         );
 
         $this->assertSame(
@@ -48,36 +46,36 @@ final class RulesTest extends TestCase
                     'invalid'
                 ]
             ],
-            $test2->getErrors()
+            $item2->getErrors()
         );
     }
 
     public function testIsUniqueNull(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $validator = new Validator();
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name']));
 
-        $Test->setValidator($validator);
-        $Test->setRules($rules);
+        $Items->setValidator($validator);
+        $Items->setRules($rules);
 
-        $test1 = $Test->newEntity([
+        $item1 = $Items->newEntity([
             'name' => null
         ]);
 
-        $test2 = $Test->newEntity([
+        $item2 = $Items->newEntity([
             'name' => null
         ]);
 
         $this->assertTrue(
-            $Test->save($test1)
+            $Items->save($item1)
         );
 
         $this->assertFalse(
-            $Test->save($test2)
+            $Items->save($item2)
         );
 
         $this->assertSame(
@@ -86,50 +84,50 @@ final class RulesTest extends TestCase
                     'invalid'
                 ]
             ],
-            $test2->getErrors()
+            $item2->getErrors()
         );
     }
 
     public function testIsUniqueNullMultiple(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
         $validator = new Validator();
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name'], ['allowMultipleNulls' => true]));
 
-        $Test->setValidator($validator);
-        $Test->setRules($rules);
+        $Items->setValidator($validator);
+        $Items->setRules($rules);
 
-        $test1 = $Test->newEntity([
+        $item1 = $Items->newEntity([
             'name' => null
         ]);
 
-        $test2 = $Test->newEntity([
+        $item2 = $Items->newEntity([
             'name' => null
         ]);
 
         $this->assertTrue(
-            $Test->save($test1)
+            $Items->save($item1)
         );
 
         $this->assertTrue(
-            $Test->save($test2)
+            $Items->save($item2)
         );
     }
 
     public function testIsUniqueSaveMany(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name']));
 
-        $Test->setRules($rules);
+        $Items->setRules($rules);
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test'
             ],
@@ -139,7 +137,7 @@ final class RulesTest extends TestCase
         ]);
 
         $this->assertFalse(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertSame(
@@ -148,21 +146,21 @@ final class RulesTest extends TestCase
                     'invalid'
                 ]
             ],
-            $tests[1]->getErrors()
+            $items[1]->getErrors()
         );
     }
 
     public function testIsUniqueSaveManyNull(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name']));
 
-        $Test->setRules($rules);
+        $Items->setRules($rules);
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => null
             ],
@@ -172,7 +170,7 @@ final class RulesTest extends TestCase
         ]);
 
         $this->assertFalse(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertSame(
@@ -181,61 +179,61 @@ final class RulesTest extends TestCase
                     'invalid'
                 ]
             ],
-            $tests[1]->getErrors()
+            $items[1]->getErrors()
         );
     }
 
     public function testIsUniqueUpdate(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name']));
 
-        $Test->setRules($rules);
+        $Items->setRules($rules);
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
-        $test->setDirty('name', true);
+        $item->setDirty('name', true);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
     }
 
     public function testIsUniqueCallback(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name'], [
             'callback' => fn(Query $q): Query => $q->where(['name !=' => 'Test'])
         ]));
 
-        $Test->setRules($rules);
+        $Items->setRules($rules);
 
-        $test1 = $Test->newEntity([
+        $item1 = $Items->newEntity([
             'name' => 'Test'
         ]);
 
-        $test2 = $Test->newEntity([
+        $item2 = $Items->newEntity([
             'name' => 'Test'
         ]);
 
         $this->assertTrue(
-            $Test->save($test1)
+            $Items->save($item1)
         );
 
         $this->assertTrue(
-            $Test->save($test2)
+            $Items->save($item2)
         );
     }
 
@@ -416,26 +414,26 @@ final class RulesTest extends TestCase
 
     public function testIsClean(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $rules = new RuleSet($Test);
+        $rules = new RuleSet($Items);
 
         $rules->add($rules->isClean(['name']));
 
-        $Test->setRules($rules);
+        $Items->setRules($rules);
 
-        $test = $Test->newEntity([
+        $item = $Items->newEntity([
             'name' => 'Test 1'
         ]);
 
         $this->assertTrue(
-            $Test->save($test)
+            $Items->save($item)
         );
 
-        $test->name = 'Test 2';
+        $item->name = 'Test 2';
 
         $this->assertFalse(
-            $Test->save($test)
+            $Items->save($item)
         );
 
         $this->assertSame(
@@ -444,7 +442,7 @@ final class RulesTest extends TestCase
                     'invalid'
                 ]
             ],
-            $test->getErrors()
+            $item->getErrors()
         );
     }
 

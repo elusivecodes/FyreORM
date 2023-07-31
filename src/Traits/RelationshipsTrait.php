@@ -3,16 +3,14 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\Relationships\BelongsTo,
-    Fyre\ORM\Relationships\HasMany,
-    Fyre\ORM\Relationships\HasOne,
-    Fyre\ORM\Relationships\ManyToMany,
-    Fyre\ORM\Relationships\Relationship;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Relationships\BelongsTo;
+use Fyre\ORM\Relationships\HasMany;
+use Fyre\ORM\Relationships\HasOne;
+use Fyre\ORM\Relationships\ManyToMany;
+use Fyre\ORM\Relationships\Relationship;
 
-use function
-    array_key_exists;
+use function array_key_exists;
 
 /**
  * RelationshipsTrait

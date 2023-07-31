@@ -3,33 +3,31 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use
-    Fyre\DB\Types\DateTimeType,
-    Fyre\DB\Types\StringType,
-    Fyre\ORM\ModelRegistry,
-    Fyre\ORM\Result,
-    PHPUnit\Framework\TestCase,
-    Tests\Mock\Entity\Test;
+use Fyre\DB\Types\DateTimeType;
+use Fyre\DB\Types\StringType;
+use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Result;
+use PHPUnit\Framework\TestCase;
+use Tests\Mock\Entity\Item;
 
 final class ResultTest extends TestCase
 {
 
-    use
-        ConnectionTrait;
+    use ConnectionTrait;
 
     public function testResult(): void
     {
         $this->assertInstanceOf(
             Result::class,
-            ModelRegistry::use('Test')->find()->getResult()
+            ModelRegistry::use('Items')->find()->getResult()
         );
     }
 
     public function testFetch(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -39,34 +37,34 @@ final class ResultTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $test = $Test->find()
+        $item = $Items->find()
             ->getResult()
             ->fetch(1);
 
         $this->assertInstanceOf(
-            Test::class,
-            $test
+            Item::class,
+            $item
         );
 
         $this->assertSame(
-            'Test',
-            $test->getSource()
+            'Items',
+            $item->getSource()
         );
 
         $this->assertSame(
             2,
-            $test->id
+            $item->id
         );
     }
 
     public function testFirst(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -76,34 +74,34 @@ final class ResultTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $test = $Test->find()
+        $item = $Items->find()
             ->getResult()
             ->first();
 
         $this->assertInstanceOf(
-            Test::class,
-            $test
+            Item::class,
+            $item
         );
 
         $this->assertSame(
-            'Test',
-            $test->getSource()
+            'Items',
+            $item->getSource()
         );
 
         $this->assertSame(
             1,
-            $test->id
+            $item->id
         );
     }
 
     public function testLast(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -113,26 +111,26 @@ final class ResultTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $test = $Test->find()
+        $item = $Items->find()
             ->getResult()
             ->last();
 
         $this->assertInstanceOf(
-            Test::class,
-            $test
+            Item::class,
+            $item
         );
 
         $this->assertSame(
-            'Test',
-            $test->getSource()
+            'Items',
+            $item->getSource()
         );
 
         $this->assertSame(
             2,
-            $test->id
+            $item->id
         );
     }
 
@@ -140,7 +138,7 @@ final class ResultTest extends TestCase
     {
         $this->assertSame(
             2,
-            ModelRegistry::use('Test')
+            ModelRegistry::use('Items')
                 ->find()
                 ->getResult()
                 ->columnCount()
@@ -151,10 +149,10 @@ final class ResultTest extends TestCase
     {
         $this->assertSame(
             [
-                'Test__id',
-                'Test__name'
+                'Items__id',
+                'Items__name'
             ],
-            ModelRegistry::use('Test')
+            ModelRegistry::use('Items')
                 ->find()
                 ->getResult()
                 ->columns()
@@ -165,10 +163,10 @@ final class ResultTest extends TestCase
     {
         $this->assertInstanceOf(
             StringType::class,
-            ModelRegistry::use('Test')
+            ModelRegistry::use('Items')
                 ->find([
                     'fields' => [
-                        'name' => 'Test.name'
+                        'name' => 'Items.name'
                     ]
                 ])
                 ->getResult()
@@ -181,7 +179,7 @@ final class ResultTest extends TestCase
     {
         $this->assertInstanceOf(
             DateTimeType::class,
-            ModelRegistry::use('Test')
+            ModelRegistry::use('Items')
                 ->find([
                     'fields' => [
                         'virtual' => 'NOW()'
@@ -194,9 +192,9 @@ final class ResultTest extends TestCase
 
     public function testFree(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -206,10 +204,10 @@ final class ResultTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $result = $Test->find()->getResult();
+        $result = $Items->find()->getResult();
         $result->free();
 
         $this->assertSame(

@@ -3,13 +3,12 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\ModelRegistry,
-    Tests\Mock\Entity\Address,
-    Tests\Mock\Entity\Tag;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\ModelRegistry;
+use Tests\Mock\Entity\Address;
+use Tests\Mock\Entity\Tag;
 
-trait MatchingTest
+trait MatchingTestTrait
 {
 
     public function testMatchingSql(): void

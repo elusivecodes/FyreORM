@@ -3,20 +3,18 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    ArrayObject,
-    Fyre\DB\QueryGenerator,
-    Fyre\Entity\Entity,
-    Fyre\Entity\EntityLocator;
+use ArrayObject;
+use Fyre\DB\QueryGenerator;
+use Fyre\Entity\Entity;
+use Fyre\Entity\EntityLocator;
 
-use function
-    array_diff_assoc,
-    array_filter,
-    array_key_exists,
-    array_map,
-    array_values,
-    count,
-    is_array;
+use function array_diff_assoc;
+use function array_filter;
+use function array_key_exists;
+use function array_map;
+use function array_values;
+use function count;
+use function is_array;
 
 /**
  * EntityTrait

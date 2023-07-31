@@ -3,13 +3,11 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    Fyre\ORM\Behavior,
-    Fyre\ORM\BehaviorRegistry,
-    Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Behavior;
+use Fyre\ORM\BehaviorRegistry;
+use Fyre\ORM\Exceptions\OrmException;
 
-use function
-    array_key_exists;
+use function array_key_exists;
 
 /**
  * BehaviorTrait

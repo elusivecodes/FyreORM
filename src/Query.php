@@ -3,26 +3,24 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use
-    Fyre\DB\Connection,
-    Fyre\DB\QueryBuilder,
-    Fyre\DB\ResultSet,
-    Fyre\Entity\Entity,
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\Relationships\Relationship;
+use Fyre\DB\Connection;
+use Fyre\DB\QueryBuilder;
+use Fyre\DB\ResultSet;
+use Fyre\DB\ValueBinder;
+use Fyre\Entity\Entity;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Relationships\Relationship;
 
-use function
-    array_combine,
-    array_key_exists,
-    array_keys,
-    array_map,
-    array_merge,
-    count,
-    explode,
-    in_array,
-    is_numeric,
-    is_string,
-    str_replace;
+use function array_combine;
+use function array_key_exists;
+use function array_keys;
+use function array_map;
+use function count;
+use function explode;
+use function in_array;
+use function is_numeric;
+use function is_string;
+use function str_replace;
 
 /**
  * Query
@@ -380,14 +378,15 @@ class Query extends QueryBuilder
 
     /**
      * Generate the SQL query.
+     * @param ValueBinder|null $binder The ValueBinder.
      * @param bool $reset Whether to reset the prepared query.
      * @return string The SQL query.
      */
-    public function sql(bool $reset = true): string
+    public function sql(ValueBinder|null $binder = null, bool $reset = true): string
     {
         $this->prepare();
 
-        $sql = parent::sql();
+        $sql = parent::sql($binder);
 
         if ($reset) {
             $this->reset();

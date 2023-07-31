@@ -3,31 +3,29 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use
-    Fyre\ORM\ModelRegistry,
-    Fyre\ORM\Query,
-    PHPUnit\Framework\TestCase,
-    Tests\Mock\Entity\Test;
+use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Query;
+use PHPUnit\Framework\TestCase;
+use Tests\Mock\Entity\Item;
 
 final class QueryTest extends TestCase
 {
 
-    use
-        ConnectionTrait;
+    use ConnectionTrait;
 
     public function testQuery(): void
     {
         $this->assertInstanceOf(
             Query::class,
-            ModelRegistry::use('Test')->find()
+            ModelRegistry::use('Items')->find()
         );
     }
 
     public function testCount(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -37,21 +35,21 @@ final class QueryTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertSame(
             2,
-            $Test->find()
+            $Items->find()
                 ->count()
         );
     }
 
     public function testCountWithLimit(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -61,12 +59,12 @@ final class QueryTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
         $this->assertSame(
             2,
-            $Test->find()
+            $Items->find()
                 ->limit(1)
                 ->count()
         );
@@ -74,9 +72,9 @@ final class QueryTest extends TestCase
 
     public function testDirty(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $tests = $Test->newEntities([
+        $items = $Items->newEntities([
             [
                 'name' => 'Test 1'
             ],
@@ -86,20 +84,20 @@ final class QueryTest extends TestCase
         ]);
 
         $this->assertTrue(
-            $Test->saveMany($tests)
+            $Items->saveMany($items)
         );
 
-        $query = $Test->find();
+        $query = $Items->find();
 
         $result1 = $query->first();
 
         $this->assertInstanceOf(
-            Test::class,
+            Item::class,
             $result1
         );
 
         $this->assertSame(
-            'Test',
+            'Items',
             $result1->getSource()
         );
 
@@ -115,12 +113,12 @@ final class QueryTest extends TestCase
         $result2 = $query->first();
 
         $this->assertInstanceOf(
-            Test::class,
+            Item::class,
             $result2
         );
 
         $this->assertSame(
-            'Test',
+            'Items',
             $result2->getSource()
         );
 

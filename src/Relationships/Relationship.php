@@ -3,19 +3,17 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
-use
-    Fyre\ORM\Exceptions\OrmException,
-    Fyre\ORM\Model,
-    Fyre\ORM\ModelRegistry,
-    Fyre\ORM\Query,
-    Fyre\Utility\Inflector;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Model;
+use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Query;
+use Fyre\Utility\Inflector;
 
-use function
-    array_key_exists,
-    array_merge,
-    count,
-    in_array,
-    str_replace;
+use function array_key_exists;
+use function array_merge;
+use function count;
+use function in_array;
+use function str_replace;
 
 /**
  * Relationship

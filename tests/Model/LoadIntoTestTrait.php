@@ -3,13 +3,11 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map;
+use function array_map;
 
-trait LoadIntoTest
+trait LoadIntoTestTrait
 {
 
     public function testLoadInto()

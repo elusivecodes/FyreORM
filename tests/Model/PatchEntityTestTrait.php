@@ -3,32 +3,31 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry,
-    Tests\Mock\Entity\Address,
-    Tests\Mock\Entity\Post,
-    Tests\Mock\Entity\Tag;
+use Fyre\ORM\ModelRegistry;
+use Tests\Mock\Entity\Address;
+use Tests\Mock\Entity\Post;
+use Tests\Mock\Entity\Tag;
 
-trait PatchEntityTest
+trait PatchEntityTestTrait
 {
 
     public function testPatchEntity(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $test = $Test->newEmptyEntity();
+        $item = $Items->newEmptyEntity();
 
-        $Test->patchEntity($test, [
+        $Items->patchEntity($item, [
             'name' => 'Test'
         ]);
 
         $this->assertSame(
             'Test',
-            $test->get('name')
+            $item->get('name')
         );
 
         $this->assertTrue(
-            $test->isDirty()
+            $item->isDirty()
         );
     }
 

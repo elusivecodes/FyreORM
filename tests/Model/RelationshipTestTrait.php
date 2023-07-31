@@ -3,35 +3,31 @@ declare(strict_types=1);
 
 namespace Tests\Model;
 
-use
-    Fyre\ORM\ModelRegistry;
+use Fyre\ORM\ModelRegistry;
 
-use function
-    array_map;
-
-trait RelationshipTest
+trait RelationshipTestTrait
 {
 
     public function testRelationshipClassName(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $relationship = $Test->hasOne('Alias', [
-            'className' => 'Test'
+        $relationship = $Items->hasOne('Alias', [
+            'className' => 'Items'
         ]);
 
         $this->assertSame(
-            $Test,
+            $Items,
             $relationship->getTarget()
         );
     }
 
     public function testRelationshipPropertyName(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $relationship = $Test->hasOne('Alias', [
-            'className' => 'Test',
+        $relationship = $Items->hasOne('Alias', [
+            'className' => 'Items',
             'propertyName' => 'alias'
         ]);
 
@@ -43,17 +39,17 @@ trait RelationshipTest
 
     public function testRelationshipKeys(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->hasOne('Alias', [
-            'className' => 'Test',
+        $Items->hasOne('Alias', [
+            'className' => 'Items',
             'foreignKey' => 'name',
             'bindingKey' => 'name'
         ]);
 
         $this->assertSame(
-            'SELECT Test.id AS Test__id FROM test AS Test LEFT JOIN test AS Alias ON Alias.name = Test.name',
-            $Test->find()
+            'SELECT Items.id AS Items__id FROM items AS Items LEFT JOIN items AS Alias ON Alias.name = Items.name',
+            $Items->find()
                 ->enableAutoFields(false)
                 ->leftJoinWith('Alias')
                 ->sql()
@@ -62,18 +58,18 @@ trait RelationshipTest
 
     public function testRelationshipConditions(): void
     {
-        $Test = ModelRegistry::use('Test');
+        $Items = ModelRegistry::use('Items');
 
-        $Test->hasOne('Alias', [
-            'className' => 'Test',
+        $Items->hasOne('Alias', [
+            'className' => 'Items',
             'conditions' => [
                 'Alias.name' => 'Test'
             ]
         ]);
 
         $this->assertSame(
-            'SELECT Test.id AS Test__id FROM test AS Test LEFT JOIN test AS Alias ON test_id = Test.id AND Alias.name = \'Test\'',
-            $Test->find()
+            'SELECT Items.id AS Items__id FROM items AS Items LEFT JOIN items AS Alias ON item_id = Items.id AND Alias.name = \'Test\'',
+            $Items->find()
                 ->enableAutoFields(false)
                 ->leftJoinWith('Alias')
                 ->sql()
@@ -82,18 +78,18 @@ trait RelationshipTest
 
     public function testRelationshipThrough(): void
     {
-        $Test = ModelRegistry::use('Test');
-        $TestAlias = ModelRegistry::use('TestAlias');
+        $Items = ModelRegistry::use('Items');
+        $ItemsAlias = ModelRegistry::use('ItemsAlias');
 
-        $relationship = $Test->manyToMany('Alias', [
-            'className' => 'Test',
-            'through' => 'TestAlias'
+        $relationship = $Items->manyToMany('Alias', [
+            'className' => 'Items',
+            'through' => 'ItemsAlias'
         ]);
 
-        $TestAlias->setTable('test');
+        $ItemsAlias->setTable('items');
 
         $this->assertSame(
-            $TestAlias,
+            $ItemsAlias,
             $relationship->getJoinModel()
         );
     }

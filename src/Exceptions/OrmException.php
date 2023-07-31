@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Exceptions;
 
-use
-    RunTimeException;
+use RunTimeException;
 
 /**
  * OrmException

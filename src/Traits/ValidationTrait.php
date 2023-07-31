@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
-use
-    Fyre\ORM\RuleSet,
-    Fyre\Validation\Validator;
+use Fyre\ORM\RuleSet;
+use Fyre\Validation\Validator;
 
 /**
  * ValidationTrait

@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Behaviors;
 
-use
-    Fyre\DateTime\DateTime,
-    Fyre\ORM\Behavior;
+use Fyre\DateTime\DateTime;
+use Fyre\ORM\Behavior;
 
 /**
  * TimestampBehavior
