@@ -10,7 +10,7 @@ use function array_map;
 trait LoadIntoTestTrait
 {
 
-    public function testLoadInto()
+    public function testLoadInto(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -96,7 +96,7 @@ trait LoadIntoTestTrait
         );
     }
 
-    public function testLoadIntoOverwrites()
+    public function testLoadIntoOverwrites(): void
     {
         $Users = ModelRegistry::use('Users');
 

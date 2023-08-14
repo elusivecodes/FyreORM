@@ -15,7 +15,7 @@ final class TimestampTest extends TestCase
 
     use ConnectionTrait;
 
-    public function testTimestampsCreate()
+    public function testTimestampsCreate(): void
     {
         $Timestamps = ModelRegistry::use('Timestamps');
 
@@ -40,7 +40,7 @@ final class TimestampTest extends TestCase
         );
     }
 
-    public function testTimestampsUpdate()
+    public function testTimestampsUpdate(): void
     {
         $Timestamps = ModelRegistry::use('Timestamps');
 

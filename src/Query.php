@@ -341,7 +341,7 @@ class Query extends QueryBuilder
      * Reset the query.
      * @return Query The Query.
      */
-    public function reset()
+    public function reset(): static
     {
         if ($this->prepared) {
             $this->fields = $this->originalFields;
