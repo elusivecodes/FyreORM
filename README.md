@@ -15,6 +15,12 @@
     - [Validation](#validation)
     - [Callbacks](#callbacks)
 - [Queries](#queries)
+    - [Delete](#delete)
+    - [Insert](#insert)
+    - [Replace](#replace)
+    - [Select](#select)
+    - [Update](#update)
+    - [Update Batch](#update-batch)
 - [Results](#results)
 - [Relationships](#relationships)
     - [Belongs To](#belongs-to)
@@ -164,6 +170,17 @@ Custom models can be created by extending the `\Fyre\ORM\Model` class, suffixing
 
 To allow autoloading an instance of your model, add the the namespace to the *ModelRegistry*.
 
+**Delete Query**
+
+Create a new [*DeleteQuery*](#delete).
+
+- `$options` is an array containing options for the query.
+    - `alias` is a string representing the table alias, and will default to the model alias.
+
+```php
+$query = $model->deleteQuery($options);
+```
+
 **Get Connection**
 
 Get the [*Connection*](https://github.com/elusivecodes/FyreDB#connections).
@@ -185,16 +202,32 @@ protected array $connectionKeys = [
 
 If the `self::READ` key is omitted, it will fallback to the `self::WRITE` connection for database reads.
 
-**Query**
+**Insert Query**
 
-Create a new [*Query*](#queries).
+Create a new [*InsertQuery*](#insert).
+
+```php
+$query = $model->insertQuery();
+```
+
+**Replace Query**
+
+Create a new [*ReplaceQuery*](#replace).
+
+```php
+$query = $model->replaceQuery();
+```
+
+**Select Query**
+
+Create a new [*SelectQuery*](#select).
 
 - `$options` is an array containing options for the query.
     - `alias` is a string representing the table alias, and will default to the model alias.
-    - `type` is a string representing the connection type, and will default to `self::WRITE`.
+    - `type` is a string representing the connection type, and will default to `self::READ`.
 
 ```php
-$query = $model->query($options);
+$query = $model->selectQuery($options);
 ```
 
 **Set Connection**
@@ -210,7 +243,7 @@ $model->setConnection($connection, $type);
 
 **Subquery**
 
-Create a new subquery [*Query*](#queries).
+Create a new subquery [*SelectQuery*](#select).
 
 - `$options` is an array containing options for the query.
     - `alias` is a string representing the table alias, and will default to the model alias.
@@ -218,6 +251,28 @@ Create a new subquery [*Query*](#queries).
 
 ```php
 $query = $model->subquery($options);
+```
+
+**Update Query**
+
+Create a new [*UpdateQuery*](#update).
+
+- `$options` is an array containing options for the query.
+    - `alias` is a string representing the table alias, and will default to the model alias.
+
+```php
+$query = $model->updateQuery($options);
+```
+
+**Update Batch Query**
+
+Create a new [*UpdateBatchQuery*](#update-batch).
+
+- `$options` is an array containing options for the query.
+    - `alias` is a string representing the table alias, and will default to the model alias.
+
+```php
+$query = $model->updateBatchQuery($options);
 ```
 
 
@@ -479,7 +534,7 @@ $exists = $model->exists($conditions);
 
 **Find**
 
-Create a new [*Query*](#queries).
+Create a new [*SelectQuery*](#select).
 
 - `$data` is an array containing the query data.
     - `type` is a string representing the connection type, and will default to `self::READ`.
@@ -712,7 +767,7 @@ Callbacks can be defined in your models, allowing custom code to run or revert c
 Execute a callback after entities are deleted.
 
 ```php
-public function afterDelete(array $entitites) {}
+public function afterDelete(Entity $entity) {}
 ```
 
 If this method returns *false* the delete will not be performed and the transaction will be rolled back.
@@ -734,7 +789,7 @@ Execute a callback after model rules are processed.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterRules(array $entitites) {}
+public function afterRules(Entity $entity) {}
 ```
 
 If this method returns *false* the save will not be performed.
@@ -752,7 +807,7 @@ public function afterParse(Entity $entity) { }
 Execute a callback after entities are saved to the database.
 
 ```php
-public function afterSave(array $entitites) {}
+public function afterSave(Entity $entity) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
@@ -762,7 +817,7 @@ If this method returns *false* the save will not be performed and the transactio
 Execute a callback before entities are deleted.
 
 ```php
-public function beforeDelete(array $entitites) {}
+public function beforeDelete(Entity $entity) {}
 ```
 
 If this method returns *false* the delete will not be performed.
@@ -792,7 +847,7 @@ public function beforeParse(ArrayObject $data) { }
 Before rules callback.
 
 ```php
-public function beforeRules(array $entitites) {}
+public function beforeRules(Entity $entity) {}
 ```
 
 If this method returns *false* the save will not be performed.
@@ -802,7 +857,7 @@ If this method returns *false* the save will not be performed.
 Execute a callback before entities are saved to the database.
 
 ```php
-public function beforeSave(array $entitites) {}
+public function beforeSave(Entity $entity) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
@@ -832,7 +887,54 @@ public function buildValidation(Validator $validator): Validator
 
 ## Queries
 
-The `\Fyre\ORM\Query` class extends the [*QueryBuilder*](https://github.com/elusivecodes/FyreDB#queries) class, while providing several additional methods and wrappers for relationship and entity mapping.
+**Get Model**
+
+Get the [*Model*](#models).
+
+```php
+$model = $query->getModel();
+```
+
+### Delete
+
+The `\Fyre\ORM\Queries\DeleteQuery` class extends the [*DeleteQuery*](https://github.com/elusivecodes/FyreDB#delete) class. The table and alias will be automatically set from the *Model*.
+
+```php
+$model->deleteQuery()
+    ->where($conditions)
+    ->execute();
+```
+
+### Insert
+
+The `\Fyre\ORM\Queries\InsertQuery` class extends the [*InsertQuery*](https://github.com/elusivecodes/FyreDB#insert) class. The table will be automatically set from the *Model*.
+
+```php
+$model->insertQuery()
+    ->values($values)
+    ->execute();
+```
+
+### Replace
+
+The `\Fyre\ORM\Queries\ReplaceQuery` class extends the [*ReplaceQuery*](https://github.com/elusivecodes/FyreDB#replace) class. The table will be automatically set from the *Model*.
+
+```php
+$model->replaceQuery()
+    ->values($values)
+    ->execute();
+```
+
+### Select
+
+The `\Fyre\ORM\Queries\SelectQuery` class extends the [*SelectQuery*](https://github.com/elusivecodes/FyreDB#select) class, while providing several additional methods and wrappers for relationship and entity mapping. The table and alias will be automatically set from the *Model*, and field names will be automatically aliased.
+
+```php
+$model->selectQuery()
+    ->select($fields)
+    ->where($conditions)
+    ->execute();
+```
 
 **All**
 
@@ -916,14 +1018,6 @@ Get the matching array.
 $matching = $query->getMatching();
 ```
 
-**Get Model**
-
-Get the [*Model*](#models).
-
-```php
-$model = $query->getModel();
-```
-
 **Get Result**
 
 Get the query result.
@@ -976,6 +1070,43 @@ LEFT JOIN a relationship table and exclude matching rows.
 
 ```php
 $query->notMatching($contain, $conditions);
+```
+
+### Update
+
+The `\Fyre\ORM\Queries\UpdateQuery` class extends the [*UpdateQuery*](https://github.com/elusivecodes/FyreDB#update) class. The table and alias will be automatically set from the *Model*, and field names will be automatically aliased.
+
+```php
+$model->updateQuery()
+    ->set($values)
+    ->where($conditions)
+    ->execute();
+```
+
+**Get Alias**
+
+Get the alias.
+
+```php
+$alias = $query->getAlias();
+```
+
+### Update Batch
+
+The `\Fyre\ORM\Queries\UpdateBatchQuery` class extends the [*UpdateBatchQuery*](https://github.com/elusivecodes/FyreDB#update-batch) class. The table and alias will be automatically set from the *Model*, and field names will be automatically aliased.
+
+```php
+$model->updateBatchQuery()
+    ->set($values, $keys)
+    ->execute();
+```
+
+**Get Alias**
+
+Get the alias.
+
+```php
+$alias = $query->getAlias();
 ```
 
 
@@ -1176,7 +1307,7 @@ $model->addBehavior('Timestamp', $options);
 
 Add a rule.
 
-- `$rule` is a *Closure*, that accepts an array of [entities](https://github.com/elusivecodes/FyreEntity) as the first argument, and should return *false* if the validation failed.
+- `$rule` is a *Closure*, that accepts an [*Entity*](https://github.com/elusivecodes/FyreEntity) as the first argument, and should return *false* if the validation failed.
 
 ```php
 $rules->add($rule);
@@ -1190,7 +1321,7 @@ Create an "exists in" rule.
 - `$name` is the name of the relationship.
 - `$options` is an array containing the rule options.
     - `targetFields` is an array containing fields to match in the target table, and will default to the primary key(s).
-    - `callback` is a *Closure*, that accepts the [*Query*](#queries) as an argument.
+    - `callback` is a *Closure*, that accepts the [*SelectQuery*](#select) as an argument.
     - `allowNullableNulls` is a boolean indicating whether to allow nullable nulls, and will default to *false*.
     - `message` is a string representing the error message, and will default to `Lang::get('RuleSet.existsIn')`.
 
@@ -1216,7 +1347,7 @@ Create an "is unique" rule.
 
 - `$fields` is an array containing the fields.
 - `$options` is an array containing the rule options.
-    - `callback` is a *Closure*, that accepts the [*Query*](#queries) as an argument.
+    - `callback` is a *Closure*, that accepts the [*SelectQuery*](#select) as an argument.
     - `allowMultipleNulls` is a boolean indicating whether to allow multiple nulls, and will default to *false*.
     - `message` is a string representing the error message, and will default to `Lang::get('RuleSet.isUnique')`.
 
@@ -1232,14 +1363,4 @@ Validate an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
 ```php
 $rules->validate($entity);
-```
-
-**Validate Many**
-
-Validate multiple entities
-
-- `$entities` is an array containing the entities.
-
-```php
-$rules->validateMany($entities);
 ```

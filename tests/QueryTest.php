@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Fyre\ORM\ModelRegistry;
-use Fyre\ORM\Query;
+use Fyre\ORM\Queries\SelectQuery;
 use PHPUnit\Framework\TestCase;
 use Tests\Mock\Entity\Item;
 
@@ -16,7 +16,7 @@ final class QueryTest extends TestCase
     public function testQuery(): void
     {
         $this->assertInstanceOf(
-            Query::class,
+            SelectQuery::class,
             ModelRegistry::use('Items')->find()
         );
     }

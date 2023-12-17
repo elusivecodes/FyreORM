@@ -25,36 +25,27 @@ class HasOne extends Relationship
     }
 
     /**
-     * Save related data from entities.
-     * @param array $entities The entities.
+     * Save related data from an entity.
+     * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    public function saveRelated(array $entities, array $options = []): bool
+    public function saveRelated(Entity $entity, array $options = []): bool
     {
         $property = $this->getProperty();
-        $bindingKey = $this->getBindingKey();
-        $foreignKey = $this->getForeignKey();
+        $child = $entity->get($property);
 
-        $relations = [];
-        foreach ($entities AS $entity) {
-            $child = $entity->get($property);
-
-            if (!$child || !$child instanceof Entity) {
-                continue;
-            }
-
-            $bindingValue = $entity->get($bindingKey);
-            $child->set($foreignKey, $bindingValue);
-
-            $relations[] = $child;
-        }
-
-        if ($relations === []) {
+        if (!$child || !$child instanceof Entity) {
             return true;
         }
 
-        if (!$this->getTarget()->saveMany($relations, $options)) {
+        $bindingKey = $this->getBindingKey();
+        $foreignKey = $this->getForeignKey();
+
+        $bindingValue = $entity->get($bindingKey);
+        $child->set($foreignKey, $bindingValue);
+
+        if (!$this->getTarget()->save($child, $options)) {
             return false;
         }
 

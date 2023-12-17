@@ -17,12 +17,10 @@ class TestBehavior extends Behavior
         'testField' => 'name'
     ];
 
-    public function afterDelete(array $entities): bool
+    public function afterDelete(Entity $entity): bool
     {
-        foreach ($entities AS $entity) {
-            if ($entity->get($this->config['testField']) === 'failAfterDelete') {
-                return false;
-            }
+        if ($entity->get($this->config['testField']) === 'failAfterDelete') {
+            return false;
         }
 
         return true;
@@ -35,34 +33,28 @@ class TestBehavior extends Behavior
         }
     }
 
-    public function afterRules(array $entities): bool
+    public function afterRules(Entity $entity): bool
     {
-        foreach ($entities AS $entity) {
-            if ($entity->get($this->config['testField']) === 'failAfterRules') {
-                return false;
-            }
+        if ($entity->get($this->config['testField']) === 'failAfterRules') {
+            return false;
         }
 
         return true;
     }
 
-    public function afterSave(array $entities): bool
+    public function afterSave(Entity $entity): bool
     {
-        foreach ($entities AS $entity) {
-            if ($entity->get($this->config['testField']) === 'failAfterSave') {
-                return false;
-            }
+        if ($entity->get($this->config['testField']) === 'failAfterSave') {
+            return false;
         }
 
         return true;
     }
 
-    public function beforeDelete(array $entities): bool
+    public function beforeDelete(Entity $entity): bool
     {
-        foreach ($entities AS $entity) {
-            if ($entity->get($this->config['testField']) === 'failBeforeDelete') {
-                return false;
-            }
+        if ($entity->get($this->config['testField']) === 'failBeforeDelete') {
+            return false;
         }
 
         return true;
@@ -77,23 +69,19 @@ class TestBehavior extends Behavior
         }
     }
 
-    public function beforeRules(array $entities): bool
+    public function beforeRules(Entity $entity): bool
     {
-        foreach ($entities AS $entity) {
-            if ($entity->get($this->config['testField']) === 'failBeforeRules') {
-                return false;
-            }
+        if ($entity->get($this->config['testField']) === 'failBeforeRules') {
+            return false;
         }
 
         return true;
     }
 
-    public function beforeSave(array $entities): bool
+    public function beforeSave(Entity $entity): bool
     {
-        foreach ($entities AS $entity) {
-            if ($entity->get($this->config['testField']) === 'failBeforeSave') {
-                return false;
-            }
+        if ($entity->get($this->config['testField']) === 'failBeforeSave') {
+            return false;
         }
 
         return true;

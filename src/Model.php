@@ -5,6 +5,12 @@ namespace Fyre\ORM;
 
 use Fyre\DB\Connection;
 use Fyre\DB\ConnectionManager;
+use Fyre\ORM\Queries\DeleteQuery;
+use Fyre\ORM\Queries\InsertQuery;
+use Fyre\ORM\Queries\ReplaceQuery;
+use Fyre\ORM\Queries\SelectQuery;
+use Fyre\ORM\Queries\UpdateBatchQuery;
+use Fyre\ORM\Queries\UpdateQuery;
 use Fyre\ORM\Traits\BehaviorTrait;
 use Fyre\ORM\Traits\EntityTrait;
 use Fyre\ORM\Traits\HelperTrait;
@@ -57,6 +63,16 @@ class Model
     use ValidationTrait;
 
     /**
+     * Create a new DeleteQuery.
+     * @param array $options The option for the query.
+     * @return DeleteQuery The DeleteQuery.
+     */
+    public function deleteQuery(array $options = []): DeleteQuery
+    {
+        return new DeleteQuery($this, $options);
+    }
+
+    /**
      * Get the Connection.
      * @param string|null $type The connection type.
      * @return Connection The Connection.
@@ -91,13 +107,31 @@ class Model
     }
 
     /**
-     * Create a new Query.
-     * @param array $options The option for the query.
-     * @return Query The Query.
+     * Create a new InsertQuery.
+     * @return InsertQuery The InsertQuery.
      */
-    public function query(array $options = []): Query
+    public function insertQuery(): InsertQuery
     {
-        return new Query($this, $options);
+        return new InsertQuery($this);
+    }
+
+    /**
+     * Create a new ReplaceQuery.
+     * @return ReplaceQuery The ReplaceQuery.
+     */
+    public function ReplaceQuery(): ReplaceQuery
+    {
+        return new ReplaceQuery($this);
+    }
+
+    /**
+     * Create a new SelectQuery.
+     * @param array $options The option for the query.
+     * @return SelectQuery The SelectQuery.
+     */
+    public function selectQuery(array $options = []): SelectQuery
+    {
+        return new SelectQuery($this, $options);
     }
 
     /**
@@ -114,15 +148,33 @@ class Model
     }
 
     /**
-     * Create a new subquery Query.
+     * Create a new subquery SelectQuery.
      * @param array $options The option for the query.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
-    public function subquery(array $options = []): Query
+    public function subquery(array $options = []): SelectQuery
     {
-        $options['alias'] ??= $this->getAlias();
+        return $this->selectQuery($options + ['subquery' => true]);
+    }
 
-        return $this->query($options + ['subquery' => true]);
+    /**
+     * Create a new UpdateQuery.
+     * @param array $options The option for the query.
+     * @return UpdateQuery The UpdateQuery.
+     */
+    public function updateQuery(array $options = []): UpdateQuery
+    {
+        return new UpdateQuery($this, $options);
+    }
+
+    /**
+     * Create a new UpdateBatchQuery.
+     * @param array $options The option for the query.
+     * @return UpdateBatchQuery The UpdateBatchQuery.
+     */
+    public function updateBatchQuery(array $options = []): UpdateBatchQuery
+    {
+        return new UpdateBatchQuery($this, $options);
     }
 
 }

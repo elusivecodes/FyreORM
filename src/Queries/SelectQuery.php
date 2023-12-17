@@ -1,19 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace Fyre\ORM;
+namespace Fyre\ORM\Queries;
 
-use Fyre\DB\Connection;
-use Fyre\DB\QueryBuilder;
 use Fyre\DB\ResultSet;
 use Fyre\DB\ValueBinder;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\Relationships\Relationship;
+use Fyre\ORM\Model;
+use Fyre\ORM\Queries\Traits\ModelTrait;
+use Fyre\ORM\Result;
 
-use function array_combine;
 use function array_key_exists;
-use function array_keys;
 use function array_map;
 use function count;
 use function explode;
@@ -23,15 +21,13 @@ use function is_string;
 use function str_replace;
 
 /**
- * Query
+ * SelectQuery
  */
-class Query extends QueryBuilder
+class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 {
 
     protected Result|bool|null $result = null;
 
-    protected Model $model;
-    protected string $alias;
     protected string $connectionType;
     protected bool $subquery;
 
@@ -48,19 +44,27 @@ class Query extends QueryBuilder
 
     protected int|null $count = null;
 
+    protected bool $beforeFindTriggered = false;
+
+    use ModelTrait;
+
     /**
-     * New Query constructor.
+     * New SelectQuery constructor.
      * @param Model $model The Model.
-     * @param array $options The Query options.
+     * @param array $options The SelectQuery options.
      */
     public function __construct(Model $model, array $options = [])
     {
         $this->model = $model;
         $this->alias = $options['alias'] ?? $this->model->getAlias();
-        $this->connectionType = $options['type'] ?? Model::WRITE;
+        $this->connectionType = $options['type'] ?? Model::READ;
         $this->subquery = $options['subquery'] ?? false;
 
-        parent::__construct($this->model->getConnection($this->connectionType));
+        parent::__construct($this->model->getConnection($this->connectionType), []);
+
+        $this->from([
+            $this->alias => $this->model->getTable()
+        ]);
     }
 
     /**
@@ -74,7 +78,7 @@ class Query extends QueryBuilder
 
     /**
      * Clear the buffered result.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function clearResult(): static
     {
@@ -86,7 +90,7 @@ class Query extends QueryBuilder
     /**
      * Set the contain relationships.
      * @param string|array $contain The contain relationships.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function contain(string|array $contain): static
     {
@@ -105,25 +109,35 @@ class Query extends QueryBuilder
      */
     public function count(): int
     {
-        return $this->count ??= $this->connection->builder()
-            ->table([
-                'count_source' => (clone $this)
-                    ->orderBy([], true)
-                    ->groupBy([], true)
-                    ->limit(null, 0)
-            ])
-            ->select([
-                'count' => 'COUNT(*)'
-            ])
-            ->execute()
-            ->first()
-            ['count'] ?? 0;
+        if ($this->count === null) {
+            $query = clone $this;
+
+            if (!$this->beforeFindTriggered) {
+                $this->model->handleEvent('beforeFind', $query);
+            }
+
+            $this->count = $query->getConnection()
+                ->select([
+                    'count' => 'COUNT(*)'
+                ])
+                ->from([
+                    'count_source' => $query
+                        ->orderBy([], true)
+                        ->groupBy([], true)
+                        ->limit(null, 0)
+                ])
+                ->execute()
+                ->first()
+                ['count'] ?? 0;
+        }
+
+        return $this->count;
     }
 
     /**
      * Enable or disable auto fields.
      * @param bool Whether to enable or disable auto fields.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function enableAutoFields(bool $autoFields): static
     {
@@ -182,30 +196,22 @@ class Query extends QueryBuilder
     }
 
     /**
-     * Get the Model.
-     * @return Model The Model.
-     */
-    public function getModel(): Model
-    {
-        return $this->model;
-    }
-
-    /**
      * Get the query result.
-     * @return Result|bool The query result.
+     * @return Result The query result.
      */
-    public function getResult(): Result|bool
+    public function getResult(): Result
     {
         if ($this->result === null) {
+            if (!$this->beforeFindTriggered) {
+                $this->model->handleEvent('beforeFind', $this);
+                $this->beforeFindTriggered = true;
+            }
+
             $result = $this->execute();
 
-            if ($result instanceof ResultSet) {
-                $this->result = new Result($result, $this, $this->eagerLoad);
+            $this->result = new Result($result, $this, $this->eagerLoad);
 
-                $this->model->handleEvent('afterFind', $this->result);
-            } else {
-                $this->result = $result;
-            }
+            $this->model->handleEvent('afterFind', $this->result);
         }
 
         return $this->result; 
@@ -215,7 +221,7 @@ class Query extends QueryBuilder
      * INNER JOIN a relationship table.
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function innerJoinWith(string $contain, array $conditions = []): static
     {
@@ -226,7 +232,7 @@ class Query extends QueryBuilder
      * LEFT JOIN a relationship table.
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function leftJoinWith(string $contain, array $conditions = []): static
     {
@@ -237,7 +243,7 @@ class Query extends QueryBuilder
      * INNER JOIN a relationship table and load matching data.
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function matching(string $contain, array $conditions = []): static
     {
@@ -248,7 +254,7 @@ class Query extends QueryBuilder
      * LEFT JOIN a relationship table and exclude matching rows.
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function notMatching(string $contain, array $conditions = []): static
     {
@@ -257,7 +263,7 @@ class Query extends QueryBuilder
 
     /**
      * Prepare the query.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function prepare(): static
     {
@@ -273,45 +279,24 @@ class Query extends QueryBuilder
 
         $usedAliases = [$this->alias];
 
-        switch ($this->action) {
-            case 'insert':
-            case 'insertBatch':
-            case 'replace':
-            case 'replaceBatch':
-                $this->tables = [$this->model->getTable()];
-                break;
-            default:
-                $this->tables = [
-                    $this->alias => $this->model->getTable()
-                ];
-                break;
+        if ($this->autoFields !== false) {
+            $this->autoFields($this->model, $this->alias);
+        } else if (!$this->subquery) {
+            $this->addFields($this->model->getPrimaryKey(), $this->model, $this->alias);
         }
 
-        switch ($this->action) {
-            case 'select':
-                if ($this->autoFields !== false) {
-                    $this->autoFields($this->model, $this->alias);
-                } else if (!$this->subquery) {
-                    $this->addFields($this->model->getPrimaryKey(), $this->model, $this->alias);
-                }
+        $this->fields += $fields;
 
-                $this->fields += $fields;
+        $this->containAll($this->contain, $this->model, $this->alias, $usedAliases);
 
-                $this->containAll($this->contain, $this->model, $this->alias, $usedAliases);
+        foreach ($this->matching AS $name => $relationship) {
+            $target = $relationship->getTarget();
 
-                foreach ($this->matching AS $name => $relationship) {
-                    $target = $relationship->getTarget();
-
-                    if ($this->autoFields !== false) {
-                        $this->autoFields($target, $name);
-                    } else {
-                        $this->addFields($target->getPrimaryKey(), $target, $name);
-                    }
-                }
-                break;
-            case 'delete':
-                $this->deleteAliases = [$this->alias];
-                break;
+            if ($this->autoFields !== false) {
+                $this->autoFields($target, $name);
+            } else {
+                $this->addFields($target->getPrimaryKey(), $target, $name);
+            }
         }
 
         $this->joins += $this->containJoin;
@@ -339,7 +324,7 @@ class Query extends QueryBuilder
 
     /**
      * Reset the query.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      */
     public function reset(): static
     {
@@ -359,7 +344,7 @@ class Query extends QueryBuilder
      * Set the SELECT fields.
      * @param string|array $fields The fields.
      * @param bool $overwrite Whether to overwrite the existing fields.
-     * @return QueryBuilder The QueryBuilder.
+     * @return SelectQuery The SelectQuery.
      */
     public function select(string|array $fields = '*', bool $overwrite = false): static
     {
@@ -367,10 +352,12 @@ class Query extends QueryBuilder
             $this->fields = [];
         }
 
-        $this->autoFields ??= false;
         $this->addFields((array) $fields, $this->model, $this->alias);
 
-        $this->action = 'select';
+        if ($this->fields !== []) {
+            $this->autoFields ??= false;
+        }
+
         $this->dirty();
 
         return $this;
@@ -393,53 +380,6 @@ class Query extends QueryBuilder
         }
 
         return $sql;
-    }
-
-    /**
-     * Set query as an UPDATE.
-     * @param array $data The data.
-     * @param bool $overwrite Whether to overwrite the existing data.
-     * @return QueryBuilder The QueryBuilder.
-     */
-    public function update(array $data, bool $overwrite = false): static
-    {
-        $fields = array_map(
-            fn(string $field): string => $this->model->aliasField($field, $this->alias),
-            array_keys($data)
-        );
-
-        $data = array_combine($fields, $data);
-
-        return parent::update($data, $overwrite);
-    }
-
-    /**
-     * Set query as a batch UPDATE.
-     * @param array $data The data.
-     * @param string|array $updateKeys The key to use for updating.
-     * @param bool $overwrite Whether to overwrite the existing data.
-     * @return QueryBuilder The QueryBuilder.
-     */
-    public function updateBatch(array $data, string|array $updateKeys, bool $overwrite = false): static
-    {
-        $data = array_map(
-            function(array $values): array {
-                $fields = array_map(
-                    fn(string $field): string => $this->model->aliasField($field, $this->alias),
-                    array_keys($values)
-                );
-
-                return array_combine($fields, $values);
-            },
-            $data
-        );
-
-        $updateKeys = array_map(
-            fn(string $field): string => $this->model->aliasField($field, $this->alias),
-            (array) $updateKeys
-        );
-
-        return parent::updateBatch($data, $updateKeys, $overwrite);
     }
 
     /**
@@ -548,7 +488,7 @@ class Query extends QueryBuilder
      * @param array $conditions The JOIN conditions.
      * @param string $type The JOIN type.
      * @param bool|null $matching Whether this is a matching/noMatching join.
-     * @return Query The Query.
+     * @return SelectQuery The SelectQuery.
      * @throws OrmException if a relationship is not valid.
      */
     protected function containJoin(string $contain, array $conditions, string $type = 'LEFT', bool|null $matching = null): static

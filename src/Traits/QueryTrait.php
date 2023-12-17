@@ -6,26 +6,19 @@ namespace Fyre\ORM\Traits;
 use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\Model;
-use Fyre\ORM\Query;
+use Fyre\ORM\Queries\SelectQuery;
 
-use function array_chunk;
 use function array_filter;
 use function array_key_exists;
 use function array_map;
-use function array_merge;
-use function array_shift;
 use function call_user_func;
 use function count;
-use function range;
 
 /**
  * QueryTrait
  */
 trait QueryTrait
 {
-
-    protected int $batchSize = 100;
 
     /**
      * Delete an Entity.
@@ -41,7 +34,7 @@ trait QueryTrait
 
         $connection->begin();
 
-        if (!$this->handleEvent('beforeDelete', [$entity])) {
+        if (!$this->handleEvent('beforeDelete', $entity)) {
             $connection->rollback();
             return false;
         }
@@ -60,7 +53,7 @@ trait QueryTrait
             return false;
         }
 
-        if (!$this->handleEvent('afterDelete', [$entity])) {
+        if (!$this->handleEvent('afterDelete', $entity)) {
             $connection->rollback();
             return false;
         }
@@ -77,8 +70,7 @@ trait QueryTrait
      */
     public function deleteAll(array $conditions): int
     {
-        $this->query()
-            ->delete()
+        $this->deleteQuery()
             ->where($conditions)
             ->execute();
 
@@ -111,9 +103,11 @@ trait QueryTrait
 
         $primaryKeys = $this->getPrimaryKey();
 
-        if (!$this->handleEvent('beforeDelete', $entities)) {
-            $connection->rollback();
-            return false;
+        foreach ($entities AS $entity) {
+            if (!$this->handleEvent('beforeDelete', $entity)) {
+                $connection->rollback();
+                return false;
+            }
         }
 
         $rowValues = [];
@@ -133,9 +127,11 @@ trait QueryTrait
             return false;
         }
 
-        if (!$this->handleEvent('afterDelete', $entities)) {
-            $connection->rollback();
-            return false;
+        foreach ($entities AS $entity) {
+            if (!$this->handleEvent('afterDelete', $entity)) {
+                $connection->rollback();
+                return false;
+            }
         }
 
         $connection->commit();
@@ -158,15 +154,15 @@ trait QueryTrait
     }
 
     /**
-     * Create a new Query.
+     * Create a new SelectQuery.
      * @param array $data The find data.
-     * @return Query The Query.
+     * @return SelectQuery The Query.
      * @throws OrmException if find property does not exist.
      */
-    public function find(array $data = []): Query
+    public function find(array $data = []): SelectQuery
     {
-        $query = $this->query([
-            'type' => $data['type'] ?? Model::READ
+        $query = $this->selectQuery([
+            'type' => $data['type'] ?? static::READ
         ]);
 
         unset($data['type']);
@@ -181,8 +177,6 @@ trait QueryTrait
 
             call_user_func([$query, $method], $data[$property]);
         }
-
-        $this->handleEvent('beforeFind', $query);
 
         return $query;
     }
@@ -215,9 +209,7 @@ trait QueryTrait
      */
     public function save(Entity $entity, array $options = []): bool
     {
-        $isNew = $entity->isNew();
-
-        if (!$isNew && !$entity->isDirty()) {
+        if (!$entity->isNew() && !$entity->isDirty()) {
             return true;
         }
 
@@ -230,7 +222,11 @@ trait QueryTrait
         $options['saveRelated'] ??= true;
         $options['clean'] ??= true;
 
-        $primaryKeys = $this->getPrimaryKey();
+        $autoIncrementKey = $this->getAutoIncrementKey();
+
+        if ($autoIncrementKey && $entity->hasValue($autoIncrementKey)) {
+            $autoIncrementKey = null;
+        }
 
         if ($options['checkExists']) {
             $this->checkExists([$entity]);
@@ -240,81 +236,14 @@ trait QueryTrait
 
         $connection->begin();
 
-        if ($options['checkRules']) {
-            if (!$this->handleEvent('beforeRules', [$entity])) {
-                $connection->rollback();
-                return false;
-            }
-    
-            if (!$this->getRules()->validate($entity)) {
-                $connection->rollback();
-                return false;
-            }
-    
-            if (!$this->handleEvent('afterRules', [$entity])) {
-                $connection->rollback();
-                return false;
-            }
-        }
-
-        if (!$this->handleEvent('beforeSave', [$entity])) {
+        if (!$this->_save($entity, $options)) {
             $connection->rollback();
-            return false;
-        }
 
-        if ($options['saveRelated'] && !$this->saveParents([$entity], $options)) {
-            $connection->rollback();
-            return false;
-        }
-
-        $columns = $this->getSchema()->columnNames();
-
-        $data = $entity->extractDirty($columns);
-        $data = $this->toDatabaseSchema($data);
-
-        $result = true;
-        if ($isNew) {
-            $result = $this->query()
-                ->insert($data)
-                ->execute();
-        } else if ($data !== []) {
-            $primaryValues = $entity->extract($primaryKeys);
-            $conditions = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
-            $this->updateAll($data, $conditions);
-        }
-
-        if (!$result) {
-            $connection->rollback();
-            static::resetParents([$entity], $this);
-            return false;
-        }
-
-        $autoIncrementKey = $this->getAutoIncrementKey();
-
-        if ($isNew && $autoIncrementKey) {
-            $id = $connection->insertId();
-            $entity->set($autoIncrementKey, $id);
-        }
-
-        if ($options['saveRelated'] && !$this->saveChildren([$entity], $options)) {
-            $connection->rollback();
             static::resetParents([$entity], $this);
             static::resetChildren([$entity], $this);
 
-            if ($autoIncrementKey) {
-                static::unsetColumns([$entity], [$autoIncrementKey]);
-            }
-
-            return false;
-        }
-
-        if (!$this->handleEvent('afterSave', [$entity])) {
-            $connection->rollback();
-            static::resetParents([$entity], $this);
-            static::resetChildren([$entity], $this);
-
-            if ($autoIncrementKey) {
-                static::unsetColumns([$entity], [$autoIncrementKey]);
+            if ($entity->isNew() && $autoIncrementKey) {
+                static::resetColumns([$entity], [$autoIncrementKey]);
             }
 
             return false;
@@ -363,8 +292,6 @@ trait QueryTrait
         $options['saveRelated'] ??= true;
         $options['clean'] ??= true;
 
-        $primaryKeys = $this->getPrimaryKey();
-
         if ($options['checkExists']) {
             $this->checkExists($entities);
         }
@@ -373,122 +300,30 @@ trait QueryTrait
 
         $connection->begin();
 
-        if ($options['checkRules']) {
-            if (!$this->handleEvent('beforeRules', $entities)) {
-                $connection->rollback();
-                return false;
-            }
-    
-            if (!$this->getRules()->validateMany($entities)) {
-                $connection->rollback();
-                return false;
-            }
-
-            if (!$this->handleEvent('afterRules', $entities)) {
-                $connection->rollback();
-                return false;
-            }
-        }
-
-        if (!$this->handleEvent('beforeSave', $entities)) {
-            $connection->rollback();
-            static::resetParents($entities, $this);
-            return false;
-        }
-
-        if ($options['saveRelated'] && !$this->saveParents($entities, $options)) {
-            $connection->rollback();
-            return false;
-        }
-
-        $columns = $this->getSchema()->columnNames();
-
-        $insertEntities = [];
-        $insertData = [];
-        $updateData = [];
-
-        foreach ($entities AS $entity) {
-            $data = $entity->extractDirty($columns);
-            $data = $this->toDatabaseSchema($data);
-
-            if ($entity->isNew()) {
-                $insertData[] = $data;
-                $insertEntities[] = $entity;
-            } else if ($data !== []) {
-                $values = $entity->extract($primaryKeys);
-                $updateData[] = array_merge($data, $values);
-            }
-        }
+        $autoIncrementKey = $this->getAutoIncrementKey();
+        $autoIncrementEntities = [];
 
         $result = true;
-        $insertIds = [];
-
-        $batchSize = $options['batchSize'] ?? $this->batchSize;
-
-        if ($insertData !== []) {
-            $insertChunks = array_chunk($insertData, $batchSize);
-
-            while ($result && $insertChunks !== []) {
-                $insertChunk = array_shift($insertChunks);
-
-                $result = $this->query()
-                    ->insertBatch($insertChunk)
-                    ->execute();
-
-                $id = $connection->insertId();
-
-                $ids = range($id, $id + count($insertChunk) - 1);
-                $insertIds = array_merge($insertIds, $ids);
+        foreach ($entities AS $entity) {
+            if ($autoIncrementKey && $entity->isNew() && !$entity->hasValue($autoIncrementKey)) {
+                $autoIncrementEntities[] = $entity;
             }
-        }
 
-        if ($result && $updateData !== []) {
-            $updateChunks = array_chunk($updateData, $batchSize);
-
-            while ($result && $updateChunks !== []) {
-                $updateChunk = array_shift($updateChunks);
-
-                $result = $this->query()
-                    ->updateBatch($updateChunk, $primaryKeys)
-                    ->execute();
+            if (!$this->_save($entity, $options)) {
+                $result = false;
+                break;
             }
         }
 
         if (!$result) {
             $connection->rollback();
-            static::resetParents($entities, $this);
-            return false;
-        }
-
-        $autoIncrementKey = $this->getAutoIncrementKey();
-
-        if ($insertEntities !== [] && $autoIncrementKey) {
-            foreach ($insertEntities AS $i => $entity) {
-                $entity->set($autoIncrementKey, $insertIds[$i]);
-            }
-        }
-
-        if ($options['saveRelated'] && !$this->saveChildren($entities, $options)) {
-            $connection->rollback();
-            static::resetParents($entities, $this);
-            static::resetChildren($entities, $this);
-
-            if ($autoIncrementKey) {
-                static::unsetColumns($entities, [$autoIncrementKey]);
-            }
-
-            return false;
-        }
-
-        if (!$this->handleEvent('afterSave', $entities)) {
-            $connection->rollback();
-
-            if ($autoIncrementKey) {
-                static::unsetColumns($entities, [$autoIncrementKey]);
-            }
 
             static::resetParents($entities, $this);
             static::resetChildren($entities, $this);
+
+            if ($autoIncrementKey && $autoIncrementEntities !== []) {
+                static::resetColumns($autoIncrementEntities, [$autoIncrementKey]);
+            }
 
             return false;
         }
@@ -510,12 +345,82 @@ trait QueryTrait
      */
     public function updateAll(array $data, array $conditions): int
     {
-        $this->query()
-            ->update($data)
+        $this->updateQuery()
+            ->set($data)
             ->where($conditions)
             ->execute();
 
         return $this->getConnection()->affectedRows();
+    }
+
+    /**
+     * Save a single Entity.
+     * @param Entity $entity The Entity.
+     * @param array $options The options for saving.
+     * @return bool TRUE if the save was successful, otherwise FALSE.
+     */
+    protected function _save(Entity $entity, array $options): bool
+    {
+        if ($options['checkRules']) {
+            if (!$this->handleEvent('beforeRules', $entity)) {
+                return false;
+            }
+
+            if (!$this->getRules()->validate($entity)) {
+                return false;
+            }
+
+            if (!$this->handleEvent('afterRules', $entity)) {
+                return false;
+            }
+        }
+
+        if (!$this->handleEvent('beforeSave', $entity)) {
+            return false;
+        }
+
+        if ($options['saveRelated'] && !$this->saveParents($entity, $options)) {
+            return false;
+        }
+
+        $columns = $this->getSchema()->columnNames();
+
+        $data = $entity->extractDirty($columns);
+        $data = $this->toDatabaseSchema($data);
+
+        if ($entity->isNew()) {
+            $result = $this->insertQuery()
+                ->values([$data])
+                ->execute();
+
+            if (!$result) {
+                return false;
+            }
+
+            $autoIncrementKey = $this->getAutoIncrementKey();
+
+            if ($autoIncrementKey && !$entity->hasValue($autoIncrementKey)) {
+                $id = $this->getConnection()->insertId();
+
+                $entity->set($autoIncrementKey, null);
+                $entity->set($autoIncrementKey, $id);
+            }
+        } else if ($data !== []) {
+            $primaryKeys = $this->getPrimaryKey();
+            $primaryValues = $entity->extract($primaryKeys);
+            $conditions = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
+            $this->updateAll($data, $conditions);
+        }
+
+        if ($options['saveRelated'] && !$this->saveChildren($entity, $options)) {
+            return false;
+        }
+
+        if (!$this->handleEvent('afterSave', $entity)) {
+            return false;
+        }
+
+        return true;
     }
 
 }

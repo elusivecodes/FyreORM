@@ -5,7 +5,7 @@ namespace Tests;
 
 use Fyre\Validation\Validator;
 use Fyre\ORM\ModelRegistry;
-use Fyre\ORM\Query;
+use Fyre\ORM\Queries\SelectQuery;
 use Fyre\ORM\RuleSet;
 use PHPUnit\Framework\TestCase;
 
@@ -215,7 +215,7 @@ final class RulesTest extends TestCase
         $rules = new RuleSet($Items);
 
         $rules->add($rules->isUnique(['name'], [
-            'callback' => fn(Query $q): Query => $q->where(['name !=' => 'Test'])
+            'callback' => fn(SelectQuery $q): SelectQuery => $q->where(['name !=' => 'Test'])
         ]));
 
         $Items->setRules($rules);
@@ -388,7 +388,7 @@ final class RulesTest extends TestCase
         $rules = new RuleSet($Posts);
 
         $rules->add($rules->existsIn(['user_id'], 'Users', [
-            'callback' => fn(Query $q): Query => $q->where(['id !=' => 1])
+            'callback' => fn(SelectQuery $q): SelectQuery => $q->where(['id !=' => 1])
         ]));
 
         $Posts->setRules($rules);

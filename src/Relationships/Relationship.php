@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
+use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
 use Fyre\ORM\ModelRegistry;
-use Fyre\ORM\Query;
+use Fyre\ORM\Queries\SelectQuery;
 use Fyre\Utility\Inflector;
 
 use function array_key_exists;
@@ -117,9 +118,9 @@ abstract class Relationship
      * Find related data for entities.
      * @param array $entities The entities.
      * @param array $data The find data.
-     * @param Query|null $query The Query.
+     * @param SelectQuery|null $query The SelectQuery.
      */
-    public function findRelated(array $entities, array $data, Query|null $query = null): void
+    public function findRelated(array $entities, array $data, SelectQuery|null $query = null): void
     {
         $data['strategy'] ??= $this->getStrategy();
 
@@ -284,11 +285,11 @@ abstract class Relationship
     }
 
     /**
-     * Save related data from entities.
-     * @param array $entities The entities.
+     * Save related data from an entity.
+     * @param Entity $entity The entity.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    abstract public function saveRelated(array $entities): bool;
+    abstract public function saveRelated(Entity $entity): bool;
 
     /**
      * Remove related data from entities.
@@ -382,11 +383,11 @@ abstract class Relationship
     }
 
     /**
-     * Get the subquery contain conditions for a Query.
-     * @param Query $query The Query.
+     * Get the subquery contain conditions for a SelectQuery.
+     * @param SelectQuery $query The SelectQuery.
      * @return array The subquery contain conditions.
      */
-    protected function containConditionSubquery(Query $query): array
+    protected function containConditionSubquery(SelectQuery $query): array
     {
         if ($this->isOwningSide()) {
             $sourceKey = $this->getBindingKey();
@@ -405,12 +406,11 @@ abstract class Relationship
         $containConditions = [
             $targetKey.' IN' => $query->getModel()
                 ->getConnection()
-                ->builder()
-                ->table([
-                    $alias => $query
-                ])
                 ->select([
                     str_replace('.', '__', $sourceKey)
+                ])
+                ->from([
+                    $alias => $query
                 ])
         ];
 

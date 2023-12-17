@@ -171,20 +171,6 @@ trait HelperTrait
     }
 
     /**
-     * Unset columns for entities.
-     * @param array $entities The entities.
-     * @param array $columns The columns.
-     */
-    public static function unsetColumns(array $entities, array $columns): void
-    {
-        foreach ($entities AS $entity) {
-            foreach ($columns AS $column) {
-                $entity->unset($column);
-            }
-        }
-    }
-
-    /**
      * Reset entities children.
      * @param array $entities The entities.
      * @param Model $model The Model.
@@ -230,11 +216,32 @@ trait HelperTrait
                     $unsetKeys[] = $autoIncrementKey;
                 }
 
-                static::unsetColumns($newChildren, $unsetKeys);
+                static::resetColumns($newChildren, $unsetKeys);
             }
 
             if ($allChildren !== []) {
                 static::resetChildren($allChildren, $target);
+            }
+        }
+    }
+
+    /**
+     * Reset columns for entities.
+     * @param array $entities The entities.
+     * @param array $columns The columns.
+     */
+    public static function resetColumns(array $entities, array $columns): void
+    {
+        foreach ($entities AS $entity) {
+            foreach ($columns AS $column) {
+                $value = $entity->get($column);
+                $original = $entity->getOriginal($column);
+
+                $entity->unset($column);
+
+                if ($original !== null && $value !== $original) {
+                    $entity->set($column, $original);
+                }
             }
         }
     }
@@ -277,12 +284,11 @@ trait HelperTrait
 
             if ($newParentEntities !== []) {
                 $foreignKey = $relationship->getForeignKey();
-                static::unsetColumns($newParentEntities, [$foreignKey]);
+                static::resetColumns($newParentEntities, [$foreignKey]);
             }
 
-
             if ($autoIncrementKey && $newParents !== []) {
-                static::unsetColumns($newParents, [$autoIncrementKey]);
+                static::resetColumns($newParents, [$autoIncrementKey]);
             }
 
             if ($allParents !== []) {

@@ -8,15 +8,7 @@ use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\Lang\Lang;
 
-use function array_diff_assoc;
-use function array_filter;
 use function array_intersect;
-use function array_intersect_assoc;
-use function array_keys;
-use function array_map;
-use function array_merge;
-use function array_slice;
-use function array_values;
 use function implode;
 use function in_array;
 
@@ -68,74 +60,39 @@ class RuleSet
             'name' => $name
         ]) ?? 'invalid';
 
-        return function(array $entities) use ($fields, $name, $options): bool {
+        return function(Entity $entity) use ($fields, $name, $options): bool {
             if ($fields === []) {
                 return true;
             }
 
-            $entities = array_values($entities);
+            $values = $entity->extract($fields);
 
-            $values = array_map(
-                fn(Entity $entity): array => $entity->extract($fields),
-                $entities
-            );
-
-            if ($options['allowNullableNulls']) {
-                $values = array_filter(
-                    $values,
-                    fn(array $data): bool => !in_array(null, $data, true)
-                );
-            }
-
-            if ($values === []) {
+            if ($options['allowNullableNulls'] && in_array(null, $values, true)) {
                 return true;
             }
 
-            $result = true;
-
             $relationship = $this->model->getRelationship($name);
             $target = $relationship->getTarget();
-            $options['targetFields'] ??= $target->getPrimaryKey();
+            $targetFields = $options['targetFields'] ?? $target->getPrimaryKey();
 
             $query = $target->find([
-                'fields' => $options['targetFields'],
-                'conditions' => QueryGenerator::normalizeConditions($options['targetFields'], $values)
+                'fields' => $targetFields,
+                'conditions' => QueryGenerator::combineConditions($targetFields, $values)
             ]);
 
             if ($options['callback']) {
                 $query = $options['callback']($query);
             }
 
-            $matches = $query->all();
-
-            $matchedValues =  array_map(
-                fn(Entity $entity): array => $entity->extract($fields),
-                $matches
-            );
-
-            foreach ($values AS $i => $data) {
-                $matched = false;
-                foreach ($matchedValues AS $other) {
-                    if (array_diff_assoc($data, $other) === []) {
-                        continue;
-                    }
-
-                    $matched = true;
-                    break;
-                }
-
-                if ($matched) {
-                    continue;
-                }
-
-                foreach ($fields AS $field) {
-                    $entities[$i]->setError($field, $options['message']);
-                }
-
-                $result = false;
+            if ($query->count()) {
+                return true;
             }
 
-            return $result;
+            foreach ($fields AS $field) {
+                $entity->setError($field, $options['message']);
+            }
+
+            return false;
         };
     }
 
@@ -151,32 +108,26 @@ class RuleSet
             'fields' => implode(', ', $fields)
         ]) ?? 'invalid';
 
-        return function(array $entities) use ($fields, $options): bool {
+        return function(Entity $entity) use ($fields, $options): bool {
             if ($fields === []) {
                 return true;
             }
 
-            $result = true;
-
-            foreach ($entities AS $entity) {
-                if ($entity->isNew()) {
-                    continue;
-                }
-
-                $dirty = array_intersect($fields, $entity->getDirty());
-
-                if ($dirty === []) {
-                    continue;
-                }
-
-                $result = false;
-
-                foreach ($dirty AS $field) {
-                    $entity->setError($field, $options['message']);
-                }
+            if ($entity->isNew()) {
+                return true;
             }
 
-            return $result;
+            $dirty = array_intersect($fields, $entity->getDirty());
+
+            if ($dirty === []) {
+                return true;
+            }
+
+            foreach ($dirty AS $field) {
+                $entity->setError($field, $options['message']);
+            }
+
+            return false;
         };
     }
 
@@ -194,43 +145,24 @@ class RuleSet
             'fields' => implode(', ', $fields)
         ]) ?? 'invalid';
 
-        return function(array $entities) use ($fields, $options): bool {
+        return function(Entity $entity) use ($fields, $options): bool {
             if ($fields === []) {
                 return true;
             }
 
-            $entities = array_values($entities);
+            $values = $entity->extract($fields);
 
-            $values = array_map(
-                fn(Entity $entity): array => $entity->extract($fields),
-                $entities
-            );
-
-            if ($options['allowMultipleNulls']) {
-                $values = array_filter(
-                    $values,
-                    fn(array $data): bool => !in_array(null, $data, true)
-                );
-            }
-
-            if ($values === []) {
+            if ($options['allowMultipleNulls'] && in_array(null, $values, true)) {
                 return true;
             }
 
-            $conditions = QueryGenerator::normalizeConditions($fields, $values);
+            $conditions = QueryGenerator::combineConditions($fields, $values);
 
-            $primaryKeys = $this->model->getPrimaryKey();
+            if (!$entity->isNew()) {
+                $primaryKeys = $this->model->getPrimaryKey();
+                $primaryValues = $entity->extract($primaryKeys);
 
-            $primaryValues = array_map(
-                fn(Entity $entity): array => $entity->extract($primaryKeys),
-                array_filter(
-                    $entities,
-                    fn(Entity $entity): bool => !$entity->isNew()
-                )
-            );
-
-            if ($primaryValues !== []) {
-                $conditions['not'] = QueryGenerator::normalizeConditions($primaryKeys, $primaryValues);
+                $conditions['not'] = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
             }
 
             $query = $this->model->find([
@@ -242,37 +174,15 @@ class RuleSet
                 $query = $options['callback']($query);
             }
 
-            $matches = $query->all();
-
-            $matchedValues =  array_map(
-                fn(Entity $entity): array => $entity->extract($fields),
-                $matches
-            );
-
-            $result = true;
-
-            foreach ($values AS $i => $data) {
-                $others = array_slice($values, 0, $i);
-                $others = array_merge($others, $matchedValues);
-
-                foreach ($others AS $other) {
-                    if (array_diff_assoc($data, $other) !== []) {
-                        continue;
-                    }
-
-                    $intersect = array_intersect_assoc($data, $other);
-                    $errorFields = array_keys($intersect);
-
-                    foreach ($errorFields AS $field) {
-                        $entities[$i]->setError($field, $options['message']);
-                    }
-
-                    $result = false;
-                    break;
-                }
+            if (!$query->count()) {
+                return true;
             }
 
-            return $result;
+            foreach ($fields AS $field) {
+                $entity->setError($field, $options['message']);
+            }
+
+            return false;
         };
     }
 
@@ -285,24 +195,7 @@ class RuleSet
     {
         $result = true;
         foreach ($this->rules AS $rule) {
-            if ($rule([$entity]) === false) {
-                $result = false;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Validate multiple entities.
-     * @param array $entities The entities.
-     * @return bool TRUE if the validation was successful, otherwise FALSE.
-     */
-    public function validateMany(array $entities = []): bool
-    {
-        $result = true;
-        foreach ($this->rules AS $rule) {
-            if ($rule($entities) === false) {
+            if ($rule($entity) === false) {
                 $result = false;
             }
         }

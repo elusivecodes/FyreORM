@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Traits;
 
+use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Relationships\BelongsTo;
 use Fyre\ORM\Relationships\HasMany;
@@ -176,12 +177,12 @@ trait RelationshipsTrait
     }
 
     /**
-     * Save entities children.
-     * @param array $entities The entities.
+     * Save children of an entity.
+     * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    protected function saveChildren(array $entities, array $options = []): bool
+    protected function saveChildren(Entity $entity, array $options = []): bool
     {
         $options['clean'] = false;
 
@@ -190,7 +191,7 @@ trait RelationshipsTrait
                 continue;
             }
 
-            if (!$relationship->saveRelated($entities, $options)) {
+            if (!$relationship->saveRelated($entity, $options)) {
                 return false;
             }
         }
@@ -199,12 +200,12 @@ trait RelationshipsTrait
     }
 
     /**
-     * Save entities parents.
-     * @param array $entities The entities.
-     * @param array $options The options for saving.
+     * Save parents of an entity.
+     * @param Entity $entity The entity.
+     * @param array $options The entity for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    protected function saveParents(array $entities, array $options = []): bool
+    protected function saveParents(Entity $entity, array $options = []): bool
     {
         $options['clean'] = false;
 
@@ -213,7 +214,7 @@ trait RelationshipsTrait
                 continue;
             }
 
-            if (!$relationship->saveRelated($entities, $options)) {
+            if (!$relationship->saveRelated($entity, $options)) {
                 return false;
             }
         }

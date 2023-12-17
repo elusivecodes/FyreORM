@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tests\Mock\Model;
 
+use Fyre\Entity\Entity;
 use Fyre\ORM\Model;
 use Fyre\ORM\RuleSet;
 use Fyre\Validation\Rule;
@@ -23,11 +24,9 @@ class CommentsModel extends Model
 
     public function buildRules(RuleSet $rules): RuleSet
     {
-        $rules->add(function(array $entities) {
-            foreach ($entities AS $entity) {
-                if ($entity->get('content') === 'failRules') {
-                    return false;
-                }
+        $rules->add(function(Entity $entity) {
+            if ($entity->get('content') === 'failRules') {
+                return false;
             }
         });
 

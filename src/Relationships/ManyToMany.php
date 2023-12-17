@@ -6,7 +6,7 @@ namespace Fyre\ORM\Relationships;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Model;
 use Fyre\ORM\ModelRegistry;
-use Fyre\ORM\Query;
+use Fyre\ORM\Queries\SelectQuery;
 
 use function array_key_exists;
 use function array_merge;
@@ -74,9 +74,9 @@ class ManyToMany extends Relationship
      * Find related data for entities.
      * @param array $entities The entities.
      * @param array $data The find data.
-     * @param Query|null $query The Query.
+     * @param SelectQuery|null $query The SelectQuery.
      */
-    public function findRelated(array $entities, array $data, Query|null $query = null): void
+    public function findRelated(array $entities, array $data, SelectQuery|null $query = null): void
     {
         $data['strategy'] ??= $this->getStrategy();
 
@@ -210,40 +210,26 @@ class ManyToMany extends Relationship
     }
 
     /**
-     * Save related data from entities.
-     * @param array $entities The entities.
+     * Save related data from an entity.
+     * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    public function saveRelated(array $entities, array $options = []): bool
+    public function saveRelated(Entity $entity, array $options = []): bool
     {
         $property = $this->getProperty();
+        $relations = $entity->get($property);
 
-        $saveEntities = [];
-        $relations = [];
-        foreach ($entities AS $entity) {
-            $children = $entity->get($property);
-
-            if ($children === null) {
-                continue;
-            }
-
-            $saveEntities[] = $entity;
-
-            foreach ($children AS $child) {
-                if (!$child || !$child instanceof Entity) {
-                    continue;
-                }
-
-                $relations[] = $child;
-            }
-        }
-
-        if ($saveEntities === []) {
+        if ($relations === null) {
             return true;
         }
 
-        if (!$this->getSource()->getRelationship($this->joinAlias)->unlinkAll($saveEntities, $options)) {
+        $relations = array_filter(
+            $relations,
+            fn(mixed $relation): bool => $relation && $relation instanceof Entity
+        );
+
+        if (!$this->getSource()->getRelationship($this->joinAlias)->unlinkAll([$entity], $options)) {
             return false;
         }
 
@@ -263,34 +249,26 @@ class ManyToMany extends Relationship
         $targetRelationship = $target->getRelationship($this->joinAlias);
         $targetBindingKey = $targetRelationship->getBindingKey();
         $targetForeignKey = $targetRelationship->getForeignKey();
+        $bindingValue = $entity->get($bindingKey);
 
         $joinEntities = [];
-        foreach ($saveEntities AS $entity) {
-            $children = $entity->get($property);
-            $bindingValue = $entity->get($bindingKey);
+        foreach ($relations AS $relation) {
+            $joinData = $relation->get('_joinData') ?? [];
 
-            foreach ($children AS $child) {
-                if (!$child || !$child instanceof Entity) {
-                    continue;
-                }
-
-                $joinData = $child->get('_joinData') ?? [];
-
-                if ($joinData instanceof Entity) {
-                    $joinEntity = $joinData;
-                } else if (is_array($joinData)) {
-                    $joinEntity = $joinModel->newEntity($joinData);
-                } else {
-                    $joinEntity = $joinModel->newEmptyEntity();
-                }
-
-                $targetBindingValue = $child->get($targetBindingKey);
-
-                $joinEntity->set($foreignKey, $bindingValue);
-                $joinEntity->set($targetForeignKey, $targetBindingValue);
-
-                $joinEntities[] = $joinEntity;
+            if ($joinData instanceof Entity) {
+                $joinEntity = $joinData;
+            } else if (is_array($joinData)) {
+                $joinEntity = $joinModel->newEntity($joinData);
+            } else {
+                $joinEntity = $joinModel->newEmptyEntity();
             }
+
+            $targetBindingValue = $relation->get($targetBindingKey);
+
+            $joinEntity->set($foreignKey, $bindingValue);
+            $joinEntity->set($targetForeignKey, $targetBindingValue);
+
+            $joinEntities[] = $joinEntity;
         }
 
         if (!$joinModel->saveMany($joinEntities, $options)) {

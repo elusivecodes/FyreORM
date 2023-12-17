@@ -6,6 +6,7 @@ namespace Fyre\ORM\Relationships;
 use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 
+use function array_filter;
 use function array_map;
 
 /**
@@ -15,50 +16,41 @@ class HasMany extends Relationship
 {
 
     /**
-     * Save related data from entities.
-     * @param array $entities The entities.
+     * Save related data from an entity.
+     * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    public function saveRelated(array $entities, array $options = []): bool
+    public function saveRelated(Entity $entity, array $options = []): bool
     {
         $property = $this->getProperty();
+        $children = $entity->get($property);
+
+        if ($children === null) {
+            return true;
+        }
+
+        $children = array_filter(
+            $children,
+            fn(mixed $child): bool => $child && $child instanceof Entity
+        );
+
         $bindingKey = $this->getBindingKey();
         $foreignKey = $this->getForeignKey();
 
-        $unlinkEntities = [];
-        $preserveEntities = [];
-        $relations = [];
-        foreach ($entities AS $entity) {
-            $children = $entity->get($property);
+        $bindingValue = $entity->get($bindingKey);
 
-            if ($children === null) {
-                continue;
-            }
-
-            $unlinkEntities[] = $entity;
-
-            $bindingValue = $entity->get($bindingKey);
-
-            foreach ($children AS $child) {
-                if (!$child || !$child instanceof Entity) {
-                    continue;
-                }
-
-                $child->set($foreignKey, $bindingValue);
-
-                $preserveEntities[] = $child;
-                $relations[] = $child;
-            }
+        foreach ($children AS $child) {
+            $child->set($foreignKey, $bindingValue);
         }
 
-        $preserveConditions = $this->excludeConditions($preserveEntities);
+        $preserveConditions = $this->excludeConditions($children);
 
-        if ($unlinkEntities !== [] && !$this->unlinkAll($unlinkEntities, $options + ['conditions' => $preserveConditions])) {
+        if (!$this->unlinkAll([$entity], $options + ['conditions' => $preserveConditions])) {
             return false;
         }
 
-        if ($relations !== [] && !$this->getTarget()->saveMany($relations, $options)) {
+        if (!$this->getTarget()->saveMany($children, $options)) {
             return false;
         }
 

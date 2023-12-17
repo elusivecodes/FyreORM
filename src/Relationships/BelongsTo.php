@@ -54,47 +54,29 @@ class BelongsTo extends Relationship
     }
 
     /**
-     * Save related data from entities.
-     * @param array $entities The entities.
+     * Save related data from an entity.
+     * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    public function saveRelated(array $entities, array $options = []): bool
+    public function saveRelated(Entity $entity, array $options = []): bool
     {
         $property = $this->getProperty();
+        $parent = $entity->get($property);
 
-        $parents = [];
-        foreach ($entities AS $entity) {
-            $parent = $entity->get($property);
-
-            if (!$parent || !$parent instanceof Entity) {
-                continue;
-            }
-
-            $parents[] = $parent;
-        }
-
-        if ($parents === []) {
+        if (!$parent || !$parent instanceof Entity) {
             return true;
         }
 
-        if (!$this->getTarget()->saveMany($parents, $options)) {
+        if (!$this->getTarget()->save($parent, $options)) {
             return false;
         }
 
         $foreignKey = $this->getForeignKey();
         $bindingKey = $this->getBindingKey();
 
-        foreach ($entities AS $entity) {
-            if (!$entity->has($property)) {
-                continue;
-            }
-
-            $parent = $entity->get($property);
-
-            $bindingValue = $parent->get($bindingKey);
-            $entity->set($foreignKey, $bindingValue);
-        }
+        $bindingValue = $parent->get($bindingKey);
+        $entity->set($foreignKey, $bindingValue);
 
         return true;
     }

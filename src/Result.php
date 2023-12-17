@@ -8,6 +8,7 @@ use Countable;
 use Fyre\DB\ResultSet;
 use Fyre\DB\Types\Type;
 use Fyre\Entity\Entity;
+use Fyre\ORM\Queries\SelectQuery;
 use Iterator;
 use IteratorAggregate;
 
@@ -31,7 +32,7 @@ class Result implements Countable, IteratorAggregate
     ];
 
     protected ResultSet $result;
-    protected Query $query;
+    protected SelectQuery $query;
     protected bool $eagerLoad = false;
 
     protected bool $freed = false;
@@ -42,11 +43,11 @@ class Result implements Countable, IteratorAggregate
     /**
      * New Result constructor.
      * @param ResultSet $result The ResultSet.
-     * @param Query $query The Query.
+     * @param SelectQuery $query The SelectQuery.
      * @param array $options The result options.
      * @param bool $eagerLoad Whether to eager load the results.
      */
-    public function __construct(ResultSet $result, Query $query, bool $eagerLoad = false)
+    public function __construct(ResultSet $result, SelectQuery $query, bool $eagerLoad = false)
     {
         $this->result = $result;
         $this->query = $query;
@@ -310,10 +311,10 @@ class Result implements Countable, IteratorAggregate
      * @param array $entities The entities.
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
-     * @param Query $query The Query.
+     * @param SelectQuery $query The Query.
      * @param array $usedAliases The used aliases.
      */
-    protected static function loadContain(array $entities, array $contain, Model $model, Query $query, array &$usedAliases): void
+    protected static function loadContain(array $entities, array $contain, Model $model, SelectQuery $query, array &$usedAliases): void
     {
         if ($entities === []) {
             return;

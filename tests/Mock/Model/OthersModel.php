@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Tests\Mock\Model;
 
 use Fyre\ORM\Model;
-use Fyre\ORM\Query;
+use Fyre\ORM\Queries\SelectQuery;
 use Fyre\ORM\Result;
 
 class OthersModel extends Model
@@ -19,7 +19,7 @@ class OthersModel extends Model
         return $result;
     }
 
-    public function beforeFind(Query $query): Query
+    public function beforeFind(SelectQuery $query): SelectQuery
     {
         return $query->where([
             'value' => 1
