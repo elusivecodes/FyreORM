@@ -519,7 +519,7 @@ Delete multiple entities.
     - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
 
 ```php
-$result = $model->deleteAll($entities, $options);
+$result = $model->deleteMany($entities, $options);
 ```
 
 **Exists**
@@ -564,11 +564,6 @@ Retrieve a single entity.
     - `fields` is an array or string representing the fields to select.
     - `contain` is a string or array containing the relationships to contain.
     - `join` is an array containing the tables to join.
-    - `conditions` is an array or string representing the where conditions.
-    - `order` is an array or string representing the fields to order by.
-    - `group` is an array or string representing the fields to group by.
-    - `having` is an array or string representing the having conditions.
-    - `offset` is a number indicating the query offset.
     - `epilog` is a string representing the epilog for the query.
     - `autoFields` is a boolean indicating whether to enable auto fields.
 
