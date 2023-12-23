@@ -762,6 +762,8 @@ Callbacks can be defined in your models, allowing custom code to run or revert c
 Execute a callback after entities are deleted.
 
 ```php
+use Fyre\Entity\Entity;
+
 public function afterDelete(Entity $entity) {}
 ```
 
@@ -794,6 +796,8 @@ If this method returns *false* the save will not be performed.
 Execute a callback after parsing user data into an entity.
 
 ```php
+use Fyre\Entity\Entity;
+
 public function afterParse(Entity $entity) { }
 ```
 
@@ -802,6 +806,8 @@ public function afterParse(Entity $entity) { }
 Execute a callback after entities are saved to the database.
 
 ```php
+use Fyre\Entity\Entity;
+
 public function afterSave(Entity $entity) {}
 ```
 
@@ -812,6 +818,8 @@ If this method returns *false* the save will not be performed and the transactio
 Execute a callback before entities are deleted.
 
 ```php
+use Fyre\Entity\Entity;
+
 public function beforeDelete(Entity $entity) {}
 ```
 
@@ -842,6 +850,8 @@ public function beforeParse(ArrayObject $data) { }
 Before rules callback.
 
 ```php
+use Fyre\Entity\Entity;
+
 public function beforeRules(Entity $entity) {}
 ```
 
@@ -852,6 +862,8 @@ If this method returns *false* the save will not be performed.
 Execute a callback before entities are saved to the database.
 
 ```php
+use Fyre\Entity\Entity;
+
 public function beforeSave(Entity $entity) {}
 ```
 
