@@ -798,7 +798,7 @@ Execute a callback after parsing user data into an entity.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterParse(Entity $entity) { }
+public function afterParse(Entity $entity) {}
 ```
 
 **After Save**
@@ -842,7 +842,7 @@ Execute a callback before parsing user data into an entity.
 ```php
 use ArrayObject;
 
-public function beforeParse(ArrayObject $data) { }
+public function beforeParse(ArrayObject $data) {}
 ```
 
 **Before Rules**
