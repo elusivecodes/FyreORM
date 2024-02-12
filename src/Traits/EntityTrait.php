@@ -214,6 +214,7 @@ trait EntityTrait
     protected function injectInto(Entity $entity, array $data, array $options): void
     {
         $options['associated'] ??= null;
+        $options['mutate'] ??= true;
         $options['parse'] ??= true;
         $options['validate'] ??= true;
         $options['clean'] ??= false;
@@ -324,7 +325,9 @@ trait EntityTrait
                 }
             }
 
-            $entity->set($field, $value);
+            $entity->set($field, $value, [
+                'mutate' => $options['mutate']
+            ]);
 
             if ($setDirty) {
                 $entity->setDirty($field, true);

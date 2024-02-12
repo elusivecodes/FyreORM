@@ -26,6 +26,7 @@ class Result implements Countable, IteratorAggregate
 
     protected const ENTITY_OPTIONS = [
         'parse' => false,
+        'mutate' => false,
         'validate' => false,
         'clean' => true,
         'new' => false

@@ -28,6 +28,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     protected Result|bool|null $result = null;
 
+    protected string $alias;
     protected string $connectionType;
     protected bool $subquery;
 
