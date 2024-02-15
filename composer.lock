@@ -132,16 +132,16 @@
         },
         {
             "name": "fyre/db",
-            "version": "v3.0.1",
+            "version": "v3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreDB.git",
-                "reference": "ca30e1e2986ccfd3e40266262154c4844f4c4c08"
+                "reference": "6aff161f5d7ff8bd465dbbfdcc0887ef8f5991c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreDB/zipball/ca30e1e2986ccfd3e40266262154c4844f4c4c08",
-                "reference": "ca30e1e2986ccfd3e40266262154c4844f4c4c08",
+                "url": "https://api.github.com/repos/elusivecodes/FyreDB/zipball/6aff161f5d7ff8bd465dbbfdcc0887ef8f5991c9",
+                "reference": "6aff161f5d7ff8bd465dbbfdcc0887ef8f5991c9",
                 "shasum": ""
             },
             "require": {
@@ -169,22 +169,22 @@
             "description": "A database library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreDB/issues",
-                "source": "https://github.com/elusivecodes/FyreDB/tree/v3.0.1"
+                "source": "https://github.com/elusivecodes/FyreDB/tree/v3.0.2"
             },
-            "time": "2024-02-12T12:21:18+00:00"
+            "time": "2024-02-15T11:50:37+00:00"
         },
         {
             "name": "fyre/entity",
-            "version": "v3.0.3",
+            "version": "v3.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreEntity.git",
-                "reference": "745d42bb6b128604f13f6cb2eb8132464ecb64f7"
+                "reference": "b75ca2aea7a0776d67f9bbf077e0df2edc7fc401"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreEntity/zipball/745d42bb6b128604f13f6cb2eb8132464ecb64f7",
-                "reference": "745d42bb6b128604f13f6cb2eb8132464ecb64f7",
+                "url": "https://api.github.com/repos/elusivecodes/FyreEntity/zipball/b75ca2aea7a0776d67f9bbf077e0df2edc7fc401",
+                "reference": "b75ca2aea7a0776d67f9bbf077e0df2edc7fc401",
                 "shasum": ""
             },
             "require": {
@@ -213,9 +213,9 @@
             "description": "An entity library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreEntity/issues",
-                "source": "https://github.com/elusivecodes/FyreEntity/tree/v3.0.3"
+                "source": "https://github.com/elusivecodes/FyreEntity/tree/v3.0.4"
             },
-            "time": "2023-11-28T14:02:05+00:00"
+            "time": "2024-02-15T04:17:10+00:00"
         },
         {
             "name": "fyre/filesystem",

@@ -15,7 +15,6 @@ use function explode;
 use function in_array;
 use function is_numeric;
 use function is_string;
-use function lcfirst;
 use function preg_replace;
 use function strtolower;
 
@@ -164,8 +163,7 @@ trait HelperTrait
      */
     public static function tableize(string $string): string
     {
-        $string = lcfirst($string);
-        $string = preg_replace('/[A-Z]/', '_\0', $string);
+        $string = preg_replace('/(?<=[^A-Z])[A-Z]/', '_\0', $string);
 
         return strtolower($string);
     }
