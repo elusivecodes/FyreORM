@@ -402,12 +402,8 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $field = $model->aliasField($field, $alias);
             }
 
-            if ($this->subquery) {
-                if (is_numeric($name)) {
-                    $name = $field;
-                }
-
-                $this->fields[$name] = $field;
+            if ($this->subquery && is_numeric($name)) {
+                $this->fields[] = $field;
                 continue;
             }
 
