@@ -22,7 +22,13 @@ class ManyToMany extends Relationship
 
     protected Model|null $joinModel = null;
 
+    protected HasMany $sourceRelationship;
+
+    protected BelongsTo $targetRelationship;
+
     protected string $joinAlias;
+
+    protected string $targetForeignKey;
 
     /**
      * New relationship constructor.
@@ -45,6 +51,10 @@ class ManyToMany extends Relationship
 
             $this->joinAlias = implode('', $aliases);
         }
+
+        if (array_key_exists('targetForeignKey', $options)) {
+            $this->targetForeignKey = $options['targetForeignKey'];
+        }
     }
 
     /**
@@ -54,15 +64,13 @@ class ManyToMany extends Relationship
      */
     public function buildJoins(array $options = []): array
     {
-        $targetAlias = $this->getTarget()->getAlias();
-
-        $sourceJoins = $this->getSource()->getRelationship($this->joinAlias)->buildJoins([
+        $sourceJoins = $this->getSourceRelationship()->buildJoins([
             'sourceAlias' => $options['sourceAlias'] ?? null,
             'type' => $options['type'] ?? null
         ]);
 
-        $targetJoins = $this->getJoinModel()->getRelationship($targetAlias)->buildJoins([
-            'alias' => $options['alias'] ?? $this->name,
+        $targetJoins = $this->getTargetRelationship()->buildJoins([
+            'alias' => $options['alias'] ?? null,
             'type' => $options['type'] ?? null,
             'conditions' => $options['conditions'] ?? null
         ]);
@@ -91,12 +99,12 @@ class ManyToMany extends Relationship
         }
 
         $joinModel = $this->getJoinModel();
-        $target = $this->getTarget();
         $property = $this->getProperty();
         $bindingKey = $this->getBindingKey();
         $foreignKey = $this->getForeignKey();
-        $targetAlias = $target->getAlias();
-        $joinProperty = $joinModel->getRelationship($targetAlias)->getProperty();
+        $targetRelationship = $this->getTargetRelationship();
+        $joinProperty = $targetRelationship->getProperty();
+        $targetName = $targetRelationship->getName();
 
         if (array_key_exists('fields', $data) || (array_key_exists('autoFields', $data) && !$data['autoFields'])) {
             $data['fields'] ??= [];
@@ -107,7 +115,13 @@ class ManyToMany extends Relationship
         $data['conditions'][] = $conditions;
 
         $contain = $data['contain'];
-        $data['contain'] = [$targetAlias => $contain];
+        $data['contain'] = [$targetName => $contain];
+
+        $hasRelationship = $joinModel->hasRelationship($targetName);
+
+        if (!$hasRelationship) {
+            $joinModel->addRelationship($targetRelationship);
+        }
 
         $allChildren = array_map(
             function(Entity $child) use ($joinProperty): Entity {
@@ -121,6 +135,10 @@ class ManyToMany extends Relationship
             },
             $joinModel->find($data)->all()
         );
+
+        if (!$hasRelationship) {
+            $joinModel->removeRelationship($targetName);
+        }
 
         foreach ($entities AS $entity) {
             $bindingValue = $entity->get($bindingKey);
@@ -147,66 +165,44 @@ class ManyToMany extends Relationship
      */
     public function getJoinModel(): Model
     {
-        if (!$this->joinModel) {
-            $sourceAlias = $this->getSource()->getAlias();
-            $target = $this->getTarget();
-            $targetAlias = $target->getAlias();
-    
-            $this->joinModel = ModelRegistry::use($this->joinAlias);
-
-            if (!$this->joinModel->hasRelationship($sourceAlias)) {
-                $this->joinModel->belongsTo($sourceAlias, [
-                    'bindingKey' => $this->getBindingKey(),
-                    'foreignKey' => $this->getForeignKey()
-                ]);
-            }
-    
-            if (!$this->joinModel->hasRelationship($targetAlias)) {
-                $targetRelationship = $target->getRelationship($this->joinAlias);
-                $this->joinModel->belongsTo($targetAlias, [
-                    'bindingKey' => $targetRelationship->getBindingKey(),
-                    'foreignKey' => $targetRelationship->getForeignKey()
-                ]);
-            }
-        }
-
-        return $this->joinModel;
+        return $this->joinModel ??= ModelRegistry::use($this->joinAlias);
     }
 
     /**
-     * Get the source Model.
-     * @return Model The source Model.
+     * Get the source relationship.
+     * @return HasMany The source relationship.
      */
-    public function getSource(): Model
+    public function getSourceRelationship(): HasMany
     {
-        $source = parent::getSource();
-
-        if (!$source->hasRelationship($this->joinAlias)) {
-            $source->hasMany($this->joinAlias, [
-                'foreignKey' => $this->getForeignKey(),
-                'bindingKey' => $this->getBindingKey(),
-                'dependent' => true
-            ]);
-        }
-
-        return $source;
+        return $this->sourceRelationship ??= new HasMany($this->joinAlias, [
+            'source' => $this->getSource(),
+            'foreignKey' => $this->getForeignKey(),
+            'bindingKey' => $this->getBindingKey(),
+            'dependent' => true
+        ]);
     }
 
     /**
-     * Get the target Model.
-     * @return Model The target Model.
+     * Get the target foreign key.
+     * @return string The target foreign key.
      */
-    public function getTarget(): Model
+    public function getTargetForeignKey(): string
     {
-        $target = parent::getTarget();
+        return $this->targetForeignKey ??= static::modelKey(
+            $this->getTarget()->getAlias()
+        );
+    }
 
-        if (!$target->hasRelationship($this->joinAlias)) {
-            $target->hasMany($this->joinAlias, [
-                'dependent' => true
-            ]);
-        }
-
-        return $target;
+    /**
+     * Get the target relationship.
+     * @return BelongsTo The target relationship.
+     */
+    public function getTargetRelationship(): BelongsTo
+    {
+        return $this->targetRelationship ??= new BelongsTo($this->getTarget()->getAlias(), [
+            'source' => $this->getJoinModel(),
+            'foreignKey' => $this->getTargetForeignKey()
+        ]);
     }
 
     /**
@@ -229,7 +225,7 @@ class ManyToMany extends Relationship
             fn(mixed $relation): bool => $relation && $relation instanceof Entity
         );
 
-        if (!$this->getSource()->getRelationship($this->joinAlias)->unlinkAll([$entity], $options)) {
+        if (!$this->getSourceRelationship()->unlinkAll([$entity], $options)) {
             return false;
         }
 
@@ -246,7 +242,7 @@ class ManyToMany extends Relationship
         $joinModel = $this->getJoinModel();
         $bindingKey = $this->getBindingKey();
         $foreignKey = $this->getForeignKey();
-        $targetRelationship = $target->getRelationship($this->joinAlias);
+        $targetRelationship = $this->getTargetRelationship();
         $targetBindingKey = $targetRelationship->getBindingKey();
         $targetForeignKey = $targetRelationship->getForeignKey();
         $bindingValue = $entity->get($bindingKey);
@@ -286,7 +282,7 @@ class ManyToMany extends Relationship
      */
     public function unlinkAll(array $entities, array $options = []): bool
     {
-        return true;
+        return $this->getSourceRelationship()->unlinkAll($entities, $options);
     }
 
 }

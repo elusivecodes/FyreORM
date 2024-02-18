@@ -1179,6 +1179,7 @@ $model->hasOne($name, $data);
     - `through` is a string representing the join alias, and will default to the concatenated form of the current alias and relationship name (sorted alphabetically).
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the relationship name.
     - `foreignKey` is a string representing the foreign key column in the join table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
+    - `foreignKey` is a string representing the target foreign key column in the join table, and will default to the snake case singular name of the relationship name (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
     - `strategy` is a string representing the select strategy, and will default to "*select*".
     - `conditions` is an array containing additional conditions.

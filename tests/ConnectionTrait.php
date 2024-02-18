@@ -58,6 +58,7 @@ trait ConnectionTrait
 
         $connection = ConnectionManager::use();
 
+        $connection->query('DROP TABLE IF EXISTS `contains`');
         $connection->query('DROP TABLE IF EXISTS `items`');
         $connection->query('DROP TABLE IF EXISTS `others`');
         $connection->query('DROP TABLE IF EXISTS `timestamps`');
@@ -72,6 +73,15 @@ trait ConnectionTrait
             CREATE TABLE `items` (
                 `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `name` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+                PRIMARY KEY (`id`)
+            ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
+        EOT);
+
+        $connection->query(<<<EOT
+            CREATE TABLE `contains` (
+                `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `item_id` INT(10) UNSIGNED NOT NULL,
+                `contained_item_id` INT(10) UNSIGNED NOT NULL,
                 PRIMARY KEY (`id`)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);
@@ -154,6 +164,7 @@ trait ConnectionTrait
     public static function tearDownAfterClass(): void
     {
         $connection = ConnectionManager::use();
+        $connection->query('DROP TABLE IF EXISTS `contains`');
         $connection->query('DROP TABLE IF EXISTS `items`');
         $connection->query('DROP TABLE IF EXISTS `others`');
         $connection->query('DROP TABLE IF EXISTS `timestamps`');

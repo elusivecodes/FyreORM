@@ -497,6 +497,41 @@ trait ManyToManyTestTrait
         );
     }
 
+    public function testManyToManySelfSql(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $Items->manyToMany('ChildItems', [
+            'className' => 'Items',
+            'through' => 'Contains',
+            'foreignKey' => 'item_id',
+            'targetForeignKey' => 'contained_item_id'
+        ]);
+
+        $Items->manyToMany('ParentItems', [
+            'className' => 'Items',
+            'through' => 'Contains',
+            'foreignKey' => 'contained_item_id',
+            'targetForeignKey' => 'item_id'
+        ]);
+
+        $this->assertSame(
+            'SELECT Items.id AS Items__id FROM items AS Items INNER JOIN contains AS Contains ON Contains.item_id = Items.id INNER JOIN items AS ChildItems ON ChildItems.id = Contains.contained_item_id',
+            $Items->find()
+                ->innerJoinWith('ChildItems')
+                ->enableAutoFields(false)
+                ->sql()
+        );
+
+        $this->assertSame(
+            'SELECT Items.id AS Items__id FROM items AS Items INNER JOIN contains AS Contains ON Contains.contained_item_id = Items.id INNER JOIN items AS ParentItems ON ParentItems.id = Contains.item_id',
+            $Items->find()
+                ->innerJoinWith('ParentItems')
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
+
     public function testManyToManyStrategyFind(): void
     {
         $Posts = ModelRegistry::use('Posts');
