@@ -77,7 +77,7 @@ class HasMany extends Relationship
         }
 
         $targetKeys = array_map(
-            fn(string $foreignKey): string => $target->aliasField($foreignKey),
+            fn(string $foreignKey): string => $target->aliasField($foreignKey, $this->name),
             $targetKeys
         );
 

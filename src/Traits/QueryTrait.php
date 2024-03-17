@@ -162,9 +162,11 @@ trait QueryTrait
     public function find(array $data = []): SelectQuery
     {
         $query = $this->selectQuery([
+            'alias' => $data['alias'] ?? null,
             'type' => $data['type'] ?? static::READ
         ]);
 
+        unset($data['alias']);
         unset($data['type']);
         unset($data['strategy']);
 

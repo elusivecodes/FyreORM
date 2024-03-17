@@ -148,12 +148,14 @@ abstract class Relationship
 
         if (array_key_exists('fields', $data) || (array_key_exists('autoFields', $data) && !$data['autoFields'])) {
             $data['fields'] ??= [];
-            $data['fields'][] = $target->aliasField($targetKey);
+            $data['fields'][] = $target->aliasField($targetKey, $this->name);
         }
 
         $data['conditions'] = array_merge($conditions, $data['conditions'] ?? []);
 
-        $allChildren = $target->find($data)->all();
+        $allChildren = $target
+            ->find(['alias' => $this->name] + $data)
+            ->all();
 
         foreach ($entities AS $entity) {
             $sourceValue = $entity->get($sourceKey);
@@ -313,8 +315,10 @@ abstract class Relationship
         $target = $this->getTarget();
 
         $relations = $target->find([
+            'alias' => $this->name,
             'conditions' => $conditions
-        ])->all();
+        ])
+        ->all();
 
         if ($relations === []) {
             return true;
@@ -371,7 +375,7 @@ abstract class Relationship
         }
 
         $target = $this->getTarget();
-        $targetKey = $target->aliasField($targetKey);
+        $targetKey = $target->aliasField($targetKey, $this->name);
 
         if (count($sourceValues) > 1) {
             $containConditions = [$targetKey.' IN' => $sourceValues];
@@ -398,7 +402,7 @@ abstract class Relationship
         }
 
         $target = $this->getTarget();
-        $targetKey = $target->aliasField($targetKey);
+        $targetKey = $target->aliasField($targetKey, $this->name);
 
         $alias = $query->getAlias();
         $sourceKey = $this->source->aliasField($sourceKey, $alias);
