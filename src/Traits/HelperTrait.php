@@ -137,7 +137,7 @@ trait HelperTrait
                 continue;
             }
 
-            if (array_key_exists($key, static::QUERY_METHODS) || $key === 'strategy') {
+            if (array_key_exists($key, static::QUERY_METHODS) || in_array($key, ['strategy', 'type'])) {
                 $normalized[$key] = $value;
                 continue;
             }

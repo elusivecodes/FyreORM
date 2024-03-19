@@ -41,6 +41,11 @@ class OrmException extends RunTimeException
         return new static('Model relationship does not exist: '.$name);
     }
 
+    public static function forJoinAliasNotUnique(string $name): static
+    {
+        return new static('Join alias is already used: '.$name);
+    }
+
     public static function forMissingBehavior(string $name): static
     {
         return new static('Model behavior not loaded: '.$name);

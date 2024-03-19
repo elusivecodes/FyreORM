@@ -430,6 +430,23 @@ trait BelongsToTestTrait
         );
     }
 
+    public function testBelongsContainTypeJoinSql(): void
+    {
+        $this->assertSame(
+            'SELECT Addresses.id AS Addresses__id, Users.id AS Users__id FROM addresses AS Addresses INNER JOIN users AS Users ON Users.id = Addresses.user_id',
+            ModelRegistry::use('Addresses')
+                ->find([
+                    'contain' => [
+                        'Users' => [
+                            'type' => 'INNER'
+                        ]
+                    ]
+                ])
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
+
     public function testBelongsToStrategyFind(): void
     {
         $Addresses = ModelRegistry::use('Addresses');

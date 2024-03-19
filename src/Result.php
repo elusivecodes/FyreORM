@@ -231,8 +231,7 @@ class Result implements Countable, IteratorAggregate
             $entities[] = $this->buildEntity($data);
         }
 
-        $usedAliases = [$this->query->getAlias()];
-        static::loadContain($entities, $this->query->getContain(), $this->query->getModel(), $this->query, $usedAliases);
+        static::loadContain($entities, $this->query->getContain(), $this->query->getModel(), $this->query);
 
         return $entities;
     }
@@ -298,7 +297,6 @@ class Result implements Countable, IteratorAggregate
                 continue;
             }
 
-            $usedAliases[] = $name;
             $property = $relationship->getProperty();
 
             $aliasMap[$name] = array_merge($properties, [$property]);
@@ -313,26 +311,28 @@ class Result implements Countable, IteratorAggregate
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
      * @param SelectQuery $query The Query.
-     * @param array $usedAliases The used aliases.
+     * @param string $pathPrefix The path prefix.
      */
-    protected static function loadContain(array $entities, array $contain, Model $model, SelectQuery $query, array &$usedAliases): void
+    protected static function loadContain(array $entities, array $contain, Model $model, SelectQuery $query, string $pathPrefix = ''): void
     {
         if ($entities === []) {
             return;
         }
 
+        $eagerLoadPaths = $query->getEagerLoadPaths();
+
         foreach ($contain AS $name => $data) {
+            $path = $pathPrefix.'.'.$name;
+
             $relationship = $model->getRelationship($name);
 
             $data['strategy'] ??= $relationship->getStrategy();
 
-            if ($data['strategy'] !== 'join' || in_array($name, $usedAliases)) {
+            if ($data['strategy'] !== 'join' || in_array($path, $eagerLoadPaths)) {
                 $data['type'] ??= $query->getConnectionType();
                 $relationship->findRelated($entities, $data, $query);
                 continue;
             }
-
-            $usedAliases[] = $name;
 
             $property = $relationship->getProperty();
 
@@ -345,7 +345,7 @@ class Result implements Countable, IteratorAggregate
                 $relations[] = $entity->get($property);
             }
 
-            static::loadContain($relations, $data['contain'], $relationship->getTarget(), $query, $usedAliases);
+            static::loadContain($relations, $data['contain'], $relationship->getTarget(), $query, $path);
         }
     }
 

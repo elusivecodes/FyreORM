@@ -432,6 +432,23 @@ trait HasOneTestTrait
         );
     }
 
+    public function testHasOneContainTypeJoinSql(): void
+    {
+        $this->assertSame(
+            'SELECT Users.id AS Users__id, Addresses.id AS Addresses__id FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
+            ModelRegistry::use('Users')
+                ->find([
+                    'contain' => [
+                        'Addresses' => [
+                            'type' => 'INNER'
+                        ]
+                    ]
+                ])
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
+
     public function testHasOneStrategyFind(): void
     {
         $Users = ModelRegistry::use('Users');

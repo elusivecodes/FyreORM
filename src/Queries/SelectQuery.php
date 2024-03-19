@@ -37,7 +37,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     protected array $matching = [];
 
     protected bool|null $autoFields = null;
-    protected bool $eagerLoad = false;
+    protected array $eagerLoadPaths = [];
 
     protected array|null $originalFields = null;
     protected array|null $originalJoins = null;
@@ -188,6 +188,15 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     }
 
     /**
+     * Get the eager load paths.
+     * @return array The eager load paths.
+     */
+    public function getEagerLoadPaths(): array
+    {
+        return $this->eagerLoadPaths;
+    }
+
+    /**
      * Get the matching array.
      * @return array The matching array.
      */
@@ -210,7 +219,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
             $result = $this->execute();
 
-            $this->result = new Result($result, $this, $this->eagerLoad);
+            $this->result = new Result($result, $this, $this->eagerLoadPaths !== []);
 
             $this->model->handleEvent('afterFind', $this->result);
         }
@@ -288,8 +297,6 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
         $this->fields += $fields;
 
-        $this->containAll($this->contain, $this->model, $this->alias, $usedAliases);
-
         foreach ($this->matching AS $name => $relationship) {
             $target = $relationship->getTarget();
 
@@ -300,7 +307,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             }
         }
 
-        $this->joins += $this->containJoin;
+        $this->containAll($this->contain, $this->model, $this->alias);
+
+        foreach ($this->containJoin AS $alias => $join) {
+            unset($join['path']);
+
+            $this->joins[$alias] = $join;
+        }
 
         foreach ($joins AS $alias => $join) {
             if (is_numeric($alias)) {
@@ -311,9 +324,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 continue;
             }
 
+            if (array_key_exists($alias, $this->joins)) {
+                throw OrmException::forJoinAliasNotUnique($alias);
+            }
+
             unset($join['alias']);
 
-            $this->joins[$alias] ??= $join;
+            $this->joins[$alias] = $join;
         }
 
         $this->originalFields = $fields;
@@ -436,19 +453,19 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
      * @param string $alias The table alias.
-     * @param array $usedAliases The used aliases.
+     * @param string $pathPrefix The path prefix.
      */
-    protected function containAll(array $contain, Model $model, string $alias, array &$usedAliases): void
+    protected function containAll(array $contain, Model $model, string $alias, string $pathPrefix = ''): void
     {
         foreach ($contain AS $name => $data) {
             $relationship = $model->getRelationship($name);
 
             $data['strategy'] ??= $relationship->getStrategy();
 
-            if ($data['strategy'] !== 'join' || in_array($name, $usedAliases)) {
+            if ($data['strategy'] !== 'join') {
                 $bindingKey = $relationship->getBindingKey();
                 $this->addFields([$bindingKey], $model, $alias);
-                $this->eagerLoad = true;
+                $this->eagerLoadPaths[] = $pathPrefix.'.'.$name;
                 continue;
             }
 
@@ -459,12 +476,35 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             $joins = $relationship->buildJoins([
                 'alias' => $name,
                 'sourceAlias' => $alias,
+                'type' => $data['type'] ?? null,
                 'conditions' => $data['conditions'] ?? []
             ]);
 
+            $path = $pathPrefix;
+            $usedAlias = false;
+            foreach ($joins AS $joinAlias => $join) {
+                $path .= '.'.$joinAlias;
+
+                if (array_key_exists($joinAlias, $this->joins)) {
+                    $usedAlias = true;
+                    break;
+                }
+
+                if (array_key_exists($joinAlias, $this->containJoin) && $path !== $this->containJoin[$joinAlias]['path']) {
+                    $usedAlias = true;
+                    break;
+                }
+            }
+
+            if ($usedAlias) {
+                $bindingKey = $relationship->getBindingKey();
+                $this->addFields([$bindingKey], $model, $alias);
+                $this->eagerLoadPaths[] = $pathPrefix.'.'.$name;
+                continue;
+            }
+
             foreach ($joins AS $joinAlias => $join) {
                 $this->joins[$joinAlias] ??= $join;
-                $usedAliases[] = $joinAlias;
             }
 
             if (array_key_exists('fields', $data)) {
@@ -475,7 +515,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $this->addFields($target->getPrimaryKey(), $target, $name);
             }
 
-            $this->containAll($data['contain'], $target, $name, $usedAliases);
+            $this->containAll($data['contain'], $target, $name, $path);
         }
     }
 
@@ -496,6 +536,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $model = $this->model;
         $sourceAlias = $this->alias;
 
+        $path = '';
         foreach ($contain AS $i => $alias) {
             $isLastJoin = $i === $lastContain;
 
@@ -517,6 +558,14 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             ]);
 
             foreach ($joins AS $joinAlias => $join) {
+                $path .= '.'.$joinAlias;
+
+                if (array_key_exists($joinAlias, $this->containJoin) && $path !== $this->containJoin[$joinAlias]['path']) {
+                    throw OrmException::forJoinAliasNotUnique($joinAlias);
+                }
+
+                $join['path'] = $path;
+
                 if ($isLastJoin) {
                     $this->containJoin[$joinAlias] = $join;
                 } else {
