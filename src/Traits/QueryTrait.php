@@ -28,13 +28,14 @@ trait QueryTrait
      */
     public function delete(Entity $entity, array $options = []): bool
     {
+        $options['events'] ??= true;
         $options['cascade'] ??= true;
 
         $connection = $this->getConnection();
 
         $connection->begin();
 
-        if (!$this->handleEvent('beforeDelete', $entity)) {
+        if ($options['events'] && !$this->handleEvent('beforeDelete', $entity, $options)) {
             $connection->rollback();
             return false;
         }
@@ -53,7 +54,7 @@ trait QueryTrait
             return false;
         }
 
-        if (!$this->handleEvent('afterDelete', $entity)) {
+        if ($options['events'] && !$this->handleEvent('afterDelete', $entity, $options)) {
             $connection->rollback();
             return false;
         }
@@ -95,6 +96,7 @@ trait QueryTrait
             return $this->delete($entities[0], $options);
         }
 
+        $options['events'] ??= true;
         $options['cascade'] ??= true;
 
         $connection = $this->getConnection();
@@ -103,10 +105,12 @@ trait QueryTrait
 
         $primaryKeys = $this->getPrimaryKey();
 
-        foreach ($entities AS $entity) {
-            if (!$this->handleEvent('beforeDelete', $entity)) {
-                $connection->rollback();
-                return false;
+        if ($options['events']) {
+            foreach ($entities AS $entity) {
+                if (!$this->handleEvent('beforeDelete', $entity, $options)) {
+                    $connection->rollback();
+                    return false;
+                }
             }
         }
 
@@ -127,10 +131,12 @@ trait QueryTrait
             return false;
         }
 
-        foreach ($entities AS $entity) {
-            if (!$this->handleEvent('afterDelete', $entity)) {
-                $connection->rollback();
-                return false;
+        if ($options['events']) {
+            foreach ($entities AS $entity) {
+                if (!$this->handleEvent('afterDelete', $entity, $options)) {
+                    $connection->rollback();
+                    return false;
+                }
             }
         }
 
@@ -161,23 +167,25 @@ trait QueryTrait
      */
     public function find(array $data = []): SelectQuery
     {
-        $query = $this->selectQuery([
-            'alias' => $data['alias'] ?? null,
-            'type' => $data['type'] ?? static::READ
-        ]);
+        $methods = [];
+        $options = [];
 
-        unset($data['alias']);
-        unset($data['type']);
-        unset($data['strategy']);
-
-        foreach ($data AS $property => $method) {
-            if (!array_key_exists($property, static::QUERY_METHODS)) {
-                throw OrmException::forInvalidFindProperty($property);
+        foreach ($data AS $property => $value) {
+            if (array_key_exists($property, static::QUERY_METHODS)) {
+                $method = static::QUERY_METHODS[$property];
+                $methods[$method] = $value;
+            } else {
+                $options[$property] = $value;
             }
+        }
 
-            $method = static::QUERY_METHODS[$property];
+        $options['alias'] ??= null;
+        $options['connectionType'] ??= static::READ;
 
-            call_user_func([$query, $method], $data[$property]);
+        $query = $this->selectQuery($options);
+
+        foreach ($methods AS $method => $value) {
+            call_user_func([$query, $method], $value);
         }
 
         return $query;
@@ -222,6 +230,7 @@ trait QueryTrait
         $options['checkExists'] ??= true;
         $options['checkRules'] ??= true;
         $options['saveRelated'] ??= true;
+        $options['events'] ??= true;
         $options['clean'] ??= true;
 
         $autoIncrementKey = $this->getAutoIncrementKey();
@@ -292,6 +301,7 @@ trait QueryTrait
         $options['checkExists'] ??= true;
         $options['checkRules'] ??= true;
         $options['saveRelated'] ??= true;
+        $options['events'] ??= true;
         $options['clean'] ??= true;
 
         if ($options['checkExists']) {
@@ -364,7 +374,7 @@ trait QueryTrait
     protected function _save(Entity $entity, array $options): bool
     {
         if ($options['checkRules']) {
-            if (!$this->handleEvent('beforeRules', $entity)) {
+            if ($options['events'] && !$this->handleEvent('beforeRules', $entity, $options)) {
                 return false;
             }
 
@@ -372,12 +382,12 @@ trait QueryTrait
                 return false;
             }
 
-            if (!$this->handleEvent('afterRules', $entity)) {
+            if ($options['events'] && !$this->handleEvent('afterRules', $entity, $options)) {
                 return false;
             }
         }
 
-        if (!$this->handleEvent('beforeSave', $entity)) {
+        if ($options['events'] && !$this->handleEvent('beforeSave', $entity, $options)) {
             return false;
         }
 
@@ -418,7 +428,7 @@ trait QueryTrait
             return false;
         }
 
-        if (!$this->handleEvent('afterSave', $entity)) {
+        if ($options['events'] && !$this->handleEvent('afterSave', $entity, $options)) {
             return false;
         }
 

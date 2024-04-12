@@ -162,9 +162,15 @@ trait EntityTrait
             return;
         }
 
+        $primaryKeys = array_map(
+            fn(string $primaryKey): string => $this->aliasField($primaryKey),
+            $primaryKeys
+        );
+
         $matches = $this->find([
             'fields' => $primaryKeys,
-            'conditions' => QueryGenerator::normalizeConditions($primaryKeys, $values)
+            'conditions' => QueryGenerator::normalizeConditions($primaryKeys, $values),
+            'events' => false
         ])
         ->all();
 
@@ -172,7 +178,7 @@ trait EntityTrait
             return;
         }
 
-        $matchedValues =  array_map(
+        $matchedValues = array_map(
             fn(Entity $entity): array => $entity->extract($primaryKeys),
             $matches
         );
@@ -216,6 +222,7 @@ trait EntityTrait
         $options['associated'] ??= null;
         $options['mutate'] ??= true;
         $options['parse'] ??= true;
+        $options['events'] ??= true;
         $options['validate'] ??= true;
         $options['clean'] ??= false;
         $options['new'] ??= null;
@@ -223,9 +230,11 @@ trait EntityTrait
         $schema = $this->getSchema();
 
         if ($options['parse']) {
-            $data = new ArrayObject($data);
-            $this->handleEvent('beforeParse', $data);
-            $data = $data->getArrayCopy();
+            if ($options['events']) {
+                $data = new ArrayObject($data);
+                $this->handleEvent('beforeParse', $data, $options);
+                $data = $data->getArrayCopy();
+            }
 
             $data = $this->parseSchema($data);
         }
@@ -342,8 +351,8 @@ trait EntityTrait
             $entity->clean();
         }
 
-        if ($options['parse']) {
-            $this->handleEvent('afterParse', $entity);
+        if ($options['events'] && $options['parse']) {
+            $this->handleEvent('afterParse', $entity, $options);
         }
     }
 

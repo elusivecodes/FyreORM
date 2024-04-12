@@ -223,17 +223,17 @@ class Result implements Countable, IteratorAggregate
 
         $rows = $this->result->all();
 
-        $entities = [];
+        $this->buffer = [];
 
         foreach ($rows AS $row) {
             $data = $this->parseRow($row);
 
-            $entities[] = $this->buildEntity($data);
+            $this->buffer[] = $this->buildEntity($data);
         }
 
-        static::loadContain($entities, $this->query->getContain(), $this->query->getModel(), $this->query);
+        static::loadContain($this->buffer, $this->query->getContain(), $this->query->getModel(), $this->query);
 
-        return $entities;
+        return $this->buffer;
     }
 
     /**

@@ -9,6 +9,7 @@ use Fyre\Entity\Entity;
 use Fyre\Lang\Lang;
 
 use function array_intersect;
+use function array_map;
 use function implode;
 use function in_array;
 
@@ -73,11 +74,16 @@ class RuleSet
 
             $relationship = $this->model->getRelationship($name);
             $target = $relationship->getTarget();
-            $targetFields = $options['targetFields'] ?? $target->getPrimaryKey();
+
+            $targetFields = array_map(
+                fn(string $targetField): string => $target->aliasField($targetField),
+                $options['targetFields'] ?? $target->getPrimaryKey()
+            );
 
             $query = $target->find([
                 'fields' => $targetFields,
-                'conditions' => QueryGenerator::combineConditions($targetFields, $values)
+                'conditions' => QueryGenerator::combineConditions($targetFields, $values),
+                'events' => false
             ]);
 
             if ($options['callback']) {
@@ -156,18 +162,29 @@ class RuleSet
                 return true;
             }
 
-            $conditions = QueryGenerator::combineConditions($fields, $values);
+            $aliasedFields = array_map(
+                fn(string $field): string => $this->model->aliasField($field),
+                $fields
+            );
+
+            $conditions = QueryGenerator::combineConditions($aliasedFields, $values);
 
             if (!$entity->isNew()) {
                 $primaryKeys = $this->model->getPrimaryKey();
                 $primaryValues = $entity->extract($primaryKeys);
 
+                $primaryKeys = array_map(
+                    fn(string $primaryKey): string => $this->model->aliasField($primaryKey),
+                    $primaryKeys
+                );
+
                 $conditions['not'] = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
             }
 
             $query = $this->model->find([
-                'fields' => $fields,
-                'conditions' => $conditions
+                'fields' => $aliasedFields,
+                'conditions' => $conditions,
+                'events' => false
             ]);
 
             if ($options['callback']) {

@@ -152,9 +152,12 @@ abstract class Relationship
         }
 
         $data['conditions'] = array_merge($conditions, $data['conditions'] ?? []);
+        $data['alias'] = $this->name;
+
+        $data = array_merge($query->getOptions(), $data);
 
         $allChildren = $target
-            ->find(['alias' => $this->name] + $data)
+            ->find($data)
             ->all();
 
         foreach ($entities AS $entity) {

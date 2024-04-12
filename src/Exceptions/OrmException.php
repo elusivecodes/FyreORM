@@ -26,11 +26,6 @@ class OrmException extends RunTimeException
         return new static('All entities must be an instance of Entity.');
     }
 
-    public static function forInvalidFindProperty(string $property): static
-    {
-        return new static('Model find property does not exist: '.$property);
-    }
-
     public static function forInvalidStrategy(string $strategy): static
     {
         return new static('Invalid relationship strategy: '.$strategy);

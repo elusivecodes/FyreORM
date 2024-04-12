@@ -117,11 +117,17 @@ class ManyToMany extends Relationship
         $contain = $data['contain'];
         $data['contain'] = [$targetName => $contain];
 
+        $data = array_merge($query->getOptions(), $data);
+
         $hasRelationship = $joinModel->hasRelationship($targetName);
 
         if (!$hasRelationship) {
             $joinModel->addRelationship($targetRelationship);
         }
+
+        $children = $joinModel
+            ->find($data)
+            ->all();
 
         $allChildren = array_map(
             function(Entity $child) use ($joinProperty): Entity {
@@ -133,7 +139,7 @@ class ManyToMany extends Relationship
 
                 return $realChild;
             },
-            $joinModel->find($data)->all()
+            $children
         );
 
         if (!$hasRelationship) {

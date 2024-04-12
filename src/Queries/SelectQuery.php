@@ -26,11 +26,10 @@ use function str_replace;
 class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 {
 
-    protected Result|bool|null $result = null;
-
     protected string $alias;
-    protected string $connectionType;
-    protected bool $subquery;
+    protected array $options = [];
+
+    protected Result|bool|null $result = null;
 
     protected array $contain = [];
     protected array $containJoin = [];
@@ -57,11 +56,18 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     public function __construct(Model $model, array $options = [])
     {
         $this->model = $model;
-        $this->alias = $options['alias'] ?? $this->model->getAlias();
-        $this->connectionType = $options['type'] ?? Model::READ;
-        $this->subquery = $options['subquery'] ?? false;
 
-        parent::__construct($this->model->getConnection($this->connectionType), []);
+        $this->alias = $options['alias'] ?? $this->model->getAlias();
+
+        unset($options['alias']);
+
+        $options['subquery'] ??= false;
+        $options['connectionType'] ??= Model::READ;
+        $options['events'] ??= true;
+
+        $this->options = $options;
+
+        parent::__construct($this->model->getConnection($this->options['connectionType']), []);
 
         $this->from([
             $this->alias => $this->model->getTable()
@@ -113,8 +119,8 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         if ($this->count === null) {
             $query = clone $this;
 
-            if (!$this->beforeFindTriggered) {
-                $this->model->handleEvent('beforeFind', $query);
+            if ($this->options['events'] && !$this->beforeFindTriggered) {
+                $this->model->handleEvent('beforeFind', $query, $this->options);
             }
 
             $this->count = $query->getConnection()
@@ -175,7 +181,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      */
     public function getConnectionType(): string
     {
-        return $this->connectionType;
+        return $this->options['connectionType'];
     }
 
     /**
@@ -206,14 +212,23 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     }
 
     /**
+     * Get the query options.
+     * @return array The query options.
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
      * Get the query result.
      * @return Result The query result.
      */
     public function getResult(): Result
     {
         if ($this->result === null) {
-            if (!$this->beforeFindTriggered) {
-                $this->model->handleEvent('beforeFind', $this);
+            if ($this->options['events'] && !$this->beforeFindTriggered) {
+                $this->model->handleEvent('beforeFind', $this, $this->options);
                 $this->beforeFindTriggered = true;
             }
 
@@ -221,7 +236,9 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
             $this->result = new Result($result, $this, $this->eagerLoadPaths !== []);
 
-            $this->model->handleEvent('afterFind', $this->result);
+            if ($this->options['events']) {
+                $this->model->handleEvent('afterFind', $this->result, $this->options);
+            }
         }
 
         return $this->result; 
@@ -287,11 +304,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $this->fields = [];
         $this->joins = [];
 
-        $usedAliases = [$this->alias];
+        $usedAliases = [
+            $this->alias
+        ];
 
         if ($this->autoFields !== false) {
             $this->autoFields($this->model, $this->alias);
-        } else if (!$this->subquery) {
+        } else if (!$this->options['subquery']) {
             $this->addFields($this->model->getPrimaryKey(), $this->model, $this->alias);
         }
 
@@ -406,8 +425,9 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      * @param Model $model The Model.
      * @param string $alias The table alias.
      * @param bool $overwrite Whether to overwrite existing fields.
+     * @param bool $prefixAlias Whether to force prefix the alias.
      */
-    protected function addFields(array $fields, Model $model, string $alias, bool $overwrite = true): void
+    protected function addFields(array $fields, Model $model, string $alias, bool $overwrite = true, bool $prefixAlias = false): void
     {
         foreach ($fields AS $name => $field) {
             if ($field === '*') {
@@ -419,13 +439,15 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $field = $model->aliasField($field, $alias);
             }
 
-            if ($this->subquery && is_numeric($name)) {
+            if ($this->options['subquery'] && is_numeric($name)) {
                 $this->fields[] = $field;
                 continue;
             }
 
             if (is_numeric($name)) {
                 $name = str_replace('.', '__', $field);
+            } else if ($prefixAlias) {
+                $name = $alias.'__'.$name;
             }
 
             if (!$overwrite && array_key_exists($name, $this->fields)) {
@@ -508,8 +530,10 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             }
 
             if (array_key_exists('fields', $data)) {
-                $this->addFields($data['fields'], $target, $name);
-            } else if ($data['autoFields'] !== false) {
+                $this->addFields($data['fields'], $target, $name, prefixAlias: true);
+            }
+
+            if ($data['autoFields'] !== false) {
                 $this->autoFields($target, $name);
             } else {
                 $this->addFields($target->getPrimaryKey(), $target, $name);

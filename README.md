@@ -224,7 +224,8 @@ Create a new [*SelectQuery*](#select).
 
 - `$options` is an array containing options for the query.
     - `alias` is a string representing the table alias, and will default to the model alias.
-    - `type` is a string representing the connection type, and will default to `self::READ`.
+    - `connectionType` is a string representing the connection type, and will default to `self::READ`.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
 
 ```php
 $query = $model->selectQuery($options);
@@ -247,7 +248,7 @@ Create a new subquery [*SelectQuery*](#select).
 
 - `$options` is an array containing options for the query.
     - `alias` is a string representing the table alias, and will default to the model alias.
-    - `type` is a string representing the connection type, and will default to `self::WRITE`.
+    - `connectionType` is a string representing the connection type, and will default to `self::READ`.
 
 ```php
 $query = $model->subquery($options);
@@ -425,6 +426,7 @@ Build a new [*Entity*](https://github.com/elusivecodes/FyreEntity) using data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity, and will default to *false*.
     - `new` is a boolean indicating whether to mark the entity as new, and will default to *null*.
@@ -441,6 +443,7 @@ Build multiple new entities using user data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity, and will default to *false*.
     - `new` is a boolean indicating whether to mark the entity as new, and will default to *null*.
@@ -458,6 +461,7 @@ Update an Entity using user data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity, and will default to *false*.
     - `new` is a boolean indicating whether to mark the entity as new, and will default to *null*.
@@ -475,6 +479,7 @@ Update multiple entities using user data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity, and will default to *false*.
     - `new` is a boolean indicating whether to mark the entity as new, and will default to *null*.
@@ -492,6 +497,7 @@ Delete an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 
 - `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
 - `$options` is an array containing delete options.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
 
 ```php
@@ -516,6 +522,7 @@ Delete multiple entities.
 
 - `$entities` is an array containing the entities.
 - `$options` is an array containing delete options.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
 
 ```php
@@ -537,7 +544,7 @@ $exists = $model->exists($conditions);
 Create a new [*SelectQuery*](#select).
 
 - `$data` is an array containing the query data.
-    - `type` is a string representing the connection type, and will default to `self::READ`.
+    - `connectionType` is a string representing the connection type, and will default to `self::READ`.
     - `fields` is an array or string representing the fields to select.
     - `contain` is a string or array containing the relationships to contain.
     - `join` is an array containing the tables to join.
@@ -549,6 +556,7 @@ Create a new [*SelectQuery*](#select).
     - `offset` is a number indicating the query offset.
     - `epilog` is a string representing the epilog for the query.
     - `autoFields` is a boolean indicating whether to enable auto fields.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
 
 ```php
 $query = $model->find($data);
@@ -560,12 +568,13 @@ Retrieve a single entity.
 
 - `$primaryValues` is a string, integer or array containing the primary key value(s).
 - `$data` is an array containing the query data.
-    - `type` is a string representing the connection type, and will default to `self::READ`.
+    - `connectionType` is a string representing the connection type, and will default to `self::READ`.
     - `fields` is an array or string representing the fields to select.
     - `contain` is a string or array containing the relationships to contain.
     - `join` is an array containing the tables to join.
     - `epilog` is a string representing the epilog for the query.
     - `autoFields` is a boolean indicating whether to enable auto fields.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
 
 ```php
 $entity = $model->get($primaryValues, $data);
@@ -580,6 +589,7 @@ Save an [*Entity*](https://github.com/elusivecodes/FyreEntity).
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
     - `saveRelated` is a boolean indicating whether to save related data, and will default to *true*.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity after saving, and will default to *true*.
 
 ```php
@@ -595,6 +605,7 @@ Save multiple entities.
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
     - `saveRelated` is a boolean indicating whether to save related data, and will default to *true*.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity after saving, and will default to *true*.
 
 ```php
