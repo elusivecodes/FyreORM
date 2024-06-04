@@ -110,7 +110,7 @@ trait CallbacksManyToManyTestTrait
         );
     }
 
-    public function testBeforeRulesBelongsToManyToMany(): void
+    public function testBeforeRulesManyToMany(): void
     {
         $Posts = ModelRegistry::use('Posts');
 

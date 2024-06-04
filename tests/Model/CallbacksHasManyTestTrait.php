@@ -116,7 +116,7 @@ trait CallbacksHasManyTestTrait
         );
     }
 
-    public function testBeforeRulesBelongsToHasMany(): void
+    public function testBeforeRulesHasMany(): void
     {
         $Users = ModelRegistry::use('Users');
 

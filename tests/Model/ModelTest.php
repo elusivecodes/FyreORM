@@ -21,7 +21,6 @@ final class ModelTest extends TestCase
     use CallbacksTestTrait;
     use ConnectionTrait;
     use ContainTestTrait;
-    use NewEntityTestTrait;
     use HasManyCallbacksTestTrait;
     use HasManyTestTrait;
     use HasOneCallbacksTestTrait;
@@ -31,6 +30,7 @@ final class ModelTest extends TestCase
     use ManyToManyCallbacksTestTrait;
     use ManyToManyTestTrait;
     use MatchingTestTrait;
+    use NewEntityTestTrait;
     use PatchEntityTestTrait;
     use QueryTestTrait;
     use RelationshipTestTrait;

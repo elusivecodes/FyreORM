@@ -86,7 +86,7 @@ trait CallbacksHasOneTestTrait
         );
     }
 
-    public function testBeforeRulesBelongsToHasOne(): void
+    public function testBeforeRulesHasOne(): void
     {
         $Users = ModelRegistry::use('Users');
 

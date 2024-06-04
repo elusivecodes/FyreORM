@@ -53,7 +53,7 @@ trait ConnectionTrait
             'collation' => 'utf8mb4_unicode_ci',
             'charset' => 'utf8mb4',
             'compress' => true,
-            'persist' => true
+            'persist' => false
         ]);
 
         $connection = ConnectionManager::use();
