@@ -12,14 +12,14 @@ use Fyre\ORM\Behavior;
  */
 class TimestampBehavior extends Behavior
 {
-
     protected static array $defaults = [
         'createdField' => 'created',
-        'modifiedField' => 'modified'
+        'modifiedField' => 'modified',
     ];
 
     /**
      * Before save callback.
+     *
      * @param Entity $entity The entity.
      * @return bool TRUE if the callback ran successfully.
      */
@@ -40,6 +40,4 @@ class TimestampBehavior extends Behavior
 
         return true;
     }
-
 }
-

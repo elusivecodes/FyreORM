@@ -11,7 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 final class BehaviorRegistryTest extends TestCase
 {
-
     public function testFind(): void
     {
         $this->assertSame(
@@ -31,7 +30,7 @@ final class BehaviorRegistryTest extends TestCase
     {
         $this->assertSame(
             [
-                '\Tests\Mock\Behaviors\\'
+                '\Tests\Mock\Behaviors\\',
             ],
             BehaviorRegistry::getNamespaces()
         );
@@ -70,24 +69,6 @@ final class BehaviorRegistryTest extends TestCase
         BehaviorRegistry::load('Invalid', $Items);
     }
 
-    public function testRemoveNamespace(): void
-    {
-        $this->assertTrue(
-            BehaviorRegistry::removeNamespace('Tests\Mock\Behaviors')
-        );
-
-        $this->assertFalse(
-            BehaviorRegistry::hasNamespace('Tests\Mock\Behaviors')
-        );
-    }
-
-    public function testRemoveNamespaceInvalid(): void
-    {
-        $this->assertFalse(
-            BehaviorRegistry::removeNamespace('Tests\Invalid\Behaviors')
-        );
-    }
-
     public function testNamespaceNoLeadingSlash(): void
     {
         BehaviorRegistry::clear();
@@ -114,10 +95,27 @@ final class BehaviorRegistryTest extends TestCase
         );
     }
 
+    public function testRemoveNamespace(): void
+    {
+        $this->assertTrue(
+            BehaviorRegistry::removeNamespace('Tests\Mock\Behaviors')
+        );
+
+        $this->assertFalse(
+            BehaviorRegistry::hasNamespace('Tests\Mock\Behaviors')
+        );
+    }
+
+    public function testRemoveNamespaceInvalid(): void
+    {
+        $this->assertFalse(
+            BehaviorRegistry::removeNamespace('Tests\Invalid\Behaviors')
+        );
+    }
+
     public static function setUpBeforeClass(): void
     {
         BehaviorRegistry::clear();
         BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
     }
-
 }

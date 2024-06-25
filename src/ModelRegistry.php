@@ -15,15 +15,15 @@ use function trim;
  */
 abstract class ModelRegistry
 {
-
     protected static string $defaultModelClass = Model::class;
-
-    protected static array $namespaces = [];
 
     protected static array $instances = [];
 
+    protected static array $namespaces = [];
+
     /**
      * Add a namespace for loading models.
+     *
      * @param string $namespace The namespace.
      */
     public static function addNamespace(string $namespace): void
@@ -46,17 +46,19 @@ abstract class ModelRegistry
 
     /**
      * Create a default Model.
+     *
      * @return Model The Model.
      */
     public static function createDefaultModel(): Model
     {
         $modelClass = static::$defaultModelClass;
 
-        return new $modelClass;
+        return new $modelClass();
     }
 
     /**
      * Get the default model class name.
+     *
      * @return string The default model class name.
      */
     public static function getDefaultModelClass(): string
@@ -66,6 +68,7 @@ abstract class ModelRegistry
 
     /**
      * Get the namespaces.
+     *
      * @return array The namespaces.
      */
     public static function getNamespaces(): array
@@ -75,6 +78,7 @@ abstract class ModelRegistry
 
     /**
      * Determine if a namespace exists.
+     *
      * @param string $namespace The namespace.
      * @return bool TRUE if the namespace exists, otherwise FALSE.
      */
@@ -87,6 +91,7 @@ abstract class ModelRegistry
 
     /**
      * Determine if a model is loaded.
+     *
      * @param string $alias The model alias.
      * @return bool TRUE if the model is loaded, otherwise FALSE.
      */
@@ -97,16 +102,17 @@ abstract class ModelRegistry
 
     /**
      * Load a Model.
+     *
      * @param string $alias The model alias.
      * @return Model The Model.
      */
     public static function load(string $alias): Model
     {
-        foreach (static::$namespaces AS $namespace) {
+        foreach (static::$namespaces as $namespace) {
             $fullClass = $namespace.$alias.'Model';
 
             if (class_exists($fullClass) && is_subclass_of($fullClass, Model::class)) {
-                return new $fullClass;
+                return new $fullClass();
             }
         }
 
@@ -115,6 +121,7 @@ abstract class ModelRegistry
 
     /**
      * Remove a namespace.
+     *
      * @param string $namespace The namespace.
      * @return bool TRUE If the namespace was removed, otherwise FALSE.
      */
@@ -122,7 +129,7 @@ abstract class ModelRegistry
     {
         $namespace = static::normalizeNamespace($namespace);
 
-        foreach (static::$namespaces AS $i => $otherNamespace) {
+        foreach (static::$namespaces as $i => $otherNamespace) {
             if ($otherNamespace !== $namespace) {
                 continue;
             }
@@ -137,6 +144,7 @@ abstract class ModelRegistry
 
     /**
      * Set the default model class name.
+     *
      * @param string $defaultModelClass The default model class name.
      */
     public static function setDefaultModelClass(string $defaultModelClass): void
@@ -146,6 +154,7 @@ abstract class ModelRegistry
 
     /**
      * Unload a model.
+     *
      * @param string $alias The model alias.
      * @return bool TRUE if the model was removed, otherwise FALSE.
      */
@@ -162,6 +171,7 @@ abstract class ModelRegistry
 
     /**
      * Load a shared Model instance.
+     *
      * @param string $alias The model alias.
      * @return Model The Model.
      */
@@ -172,6 +182,7 @@ abstract class ModelRegistry
 
     /**
      * Normalize a namespace
+     *
      * @param string $namespace The namespace.
      * @return string The normalized namespace.
      */
@@ -183,5 +194,4 @@ abstract class ModelRegistry
             '\\'.$namespace.'\\' :
             '\\';
     }
-
 }

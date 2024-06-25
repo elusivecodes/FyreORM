@@ -23,30 +23,33 @@ use function in_array;
  */
 class Result implements Countable, IteratorAggregate
 {
-
     protected const ENTITY_OPTIONS = [
         'parse' => false,
         'mutate' => false,
         'validate' => false,
         'clean' => true,
-        'new' => false
+        'new' => false,
     ];
 
-    protected ResultSet $result;
-    protected SelectQuery $query;
+    protected array|null $aliasMap = null;
+
+    protected array|null $buffer = null;
+
     protected bool $eagerLoad = false;
 
     protected bool $freed = false;
 
-    protected array|null $buffer = null;
-    protected array|null $aliasMap = null;
+    protected SelectQuery $query;
+
+    protected ResultSet $result;
 
     /**
      * New Result constructor.
+     *
      * @param ResultSet $result The ResultSet.
      * @param SelectQuery $query The SelectQuery.
-     * @param array $options The result options.
      * @param bool $eagerLoad Whether to eager load the results.
+     * @param array $options The result options.
      */
     public function __construct(ResultSet $result, SelectQuery $query, bool $eagerLoad = false)
     {
@@ -57,6 +60,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the results as an array.
+     *
      * @return array The results.
      */
     public function all(): array
@@ -81,6 +85,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the column count.
+     *
      * @return int The column count.
      */
     public function columnCount(): int
@@ -90,6 +95,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the result columns.
+     *
      * @return array The result columns.
      */
     public function columns(): array
@@ -99,6 +105,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the result count.
+     *
      * @return int The result count.
      */
     public function count(): int
@@ -108,6 +115,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get a result by index.
+     *
      * @param int $index The index.
      * @return Entity|null The result.
      */
@@ -135,6 +143,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the first result.
+     *
      * @return Entity|null The first result.
      */
     public function first(): Entity|null
@@ -154,6 +163,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the Iterator.
+     *
      * @return Iterator The Iterator.
      */
     public function getIterator(): Iterator
@@ -163,6 +173,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get a Type class for a column.
+     *
      * @param string $name The column name.
      * @return Type|null The Type.
      */
@@ -173,6 +184,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the last result.
+     *
      * @return Entity|null The last result.
      */
     public function last(): Entity|null
@@ -182,6 +194,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Build an entity from parsed data.
+     *
      * @param array $data The parsed data.
      * @return Entity The Entity.
      */
@@ -189,7 +202,7 @@ class Result implements Countable, IteratorAggregate
     {
         $matching = $this->query->getMatching();
 
-        foreach ($matching AS $name => $relationship) {
+        foreach ($matching as $name => $relationship) {
             $data['_matchingData'][$name] = $relationship->getTarget()
                 ->newEntity($data['_matchingData'][$name] ?? [], static::ENTITY_OPTIONS);
         }
@@ -199,11 +212,12 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the alias map.
+     *
      * @return array The alias map.
      */
     protected function getAliasMap(): array
     {
-        if ($this->aliasMap === null) {            
+        if ($this->aliasMap === null) {
             $this->aliasMap = [$this->query->getAlias() => []];
             static::buildAliasMap($this->aliasMap, $this->query->getContain(), $this->query->getModel());
         }
@@ -213,6 +227,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Get the result buffer.
+     *
      * @return array The result buffer.
      */
     protected function getBuffer(): array
@@ -225,7 +240,7 @@ class Result implements Countable, IteratorAggregate
 
         $this->buffer = [];
 
-        foreach ($rows AS $row) {
+        foreach ($rows as $row) {
             $data = $this->parseRow($row);
 
             $this->buffer[] = $this->buildEntity($data);
@@ -238,6 +253,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Parse a result row.
+     *
      * @param array $row The row.
      * @return array The parsed data.
      */
@@ -248,7 +264,7 @@ class Result implements Countable, IteratorAggregate
 
         $data = [];
 
-        foreach ($row AS $column => $value) {
+        foreach ($row as $column => $value) {
             $value = $this->getType($column)->fromDatabase($value);
 
             $parts = explode('__', $column, 2);
@@ -264,9 +280,9 @@ class Result implements Countable, IteratorAggregate
                 }
 
                 if (array_key_exists($alias, $aliasMap)) {
-                    foreach ($aliasMap[$alias] AS $property) {
+                    foreach ($aliasMap[$alias] as $property) {
                         $pointer[$property] ??= [];
-                        $pointer =& $pointer[$property];
+                        $pointer = & $pointer[$property];
                     }
                 } else {
                     continue;
@@ -281,6 +297,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Build the alias map.
+     *
      * @param array $aliasMap The alias map.
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
@@ -288,7 +305,7 @@ class Result implements Countable, IteratorAggregate
      */
     protected static function buildAliasMap(array &$aliasMap, array $contain, Model $model, array $properties = []): void
     {
-        foreach ($contain AS $name => $data) {
+        foreach ($contain as $name => $data) {
             $relationship = $model->getRelationship($name);
 
             $data['strategy'] ??= $relationship->getStrategy();
@@ -307,6 +324,7 @@ class Result implements Countable, IteratorAggregate
 
     /**
      * Load contain relationships for entities.
+     *
      * @param array $entities The entities.
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
@@ -321,7 +339,7 @@ class Result implements Countable, IteratorAggregate
 
         $eagerLoadPaths = $query->getEagerLoadPaths();
 
-        foreach ($contain AS $name => $data) {
+        foreach ($contain as $name => $data) {
             $path = $pathPrefix.'.'.$name;
 
             $relationship = $model->getRelationship($name);
@@ -331,13 +349,14 @@ class Result implements Countable, IteratorAggregate
             if ($data['strategy'] !== 'join' || in_array($path, $eagerLoadPaths)) {
                 $data['type'] ??= $query->getConnectionType();
                 $relationship->findRelated($entities, $data, $query);
+
                 continue;
             }
 
             $property = $relationship->getProperty();
 
             $relations = [];
-            foreach ($entities AS $entity) {
+            foreach ($entities as $entity) {
                 if ($entity->isEmpty($property)) {
                     continue;
                 }
@@ -348,5 +367,4 @@ class Result implements Countable, IteratorAggregate
             static::loadContain($relations, $data['contain'], $relationship->getTarget(), $query, $path);
         }
     }
-
 }

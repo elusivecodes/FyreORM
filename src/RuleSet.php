@@ -18,13 +18,13 @@ use function in_array;
  */
 class RuleSet
 {
-
     protected Model $model;
 
     protected array $rules = [];
 
     /**
      * New RuleSet constructor.
+     *
      * @param Model $model The Model.
      */
     public function __construct(Model $model)
@@ -34,6 +34,7 @@ class RuleSet
 
     /**
      * Add a rule.
+     *
      * @param Closure $rule The rule.
      * @return RuleSet The RuleSet.
      */
@@ -46,6 +47,7 @@ class RuleSet
 
     /**
      * Create an "exists in" rule.
+     *
      * @param array $fields The fields.
      * @param string $name The relationship name.
      * @param array $options The options.
@@ -58,7 +60,7 @@ class RuleSet
         $options['allowNullableNulls'] ??= false;
         $options['message'] ??= Lang::get('RuleSet.existsIn', [
             'fields' => implode(', ', $fields),
-            'name' => $name
+            'name' => $name,
         ]) ?? 'invalid';
 
         return function(Entity $entity) use ($fields, $name, $options): bool {
@@ -83,7 +85,7 @@ class RuleSet
             $query = $target->find([
                 'fields' => $targetFields,
                 'conditions' => QueryGenerator::combineConditions($targetFields, $values),
-                'events' => false
+                'events' => false,
             ]);
 
             if ($options['callback']) {
@@ -94,7 +96,7 @@ class RuleSet
                 return true;
             }
 
-            foreach ($fields AS $field) {
+            foreach ($fields as $field) {
                 $entity->setError($field, $options['message']);
             }
 
@@ -104,6 +106,7 @@ class RuleSet
 
     /**
      * Create an "is clean" rule.
+     *
      * @param array $fields The fields.
      * @param array $options The options.
      * @return Closure The rule.
@@ -111,7 +114,7 @@ class RuleSet
     public function isClean(array $fields, array $options = []): Closure
     {
         $options['message'] ??= Lang::get('RuleSet.isClean', [
-            'fields' => implode(', ', $fields)
+            'fields' => implode(', ', $fields),
         ]) ?? 'invalid';
 
         return function(Entity $entity) use ($fields, $options): bool {
@@ -129,7 +132,7 @@ class RuleSet
                 return true;
             }
 
-            foreach ($dirty AS $field) {
+            foreach ($dirty as $field) {
                 $entity->setError($field, $options['message']);
             }
 
@@ -139,6 +142,7 @@ class RuleSet
 
     /**
      * Create an "is unique" rule.
+     *
      * @param array $fields The fields.
      * @param array $options The options.
      * @return Closure The rule.
@@ -148,7 +152,7 @@ class RuleSet
         $options['callback'] ??= null;
         $options['allowMultipleNulls'] ??= false;
         $options['message'] ??= Lang::get('RuleSet.isUnique', [
-            'fields' => implode(', ', $fields)
+            'fields' => implode(', ', $fields),
         ]) ?? 'invalid';
 
         return function(Entity $entity) use ($fields, $options): bool {
@@ -184,7 +188,7 @@ class RuleSet
             $query = $this->model->find([
                 'fields' => $aliasedFields,
                 'conditions' => $conditions,
-                'events' => false
+                'events' => false,
             ]);
 
             if ($options['callback']) {
@@ -195,7 +199,7 @@ class RuleSet
                 return true;
             }
 
-            foreach ($fields AS $field) {
+            foreach ($fields as $field) {
                 $entity->setError($field, $options['message']);
             }
 
@@ -205,13 +209,14 @@ class RuleSet
 
     /**
      * Validate an entity.
+     *
      * @param Entity $entity The Entity.
      * @return bool TRUE if the validation was successful, otherwise FALSE.
      */
     public function validate(Entity $entity): bool
     {
         $result = true;
-        foreach ($this->rules AS $rule) {
+        foreach ($this->rules as $rule) {
             if ($rule($entity) === false) {
                 $result = false;
             }
@@ -219,5 +224,4 @@ class RuleSet
 
         return $result;
     }
-
 }

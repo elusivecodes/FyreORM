@@ -21,33 +21,34 @@ use function str_replace;
  */
 abstract class Relationship
 {
-
-    protected Model $source;
-
-    protected Model $target;
-
-    protected string $name;
-
-    protected string $className;
-
-    protected string $propertyName;
-
-    protected string $foreignKey;
-
     protected string $bindingKey;
 
-    protected string $strategy = 'select';
-
-    protected array $validStrategies = ['select', 'subquery'];
+    protected string $className;
 
     protected array $conditions = [];
 
     protected bool $dependent = false;
 
+    protected string $foreignKey;
+
+    protected string $name;
+
+    protected string $propertyName;
+
+    protected Model $source;
+
+    protected string $strategy = 'select';
+
+    protected Model $target;
+
+    protected array $validStrategies = ['select', 'subquery'];
+
     /**
      * New relationship constructor.
+     *
      * @param string $name The relationship name.
      * @param array $options The relationship options.
+     *
      * @throws OrmException if the strategy is not valid.
      */
     public function __construct(string $name, array $options = [])
@@ -62,10 +63,10 @@ abstract class Relationship
             'bindingKey',
             'strategy',
             'conditions',
-            'dependent'
+            'dependent',
         ];
 
-        foreach ($defaults AS $property) {
+        foreach ($defaults as $property) {
             if (!array_key_exists($property, $options)) {
                 continue;
             }
@@ -82,6 +83,7 @@ abstract class Relationship
 
     /**
      * Build join data.
+     *
      * @param array $options The join options.
      * @return array The join data.
      */
@@ -109,13 +111,14 @@ abstract class Relationship
             $options['alias'] => [
                 'table' => $target->getTable(),
                 'type' => $options['type'],
-                'conditions' => array_merge([$joinCondition], $this->conditions, $options['conditions'])
-            ]
+                'conditions' => array_merge([$joinCondition], $this->conditions, $options['conditions']),
+            ],
         ];
     }
 
     /**
      * Find related data for entities.
+     *
      * @param array $entities The entities.
      * @param array $data The find data.
      * @param SelectQuery|null $query The SelectQuery.
@@ -160,11 +163,11 @@ abstract class Relationship
             ->find($data)
             ->all();
 
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             $sourceValue = $entity->get($sourceKey);
 
             $children = [];
-            foreach ($allChildren AS $child) {
+            foreach ($allChildren as $child) {
                 $targetValue = $child->get($targetKey);
 
                 if ($sourceValue !== $targetValue) {
@@ -190,6 +193,7 @@ abstract class Relationship
 
     /**
      * Get the binding key.
+     *
      * @return string The binding key.
      */
     public function getBindingKey(): string
@@ -199,6 +203,7 @@ abstract class Relationship
 
     /**
      * Get the conditions.
+     *
      * @return array $conditions The conditions.
      */
     public function getConditions(): array
@@ -208,6 +213,7 @@ abstract class Relationship
 
     /**
      * Get the foreign key.
+     *
      * @return string The foreign key.
      */
     public function getForeignKey(): string
@@ -219,6 +225,7 @@ abstract class Relationship
 
     /**
      * Get the relationship name.
+     *
      * @return string The relationship name.
      */
     public function getName(): string
@@ -228,6 +235,7 @@ abstract class Relationship
 
     /**
      * Get the relationship property name.
+     *
      * @return string The relationship property name.
      */
     public function getProperty(): string
@@ -236,16 +244,8 @@ abstract class Relationship
     }
 
     /**
-     * Get the strategy.
-     * @return string The strategy.
-     */
-    public function getStrategy(): string
-    {
-        return $this->strategy;
-    }
-
-    /**
      * Get the source Model.
+     *
      * @return Model The source Model.
      */
     public function getSource(): Model
@@ -254,7 +254,18 @@ abstract class Relationship
     }
 
     /**
+     * Get the strategy.
+     *
+     * @return string The strategy.
+     */
+    public function getStrategy(): string
+    {
+        return $this->strategy;
+    }
+
+    /**
      * Get the target Model.
+     *
      * @return Model The target Model.
      */
     public function getTarget(): Model
@@ -264,6 +275,7 @@ abstract class Relationship
 
     /**
      * Determine if the relationship has multiple related items.
+     *
      * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */
     public function hasMultiple(): bool
@@ -273,6 +285,7 @@ abstract class Relationship
 
     /**
      * Determine if the relationship is dependent.
+     *
      * @return bool TRUE if the relationship is dependent, otherwise FALSE.
      */
     public function isDependent(): bool
@@ -282,6 +295,7 @@ abstract class Relationship
 
     /**
      * Determine if the source is the owning side of the relationship.
+     *
      * @return bool TRUE if the source is the owning side of the relationship, otherwise FALSE.
      */
     public function isOwningSide(): bool
@@ -291,6 +305,7 @@ abstract class Relationship
 
     /**
      * Save related data from an entity.
+     *
      * @param Entity $entity The entity.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
@@ -298,6 +313,7 @@ abstract class Relationship
 
     /**
      * Remove related data from entities.
+     *
      * @param array $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the unlink was successful, otherwise FALSE.
@@ -319,9 +335,9 @@ abstract class Relationship
 
         $relations = $target->find([
             'alias' => $this->name,
-            'conditions' => $conditions
+            'conditions' => $conditions,
         ])
-        ->all();
+            ->all();
 
         if ($relations === []) {
             return true;
@@ -337,7 +353,7 @@ abstract class Relationship
             return true;
         }
 
-        foreach ($relations AS $relation) {
+        foreach ($relations as $relation) {
             $relation->set($foreignKey, null);
         }
 
@@ -350,6 +366,7 @@ abstract class Relationship
 
     /**
      * Get the contain conditions for entities.
+     *
      * @param array $entities The entities.
      * @return array The contain conditions.
      */
@@ -365,7 +382,7 @@ abstract class Relationship
 
         $sourceValues = [];
 
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             if ($entity->isEmpty($sourceKey)) {
                 continue;
             }
@@ -391,6 +408,7 @@ abstract class Relationship
 
     /**
      * Get the subquery contain conditions for a SelectQuery.
+     *
      * @param SelectQuery $query The SelectQuery.
      * @return array The subquery contain conditions.
      */
@@ -414,11 +432,11 @@ abstract class Relationship
             $targetKey.' IN' => $query->getModel()
                 ->getConnection()
                 ->select([
-                    str_replace('.', '__', $sourceKey)
+                    str_replace('.', '__', $sourceKey),
                 ])
                 ->from([
-                    $alias => $query
-                ])
+                    $alias => $query,
+                ]),
         ];
 
         return array_merge($containConditions, $this->conditions);
@@ -426,6 +444,7 @@ abstract class Relationship
 
     /**
      * Get a foreign key from a model alias.
+     *
      * @param string $alias The model alias.
      * @return string The foreign key.
      */
@@ -439,6 +458,7 @@ abstract class Relationship
 
     /**
      * Get a property name from a model alias.
+     *
      * @param string $alias The model alias.
      * @param bool $plural Whether to use a plural name.
      * @return string The property name.
@@ -451,5 +471,4 @@ abstract class Relationship
 
         return Model::tableize($alias);
     }
-
 }

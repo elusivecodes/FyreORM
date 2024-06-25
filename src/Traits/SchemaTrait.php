@@ -17,19 +17,19 @@ use function preg_replace;
  */
 trait SchemaTrait
 {
-
-    protected string $table;
-
     protected string|null $alias = null;
-
-    protected array $primaryKey;
 
     protected string|null $autoIncrementKey = null;
 
     protected string|null $displayName = null;
 
+    protected array $primaryKey;
+
+    protected string $table;
+
     /**
      * Alias a field name.
+     *
      * @param string $field The field name.
      * @param string|null $alias The alias.
      * @return string The aliased field.
@@ -47,6 +47,7 @@ trait SchemaTrait
 
     /**
      * Get the model alias.
+     *
      * @return string The model alias.
      */
     public function getAlias(): string
@@ -56,17 +57,18 @@ trait SchemaTrait
 
     /**
      * Get the table auto increment column.
+     *
      * @return string|null The table auto increment column.
      */
     public function getAutoIncrementKey(): string|null
     {
         if (!$this->autoIncrementKey) {
             $schema = $this->getSchema();
-    
-            foreach ($this->getPrimaryKey() AS $key) {
+
+            foreach ($this->getPrimaryKey() as $key) {
                 $column = $schema->column($key);
                 $extra = $column['extra'];
-    
+
                 if ($extra !== 'auto_increment') {
                     continue;
                 }
@@ -81,6 +83,7 @@ trait SchemaTrait
 
     /**
      * Get the display name.
+     *
      * @return string The display name.
      */
     public function getDisplayName(): string
@@ -98,6 +101,7 @@ trait SchemaTrait
 
     /**
      * Get the primary key(s).
+     *
      * @return array The primary key(s).
      */
     public function getPrimaryKey(): array
@@ -107,6 +111,7 @@ trait SchemaTrait
 
     /**
      * Get the TableSchema.
+     *
      * @param string|null $type The connection type.
      * @return TableSchema The TableSchema.
      */
@@ -118,6 +123,7 @@ trait SchemaTrait
 
     /**
      * Get the table name.
+     *
      * @return string The table name.
      */
     public function getTable(): string
@@ -127,6 +133,7 @@ trait SchemaTrait
 
     /**
      * Set the model alias.
+     *
      * @param string $alias The model alias.
      * @return Model The Model.
      */
@@ -139,6 +146,7 @@ trait SchemaTrait
 
     /**
      * Set the display name.
+     *
      * @param string $displayName The display name.
      * @return Model The Model.
      */
@@ -151,6 +159,7 @@ trait SchemaTrait
 
     /**
      * Set the table name.
+     *
      * @param string $table The table name.
      * @return Model The Model.
      */
@@ -160,5 +169,4 @@ trait SchemaTrait
 
         return $this;
     }
-
 }

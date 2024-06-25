@@ -14,9 +14,9 @@ use function array_map;
  */
 class HasMany extends Relationship
 {
-
     /**
      * Save related data from an entity.
+     *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -40,7 +40,7 @@ class HasMany extends Relationship
 
         $bindingValue = $entity->get($bindingKey);
 
-        foreach ($children AS $child) {
+        foreach ($children as $child) {
             $child->set($foreignKey, $bindingValue);
         }
 
@@ -59,6 +59,7 @@ class HasMany extends Relationship
 
     /**
      * Build exclusion conditions for related entities.
+     *
      * @param array $relations The related entities.
      * @return array The exclusion conditions.
      */
@@ -72,7 +73,7 @@ class HasMany extends Relationship
         $targetKeys = $target->getPrimaryKey();
         $preserveValues = [];
 
-        foreach ($relations AS $relation) {
+        foreach ($relations as $relation) {
             $preserveValues[] = $relation->extract($targetKeys);
         }
 
@@ -82,8 +83,7 @@ class HasMany extends Relationship
         );
 
         return [
-            'not' => QueryGenerator::normalizeConditions($targetKeys, $preserveValues)
+            'not' => QueryGenerator::normalizeConditions($targetKeys, $preserveValues),
         ];
     }
-
 }

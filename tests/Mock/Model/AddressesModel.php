@@ -11,11 +11,10 @@ use Fyre\Validation\Validator;
 
 class AddressesModel extends Model
 {
-
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'suburb'
+            'testField' => 'suburb',
         ]);
 
         $this->belongsTo('Users');
@@ -38,5 +37,4 @@ class AddressesModel extends Model
 
         return $validator;
     }
-
 }

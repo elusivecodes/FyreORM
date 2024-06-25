@@ -11,11 +11,10 @@ use Fyre\Validation\Validator;
 
 class CommentsModel extends Model
 {
-
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'content'
+            'testField' => 'content',
         ]);
 
         $this->belongsTo('Users');
@@ -39,5 +38,4 @@ class CommentsModel extends Model
 
         return $validator;
     }
-
 }

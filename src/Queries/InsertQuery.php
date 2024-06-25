@@ -11,11 +11,11 @@ use Fyre\ORM\Queries\Traits\ModelTrait;
  */
 class InsertQuery extends \Fyre\DB\Queries\InsertQuery
 {
-
     use ModelTrait;
 
     /**
      * New InsertQuery constructor.
+     *
      * @param Model $model The Model.
      */
     public function __construct(Model $model)
@@ -26,5 +26,4 @@ class InsertQuery extends \Fyre\DB\Queries\InsertQuery
 
         $this->into($this->model->getTable());
     }
-
 }

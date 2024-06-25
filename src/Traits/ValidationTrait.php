@@ -11,13 +11,13 @@ use Fyre\Validation\Validator;
  */
 trait ValidationTrait
 {
+    protected RuleSet $rules;
 
     protected Validator $validator;
 
-    protected RuleSet $rules;
-
     /**
      * Build the model RuleSet.
+     *
      * @param RuleSet $rules The RuleSet.
      * @return RuleSet The RuleSet.
      */
@@ -28,6 +28,7 @@ trait ValidationTrait
 
     /**
      * Build the model Validator.
+     *
      * @param Validator $validator The Validator.
      * @return Validator The Validator.
      */
@@ -38,6 +39,7 @@ trait ValidationTrait
 
     /**
      * Get the model RuleSet.
+     *
      * @return RuleSet The RuleSet.
      */
     public function getRules(): RuleSet
@@ -47,15 +49,17 @@ trait ValidationTrait
 
     /**
      * Get the model Validator.
+     *
      * @return Validator The Validator.
      */
     public function getValidator(): Validator
     {
-        return $this->validator ?? $this->buildValidation(new Validator);
+        return $this->validator ?? $this->buildValidation(new Validator());
     }
 
     /**
      * Set the model RuleSet.
+     *
      * @param RuleSet $rules The RuleSet.
      * @return Model The Model.
      */
@@ -68,6 +72,7 @@ trait ValidationTrait
 
     /**
      * Set the model Validator.
+     *
      * @param Validator $validator The Validator.
      * @return Model The Model.
      */
@@ -77,5 +82,4 @@ trait ValidationTrait
 
         return $this;
     }
-
 }

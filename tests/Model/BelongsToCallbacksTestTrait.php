@@ -9,118 +9,45 @@ use function array_map;
 
 trait BelongsToCallbacksTestTrait
 {
-
-    public function testBelongsToBeforeSave(): void
+    public function testBelongsToAfterParse(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => 'failBeforeSave'
-            ]
+                'name' => 'afterParse',
+            ],
         ]);
 
-        $this->assertFalse(
-            $Addresses->save($address)
-        );
-
-        $this->assertNull(
-            $address->id
-        );
-
-        $this->assertNull(
-            $address->user->id
-        );
-
-        $this->assertNull(
-            $address->user_id
-        );
-
         $this->assertSame(
-            0,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Users')->find()->count()
+            1,
+            $address->user->test
         );
     }
 
-    public function testBelongsToAfterSave(): void
+    public function testBelongsToAfterParseMany(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
-        $address = $Addresses->newEntity([
-            'suburb' => 'Test',
-            'user' => [
-                'name' => 'failAfterSave'
-            ]
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => 'Test 1',
+                ],
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => 'afterParse',
+                ],
+            ],
         ]);
 
-        $this->assertFalse(
-            $Addresses->save($address)
-        );
-
-        $this->assertNull(
-            $address->id
-        );
-
-        $this->assertNull(
-            $address->user->id
-        );
-
-        $this->assertNull(
-            $address->user_id
-        );
-
         $this->assertSame(
-            0,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Users')->find()->count()
-        );
-    }
-
-    public function testBelongsToBeforeRules(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $address = $Addresses->newEntity([
-            'suburb' => 'Test',
-            'user' => [
-                'name' => 'failBeforeRules'
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Addresses->save($address)
-        );
-
-        $this->assertNull(
-            $address->id
-        );
-
-        $this->assertNull(
-            $address->user->id
-        );
-
-        $this->assertNull(
-            $address->user_id
-        );
-
-        $this->assertSame(
-            0,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Users')->find()->count()
+            1,
+            $addresses[1]->user->test
         );
     }
 
@@ -131,8 +58,8 @@ trait BelongsToCallbacksTestTrait
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => 'failAfterRules'
-            ]
+                'name' => 'failAfterRules',
+            ],
         ]);
 
         $this->assertFalse(
@@ -149,214 +76,6 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertNull(
             $address->user_id
-        );
-
-        $this->assertSame(
-            0,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Users')->find()->count()
-        );
-    }
-
-    public function testBelongsToBeforeParse(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $address = $Addresses->newEntity([
-            'suburb' => 'Test',
-            'user' => [
-                'name' => '  Test  '
-            ]
-        ]);
-
-        $this->assertSame(
-            'Test',
-            $address->user->name
-        );
-    }
-
-    public function testBelongsToAfterParse(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $address = $Addresses->newEntity([
-            'suburb' => 'Test',
-            'user' => [
-                'name' => 'afterParse'
-            ]
-        ]);
-
-        $this->assertSame(
-            1,
-            $address->user->test
-        );
-    }
-
-    public function testBelongsToBeforeSaveMany(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $addresses = $Addresses->newEntities([
-            [
-                'suburb' => 'Test 1',
-                'user' => [
-                    'name' => 'Test 1'
-                ]
-            ],
-            [
-                'suburb' => 'Test 2',
-                'user' => [
-                    'name' => 'failBeforeSave'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Addresses->saveMany($addresses)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->user->id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->user_id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            0,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Users')->find()->count()
-        );
-    }
-
-    public function testBelongsToAfterSaveMany(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $addresses = $Addresses->newEntities([
-            [
-                'suburb' => 'Test 1',
-                'user' => [
-                    'name' => 'Test 1'
-                ]
-            ],
-            [
-                'suburb' => 'Test 2',
-                'user' => [
-                    'name' => 'failAfterSave'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Addresses->saveMany($addresses)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->user->id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->user_id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            0,
-            $Addresses->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Users')->find()->count()
-        );
-    }
-
-    public function testBelongsToBeforeRulesMany(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $addresses = $Addresses->newEntities([
-            [
-                'suburb' => 'Test 1',
-                'user' => [
-                    'name' => 'Test 1'
-                ]
-            ],
-            [
-                'suburb' => 'Test 2',
-                'user' => [
-                    'name' => 'failBeforeRules'
-                ]
-            ]
-        ]);
-
-        $this->assertFalse(
-            $Addresses->saveMany($addresses)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->user->id,
-                $addresses
-            )
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($address) => $address->user_id,
-                $addresses
-            )
         );
 
         $this->assertSame(
@@ -378,15 +97,15 @@ trait BelongsToCallbacksTestTrait
             [
                 'suburb' => 'Test 1',
                 'user' => [
-                    'name' => 'Test 1'
-                ]
+                    'name' => 'Test 1',
+                ],
             ],
             [
                 'suburb' => 'Test 2',
                 'user' => [
-                    'name' => 'failAfterRules'
-                ]
-            ]
+                    'name' => 'failAfterRules',
+                ],
+            ],
         ]);
 
         $this->assertFalse(
@@ -428,70 +147,15 @@ trait BelongsToCallbacksTestTrait
         );
     }
 
-    public function testBelongsToBeforeParseMany(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $addresses = $Addresses->newEntities([
-            [
-                'suburb' => 'Test 1',
-                'user' => [
-                    'name' => '  Test 1  '
-                ]
-            ],
-            [
-                'suburb' => 'Test 2',
-                'user' => [
-                    'name' => '  Test 2  '
-                ]
-            ]
-        ]);
-
-        $this->assertSame(
-            'Test 1',
-            $addresses[0]->user->name
-        );
-
-        $this->assertSame(
-            'Test 2',
-            $addresses[1]->user->name
-        );
-    }
-
-    public function testBelongsToAfterParseMany(): void
-    {
-        $Addresses = ModelRegistry::use('Addresses');
-
-        $addresses = $Addresses->newEntities([
-            [
-                'suburb' => 'Test 1',
-                'user' => [
-                    'name' => 'Test 1'
-                ]
-            ],
-            [
-                'suburb' => 'Test 2',
-                'user' => [
-                    'name' => 'afterParse'
-                ]
-            ]
-        ]);
-
-        $this->assertSame(
-            1,
-            $addresses[1]->user->test
-        );
-    }
-
-    public function testBelongsToValidation(): void
+    public function testBelongsToAfterSave(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => ''
-            ]
+                'name' => 'failAfterSave',
+            ],
         ]);
 
         $this->assertFalse(
@@ -521,21 +185,124 @@ trait BelongsToCallbacksTestTrait
         );
     }
 
-    public function testBelongsToValidationNoCheckRules(): void
+    public function testBelongsToAfterSaveMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => 'Test 1',
+                ],
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => 'failAfterSave',
+                ],
+            ],
+        ]);
+
+        $this->assertFalse(
+            $Addresses->saveMany($addresses)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->user->id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->user_id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Addresses->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Users')->find()->count()
+        );
+    }
+
+    public function testBelongsToBeforeParse(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => ''
-            ]
+                'name' => '  Test  ',
+            ],
+        ]);
+
+        $this->assertSame(
+            'Test',
+            $address->user->name
+        );
+    }
+
+    public function testBelongsToBeforeParseMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => '  Test 1  ',
+                ],
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => '  Test 2  ',
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $addresses[0]->user->name
+        );
+
+        $this->assertSame(
+            'Test 2',
+            $addresses[1]->user->name
+        );
+    }
+
+    public function testBelongsToBeforeRules(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'failBeforeRules',
+            ],
         ]);
 
         $this->assertFalse(
-            $Addresses->save($address, [
-                'checkRules' => false
-            ])
+            $Addresses->save($address)
         );
 
         $this->assertNull(
@@ -561,6 +328,160 @@ trait BelongsToCallbacksTestTrait
         );
     }
 
+    public function testBelongsToBeforeRulesMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => 'Test 1',
+                ],
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => 'failBeforeRules',
+                ],
+            ],
+        ]);
+
+        $this->assertFalse(
+            $Addresses->saveMany($addresses)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->user->id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->user_id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Addresses->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Users')->find()->count()
+        );
+    }
+
+    public function testBelongsToBeforeSave(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'failBeforeSave',
+            ],
+        ]);
+
+        $this->assertFalse(
+            $Addresses->save($address)
+        );
+
+        $this->assertNull(
+            $address->id
+        );
+
+        $this->assertNull(
+            $address->user->id
+        );
+
+        $this->assertNull(
+            $address->user_id
+        );
+
+        $this->assertSame(
+            0,
+            $Addresses->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Users')->find()->count()
+        );
+    }
+
+    public function testBelongsToBeforeSaveMany(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $addresses = $Addresses->newEntities([
+            [
+                'suburb' => 'Test 1',
+                'user' => [
+                    'name' => 'Test 1',
+                ],
+            ],
+            [
+                'suburb' => 'Test 2',
+                'user' => [
+                    'name' => 'failBeforeSave',
+                ],
+            ],
+        ]);
+
+        $this->assertFalse(
+            $Addresses->saveMany($addresses)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->user->id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($address) => $address->user_id,
+                $addresses
+            )
+        );
+
+        $this->assertSame(
+            0,
+            $Addresses->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Users')->find()->count()
+        );
+    }
+
     public function testBelongsToRules(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
@@ -568,8 +489,8 @@ trait BelongsToCallbacksTestTrait
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => 'failRules'
-            ]
+                'name' => 'failRules',
+            ],
         ]);
 
         $this->assertFalse(
@@ -606,13 +527,13 @@ trait BelongsToCallbacksTestTrait
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => 'failRules'
-            ]
+                'name' => 'failRules',
+            ],
         ]);
 
         $this->assertTrue(
             $Addresses->save($address, [
-                'checkRules' => false
+                'checkRules' => false,
             ])
         );
 
@@ -627,4 +548,81 @@ trait BelongsToCallbacksTestTrait
         );
     }
 
+    public function testBelongsToValidation(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => '',
+            ],
+        ]);
+
+        $this->assertFalse(
+            $Addresses->save($address)
+        );
+
+        $this->assertNull(
+            $address->id
+        );
+
+        $this->assertNull(
+            $address->user->id
+        );
+
+        $this->assertNull(
+            $address->user_id
+        );
+
+        $this->assertSame(
+            0,
+            $Addresses->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Users')->find()->count()
+        );
+    }
+
+    public function testBelongsToValidationNoCheckRules(): void
+    {
+        $Addresses = ModelRegistry::use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => '',
+            ],
+        ]);
+
+        $this->assertFalse(
+            $Addresses->save($address, [
+                'checkRules' => false,
+            ])
+        );
+
+        $this->assertNull(
+            $address->id
+        );
+
+        $this->assertNull(
+            $address->user->id
+        );
+
+        $this->assertNull(
+            $address->user_id
+        );
+
+        $this->assertSame(
+            0,
+            $Addresses->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Users')->find()->count()
+        );
+    }
 }

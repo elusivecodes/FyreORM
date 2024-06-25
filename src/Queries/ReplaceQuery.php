@@ -11,11 +11,11 @@ use Fyre\ORM\Queries\Traits\ModelTrait;
  */
 class ReplaceQuery extends \Fyre\DB\Queries\ReplaceQuery
 {
-
     use ModelTrait;
 
     /**
      * New ReplaceQuery constructor.
+     *
      * @param Model $model The Model.
      */
     public function __construct(Model $model)
@@ -26,5 +26,4 @@ class ReplaceQuery extends \Fyre\DB\Queries\ReplaceQuery
 
         $this->into($this->model->getTable());
     }
-
 }

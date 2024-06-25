@@ -9,7 +9,6 @@ use function array_map;
 
 trait LoadIntoTestTrait
 {
-
     public function testLoadInto(): void
     {
         $Users = ModelRegistry::use('Users');
@@ -22,29 +21,29 @@ trait LoadIntoTestTrait
                     'content' => 'This is the content.',
                     'tags' => [
                         [
-                            'tag' => 'test1'
+                            'tag' => 'test1',
                         ],
                         [
-                            'tag' => 'test2'
-                        ]
-                    ]
+                            'tag' => 'test2',
+                        ],
+                    ],
                 ],
                 [
                     'title' => 'Test 2',
                     'content' => 'This is the content.',
                     'tags' => [
                         [
-                            'tag' => 'test3'
+                            'tag' => 'test3',
                         ],
                         [
-                            'tag' => 'test4'
-                        ]
-                    ]
-                ]
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
             ],
             'address' => [
-                'suburb' => 'Test'
-            ]
+                'suburb' => 'Test',
+            ],
         ]);
 
         $this->assertTrue(
@@ -56,8 +55,8 @@ trait LoadIntoTestTrait
         $Users->loadInto($user, [
             'Addresses',
             'Posts' => [
-                'Tags'
-            ]
+                'Tags',
+            ],
         ]);
 
         $this->assertSame(
@@ -84,7 +83,7 @@ trait LoadIntoTestTrait
         $this->assertSame(
             [
                 [1, 2],
-                [3, 4]
+                [3, 4],
             ],
             array_map(
                 fn($user) => array_map(
@@ -105,13 +104,13 @@ trait LoadIntoTestTrait
             'posts' => [
                 [
                     'title' => 'Test 1',
-                    'content' => 'This is the content.'
+                    'content' => 'This is the content.',
                 ],
                 [
                     'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
+                    'content' => 'This is the content.',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -121,7 +120,7 @@ trait LoadIntoTestTrait
         $user = $Users->get(1);
 
         $Users->loadInto($user, [
-            'Posts'
+            'Posts',
         ]);
 
         $this->assertSame(
@@ -132,5 +131,4 @@ trait LoadIntoTestTrait
             )
         );
     }
-
 }

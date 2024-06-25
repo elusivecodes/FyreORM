@@ -5,7 +5,4 @@ namespace Tests\Mock\Entity;
 
 use Fyre\Entity\Entity;
 
-class Tag extends Entity
-{
-
-}
+class Tag extends Entity {}

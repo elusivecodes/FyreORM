@@ -9,7 +9,6 @@ use Fyre\ORM\ModelRegistry;
 
 trait BehaviorTestTrait
 {
-
     public function testAddBehavior(): void
     {
         $Items = ModelRegistry::use('Items');
@@ -40,15 +39,6 @@ trait BehaviorTestTrait
         $Items->addBehavior('Invalid');
     }
 
-    public function testHasBehaviorInvalid(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $this->assertFalse(
-            $Items->hasBehavior('Invalid')
-        );
-    }
-
     public function testGetBehavior(): void
     {
         $Items = ModelRegistry::use('Items');
@@ -67,6 +57,15 @@ trait BehaviorTestTrait
 
         $this->assertNull(
             $Items->getBehavior('Invalid')
+        );
+    }
+
+    public function testHasBehaviorInvalid(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $this->assertFalse(
+            $Items->hasBehavior('Invalid')
         );
     }
 
@@ -90,5 +89,4 @@ trait BehaviorTestTrait
 
         $Items->removeBehavior('Invalid');
     }
-
 }

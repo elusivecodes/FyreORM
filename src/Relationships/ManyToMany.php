@@ -19,19 +19,19 @@ use function natsort;
  */
 class ManyToMany extends Relationship
 {
+    protected string $joinAlias;
 
     protected Model|null $joinModel = null;
 
     protected HasMany $sourceRelationship;
 
-    protected BelongsTo $targetRelationship;
-
-    protected string $joinAlias;
-
     protected string $targetForeignKey;
+
+    protected BelongsTo $targetRelationship;
 
     /**
      * New relationship constructor.
+     *
      * @param string $name The relationship name.
      * @param array $options The relationship options.
      */
@@ -44,7 +44,7 @@ class ManyToMany extends Relationship
         } else {
             $aliases = [
                 $this->source->getAlias(),
-                $this->name
+                $this->name,
             ];
 
             natsort($aliases);
@@ -59,6 +59,7 @@ class ManyToMany extends Relationship
 
     /**
      * Build join data.
+     *
      * @param array $options The join options.
      * @return array The join data.
      */
@@ -66,13 +67,13 @@ class ManyToMany extends Relationship
     {
         $sourceJoins = $this->getSourceRelationship()->buildJoins([
             'sourceAlias' => $options['sourceAlias'] ?? null,
-            'type' => $options['type'] ?? null
+            'type' => $options['type'] ?? null,
         ]);
 
         $targetJoins = $this->getTargetRelationship()->buildJoins([
             'alias' => $options['alias'] ?? null,
             'type' => $options['type'] ?? null,
-            'conditions' => $options['conditions'] ?? null
+            'conditions' => $options['conditions'] ?? null,
         ]);
 
         return array_merge($sourceJoins, $targetJoins);
@@ -80,6 +81,7 @@ class ManyToMany extends Relationship
 
     /**
      * Find related data for entities.
+     *
      * @param array $entities The entities.
      * @param array $data The find data.
      * @param SelectQuery|null $query The SelectQuery.
@@ -146,11 +148,11 @@ class ManyToMany extends Relationship
             $joinModel->removeRelationship($targetName);
         }
 
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             $bindingValue = $entity->get($bindingKey);
 
             $children = [];
-            foreach ($allChildren AS $child) {
+            foreach ($allChildren as $child) {
                 $foreignValue = $child->_joinData->get($foreignKey);
 
                 if ($bindingValue !== $foreignValue) {
@@ -167,6 +169,7 @@ class ManyToMany extends Relationship
 
     /**
      * Get the join Model.
+     *
      * @return Model The join Model.
      */
     public function getJoinModel(): Model
@@ -176,6 +179,7 @@ class ManyToMany extends Relationship
 
     /**
      * Get the source relationship.
+     *
      * @return HasMany The source relationship.
      */
     public function getSourceRelationship(): HasMany
@@ -184,12 +188,13 @@ class ManyToMany extends Relationship
             'source' => $this->getSource(),
             'foreignKey' => $this->getForeignKey(),
             'bindingKey' => $this->getBindingKey(),
-            'dependent' => true
+            'dependent' => true,
         ]);
     }
 
     /**
      * Get the target foreign key.
+     *
      * @return string The target foreign key.
      */
     public function getTargetForeignKey(): string
@@ -201,18 +206,20 @@ class ManyToMany extends Relationship
 
     /**
      * Get the target relationship.
+     *
      * @return BelongsTo The target relationship.
      */
     public function getTargetRelationship(): BelongsTo
     {
         return $this->targetRelationship ??= new BelongsTo($this->getTarget()->getAlias(), [
             'source' => $this->getJoinModel(),
-            'foreignKey' => $this->getTargetForeignKey()
+            'foreignKey' => $this->getTargetForeignKey(),
         ]);
     }
 
     /**
      * Save related data from an entity.
+     *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -254,7 +261,7 @@ class ManyToMany extends Relationship
         $bindingValue = $entity->get($bindingKey);
 
         $joinEntities = [];
-        foreach ($relations AS $relation) {
+        foreach ($relations as $relation) {
             $joinData = $relation->get('_joinData') ?? [];
 
             if ($joinData instanceof Entity) {
@@ -282,6 +289,7 @@ class ManyToMany extends Relationship
 
     /**
      * Remove related data from entities.
+     *
      * @param array $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the unlink was successful, otherwise FALSE.
@@ -290,5 +298,4 @@ class ManyToMany extends Relationship
     {
         return $this->getSourceRelationship()->unlinkAll($entities, $options);
     }
-
 }

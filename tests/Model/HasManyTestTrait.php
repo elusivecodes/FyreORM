@@ -11,6 +11,270 @@ use function array_map;
 
 trait HasManyTestTrait
 {
+    public function testHasManyDelete(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $this->assertTrue(
+            $Users->delete($user)
+        );
+
+        $this->assertSame(
+            0,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Posts')->find()->count()
+        );
+    }
+
+    public function testHasManyDeleteMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'posts' => [
+                    [
+                        'title' => 'Test 1',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 2',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Test 2',
+                'posts' => [
+                    [
+                        'title' => 'Test 3',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 4',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $this->assertTrue(
+            $Users->deleteMany($users)
+        );
+
+        $this->assertSame(
+            0,
+            $Users->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Posts')->find()->count()
+        );
+    }
+
+    public function testHasManyDeleteManyUnlink(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $Users->removeRelationship('Posts');
+        $Users->hasMany('Posts');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'posts' => [
+                    [
+                        'title' => 'Test 1',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 2',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Test 2',
+                'posts' => [
+                    [
+                        'title' => 'Test 3',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 4',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $this->assertTrue(
+            $Users->deleteMany($users)
+        );
+
+        $this->assertSame(
+            [null, null, null, null],
+            array_map(
+                fn($post) => $post->user_id,
+                ModelRegistry::use('Posts')
+                    ->find()
+                    ->all()
+            )
+        );
+    }
+
+    public function testHasManyDeleteUnlink(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $Users->removeRelationship('Posts');
+        $Users->hasMany('Posts');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $this->assertTrue(
+            $Users->delete($user)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($post) => $post->user_id,
+                ModelRegistry::use('Posts')
+                    ->find()
+                    ->all()
+            )
+        );
+    }
+
+    public function testHasManyFind(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Posts',
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($post) => $post->id,
+                $user->posts
+            )
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[0]
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[1]
+        );
+
+        $this->assertFalse(
+            $user->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[0]->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[1]->isNew()
+        );
+    }
+
+    public function testHasManyInnerJoinSql(): void
+    {
+        $this->assertSame(
+            'SELECT Users.id AS Users__id FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id',
+            ModelRegistry::use('Users')
+                ->find()
+                ->innerJoinWith('Posts')
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
 
     public function testHasManyInsert(): void
     {
@@ -21,13 +285,13 @@ trait HasManyTestTrait
             'posts' => [
                 [
                     'title' => 'Test 1',
-                    'content' => 'This is the content.'
+                    'content' => 'This is the content.',
                 ],
                 [
                     'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
+                    'content' => 'This is the content.',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -90,27 +354,27 @@ trait HasManyTestTrait
                 'posts' => [
                     [
                         'title' => 'Test 1',
-                        'content' => 'This is the content.'
+                        'content' => 'This is the content.',
                     ],
                     [
                         'title' => 'Test 2',
-                        'content' => 'This is the content.'
-                    ]
-                ]
+                        'content' => 'This is the content.',
+                    ],
+                ],
             ],
             [
                 'name' => 'Test 2',
                 'posts' => [
                     [
                         'title' => 'Test 3',
-                        'content' => 'This is the content.'
+                        'content' => 'This is the content.',
                     ],
                     [
                         'title' => 'Test 4',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ]
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -128,7 +392,7 @@ trait HasManyTestTrait
         $this->assertSame(
             [
                 [1, 2],
-                [3, 4]
+                [3, 4],
             ],
             array_map(
                 fn($user) => array_map(
@@ -142,7 +406,7 @@ trait HasManyTestTrait
         $this->assertSame(
             [
                 [1, 1],
-                [2, 2]
+                [2, 2],
             ],
             array_map(
                 fn($user) => array_map(
@@ -202,6 +466,285 @@ trait HasManyTestTrait
         );
     }
 
+    public function testHasManyLeftJoinSql(): void
+    {
+        $this->assertSame(
+            'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id',
+            ModelRegistry::use('Users')
+                ->find()
+                ->leftJoinWith('Posts')
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
+
+    public function testHasManyReplace(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user->posts = [];
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Posts')->find()->count()
+        );
+    }
+
+    public function testHasManyReplaceMany(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'posts' => [
+                    [
+                        'title' => 'Test 1',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 2',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Test 2',
+                'posts' => [
+                    [
+                        'title' => 'Test 3',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 4',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $Users->patchEntities($users, [
+            [
+                'posts' => [],
+            ],
+            [
+                'posts' => [],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('Posts')->find()->count()
+        );
+    }
+
+    public function testHasManyReplaceManyUnlink(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $Users->removeRelationship('Posts');
+        $Users->hasMany('Posts');
+
+        $users = $Users->newEntities([
+            [
+                'name' => 'Test 1',
+                'posts' => [
+                    [
+                        'title' => 'Test 1',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 2',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Test 2',
+                'posts' => [
+                    [
+                        'title' => 'Test 3',
+                        'content' => 'This is the content.',
+                    ],
+                    [
+                        'title' => 'Test 4',
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $Users->patchEntities($users, [
+            [
+                'posts' => [],
+            ],
+            [
+                'posts' => [],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->saveMany($users)
+        );
+
+        $this->assertSame(
+            [null, null, null, null],
+            array_map(
+                fn($post) => $post->user_id,
+                ModelRegistry::use('Posts')
+                    ->find()
+                    ->all()
+            )
+        );
+    }
+
+    public function testHasManyReplaceUnlink(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $Users->removeRelationship('Posts');
+        $Users->hasMany('Posts');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user->posts = [];
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $this->assertSame(
+            [null, null],
+            array_map(
+                fn($post) => $post->user_id,
+                ModelRegistry::use('Posts')
+                    ->find()
+                    ->all()
+            )
+        );
+    }
+
+    public function testHasManyStrategyFind(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Posts' => [
+                    'strategy' => 'subquery',
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($post) => $post->id,
+                $user->posts
+            )
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[0]
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[1]
+        );
+
+        $this->assertFalse(
+            $user->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[0]->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[1]->isNew()
+        );
+    }
+
     public function testHasManyUpdate(): void
     {
         $Users = ModelRegistry::use('Users');
@@ -211,13 +754,13 @@ trait HasManyTestTrait
             'posts' => [
                 [
                     'title' => 'Test 1',
-                    'content' => 'This is the content.'
+                    'content' => 'This is the content.',
                 ],
                 [
                     'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
+                    'content' => 'This is the content.',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -228,12 +771,12 @@ trait HasManyTestTrait
             'name' => 'Test 2',
             'posts' => [
                 [
-                    'title' => 'Test 3'
+                    'title' => 'Test 3',
                 ],
                 [
-                    'title' => 'Test 4'
-                ]
-            ]
+                    'title' => 'Test 4',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -254,8 +797,8 @@ trait HasManyTestTrait
 
         $user = $Users->get(1, [
             'contain' => [
-                'Posts'
-            ]
+                'Posts',
+            ],
         ]);
 
         $this->assertSame(
@@ -282,27 +825,27 @@ trait HasManyTestTrait
                 'posts' => [
                     [
                         'title' => 'Test 1',
-                        'content' => 'This is the content.'
+                        'content' => 'This is the content.',
                     ],
                     [
                         'title' => 'Test 2',
-                        'content' => 'This is the content.'
-                    ]
-                ]
+                        'content' => 'This is the content.',
+                    ],
+                ],
             ],
             [
                 'name' => 'Test 2',
                 'posts' => [
                     [
                         'title' => 'Test 3',
-                        'content' => 'This is the content.'
+                        'content' => 'This is the content.',
                     ],
                     [
                         'title' => 'Test 4',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ]
+                        'content' => 'This is the content.',
+                    ],
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -314,24 +857,24 @@ trait HasManyTestTrait
                 'name' => 'Test 3',
                 'posts' => [
                     [
-                        'title' => 'Test 5'
+                        'title' => 'Test 5',
                     ],
                     [
-                        'title' => 'Test 6'
-                    ]
-                ]
+                        'title' => 'Test 6',
+                    ],
+                ],
             ],
             [
                 'name' => 'Test 4',
                 'posts' => [
                     [
-                        'title' => 'Test 7'
+                        'title' => 'Test 7',
                     ],
                     [
-                        'title' => 'Test 8'
-                    ]
-                ]
-            ]
+                        'title' => 'Test 8',
+                    ],
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -364,8 +907,8 @@ trait HasManyTestTrait
 
         $users = $Users->find([
             'contain' => [
-                'Posts'
-            ]
+                'Posts',
+            ],
         ])->all();
 
         $this->assertSame(
@@ -379,7 +922,7 @@ trait HasManyTestTrait
         $this->assertSame(
             [
                 ['Test 5', 'Test 6'],
-                ['Test 7', 'Test 8']
+                ['Test 7', 'Test 8'],
             ],
             array_map(
                 fn($user) => array_map(
@@ -390,549 +933,4 @@ trait HasManyTestTrait
             )
         );
     }
-
-    public function testHasManyDelete(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $this->assertTrue(
-            $Users->delete($user)
-        );
-
-        $this->assertSame(
-            0,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Posts')->find()->count()
-        );
-    }
-
-    public function testHasManyDeleteMany(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'posts' => [
-                    [
-                        'title' => 'Test 1',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 2',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'posts' => [
-                    [
-                        'title' => 'Test 3',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 4',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $this->assertTrue(
-            $Users->deleteMany($users)
-        );
-
-        $this->assertSame(
-            0,
-            $Users->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Posts')->find()->count()
-        );
-    }
-
-    public function testHasManyDeleteUnlink(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $Users->removeRelationship('Posts');
-        $Users->hasMany('Posts');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $this->assertTrue(
-            $Users->delete($user)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
-                    ->find()
-                    ->all()
-            )
-        );
-    }
-
-    public function testHasManyDeleteManyUnlink(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $Users->removeRelationship('Posts');
-        $Users->hasMany('Posts');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'posts' => [
-                    [
-                        'title' => 'Test 1',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 2',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'posts' => [
-                    [
-                        'title' => 'Test 3',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 4',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $this->assertTrue(
-            $Users->deleteMany($users)
-        );
-
-        $this->assertSame(
-            [null, null, null, null],
-            array_map(
-                fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
-                    ->find()
-                    ->all()
-            )
-        );
-    }
-
-    public function testHasManyReplace(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user->posts = [];
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Posts')->find()->count()
-        );
-    }
-
-    public function testHasManyReplaceMany(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'posts' => [
-                    [
-                        'title' => 'Test 1',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 2',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'posts' => [
-                    [
-                        'title' => 'Test 3',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 4',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $Users->patchEntities($users, [
-            [
-                'posts' => []
-            ],
-            [
-                'posts' => []
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('Posts')->find()->count()
-        );
-    }
-
-    public function testHasManyReplaceUnlink(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $Users->removeRelationship('Posts');
-        $Users->hasMany('Posts');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user->posts = [];
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $this->assertSame(
-            [null, null],
-            array_map(
-                fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
-                    ->find()
-                    ->all()
-            )
-        );
-    }
-
-    public function testHasManyReplaceManyUnlink(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $Users->removeRelationship('Posts');
-        $Users->hasMany('Posts');
-
-        $users = $Users->newEntities([
-            [
-                'name' => 'Test 1',
-                'posts' => [
-                    [
-                        'title' => 'Test 1',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 2',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ],
-            [
-                'name' => 'Test 2',
-                'posts' => [
-                    [
-                        'title' => 'Test 3',
-                        'content' => 'This is the content.'
-                    ],
-                    [
-                        'title' => 'Test 4',
-                        'content' => 'This is the content.'
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $Users->patchEntities($users, [
-            [
-                'posts' => []
-            ],
-            [
-                'posts' => []
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->saveMany($users)
-        );
-
-        $this->assertSame(
-            [null, null, null, null],
-            array_map(
-                fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
-                    ->find()
-                    ->all()
-            )
-        );
-    }
-
-    public function testHasManyFind(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user = $Users->get(1, [
-            'contain' => [
-                'Posts'
-            ]
-        ]);
-
-        $this->assertSame(
-            1,
-            $user->id
-        );
-
-        $this->assertSame(
-            [1, 2],
-            array_map(
-                fn($post) => $post->id,
-                $user->posts
-            )
-        );
-
-        $this->assertInstanceOf(
-            User::class,
-            $user
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $user->posts[0]
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $user->posts[1]
-        );
-
-        $this->assertFalse(
-            $user->isNew()
-        );
-
-        $this->assertFalse(
-            $user->posts[0]->isNew()
-        );
-
-        $this->assertFalse(
-            $user->posts[1]->isNew()
-        );
-    }
-
-    public function testHasManyLeftJoinSql(): void
-    {
-        $this->assertSame(
-            'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id',
-            ModelRegistry::use('Users')
-                ->find()
-                ->leftJoinWith('Posts')
-                ->enableAutoFields(false)
-                ->sql()
-        );
-    }
-
-    public function testHasManyInnerJoinSql(): void
-    {
-        $this->assertSame(
-            'SELECT Users.id AS Users__id FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id',
-            ModelRegistry::use('Users')
-                ->find()
-                ->innerJoinWith('Posts')
-                ->enableAutoFields(false)
-                ->sql()
-        );
-    }
-
-    public function testHasManyStrategyFind(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user = $Users->get(1, [
-            'contain' => [
-                'Posts' => [
-                    'strategy' => 'subquery'
-                ]
-            ]
-        ]);
-
-        $this->assertSame(
-            1,
-            $user->id
-        );
-
-        $this->assertSame(
-            [1, 2],
-            array_map(
-                fn($post) => $post->id,
-                $user->posts
-            )
-        );
-
-        $this->assertInstanceOf(
-            User::class,
-            $user
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $user->posts[0]
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $user->posts[1]
-        );
-
-        $this->assertFalse(
-            $user->isNew()
-        );
-
-        $this->assertFalse(
-            $user->posts[0]->isNew()
-        );
-
-        $this->assertFalse(
-            $user->posts[1]->isNew()
-        );
-    }
-
 }

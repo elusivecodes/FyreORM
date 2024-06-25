@@ -10,13 +10,225 @@ use function range;
 
 trait QueryTestTrait
 {
+    public function testDelete(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $item = $Items->newEntity([
+            'name' => 'Test',
+        ]);
+
+        $this->assertTrue(
+            $Items->save($item)
+        );
+
+        $this->assertTrue(
+            $Items->delete($item)
+        );
+
+        $this->assertSame(
+            0,
+            $Items->find()->count()
+        );
+    }
+
+    public function testDeleteMany(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $this->assertTrue(
+            $Items->deleteMany($items)
+        );
+
+        $this->assertSame(
+            0,
+            $Items->find()->count()
+        );
+    }
+
+    public function testExists(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $item = $Items->newEntity([
+            'name' => 'Test',
+        ]);
+
+        $this->assertTrue(
+            $Items->save($item)
+        );
+
+        $this->assertTrue(
+            $Items->exists(['name' => 'Test'])
+        );
+    }
+
+    public function testExistsNotExists(): void
+    {
+        $this->assertFalse(
+            ModelRegistry::use('Items')->exists(['name' => 'Test'])
+        );
+    }
+
+    public function testFindAutoFields(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $item = $Items->newEntity([
+            'name' => 'Test',
+        ]);
+
+        $this->assertTrue(
+            $Items->save($item)
+        );
+
+        $item = $Items->get(1, [
+            'autoFields' => false,
+        ]);
+
+        $this->assertSame(
+            [
+                'id' => 1,
+            ],
+            $item->toArray()
+        );
+    }
+
+    public function testFindOptionSql(): void
+    {
+        $this->assertSame(
+            'SELECT Items.id AS Items__id, CONCAT(Items.name, " ", Items2.name) AS title FROM items AS Items LEFT JOIN items AS Items2 ON Items2.id = Items.id WHERE Items.id = 1 GROUP BY Items.id ORDER BY Items.name DESC HAVING title = \'Test Test\' LIMIT 1 FOR UPDATE',
+            ModelRegistry::use('Items')->find([
+                'fields' => [
+                    'title' => 'CONCAT(Items.name, " ", Items2.name)',
+                ],
+                'join' => [
+                    'Items2' => [
+                        'table' => 'items',
+                        'type' => 'LEFT',
+                        'conditions' => [
+                            'Items2.id = Items.id',
+                        ],
+                    ],
+                ],
+                'conditions' => [
+                    'Items.id' => 1,
+                ],
+                'group' => [
+                    'Items.id',
+                ],
+                'order' => [
+                    'Items.name' => 'DESC',
+                ],
+                'having' => [
+                    'title' => 'Test Test',
+                ],
+                'limit' => 1,
+                'offset' => 0,
+                'epilog' => 'FOR UPDATE',
+            ])->sql()
+        );
+    }
+
+    public function testFindSubquery(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $this->assertSame(
+            'SELECT Items.id AS Items__id, (SELECT Users.name AS user_name FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id WHERE Users.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
+            $Items->find([
+                'fields' => [
+                    'user_name' => ModelRegistry::use('Users')
+                        ->subquery()
+                        ->select([
+                            'user_name' => 'Users.name',
+                        ])
+                        ->innerJoinWith('Posts')
+                        ->where([
+                            'Users.id = Items.id',
+                        ])
+                        ->limit(1),
+                ],
+            ])->sql()
+        );
+    }
+
+    public function testFindSubqueryAlias(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $this->assertSame(
+            'SELECT Items.id AS Items__id, (SELECT Alias.name AS user_name FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
+            $Items->find([
+                'fields' => [
+                    'user_name' => ModelRegistry::use('Users')
+                        ->subquery([
+                            'alias' => 'Alias',
+                        ])
+                        ->select([
+                            'user_name' => 'Alias.name',
+                        ])
+                        ->innerJoinWith('Posts')
+                        ->where([
+                            'Alias.id = Items.id',
+                        ])
+                        ->limit(1),
+                ],
+            ])->sql()
+        );
+    }
+
+    public function testGet(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $item = $Items->get(2);
+
+        $this->assertSame(
+            2,
+            $item->id
+        );
+    }
+
+    public function testGetInvalid(): void
+    {
+        $this->assertNull(
+            ModelRegistry::use('Items')->get(1)
+        );
+    }
 
     public function testInsert(): void
     {
         $Items = ModelRegistry::use('Items');
 
         $item = $Items->newEntity([
-            'name' => 'Test'
+            'name' => 'Test',
         ]);
 
         $this->assertTrue(
@@ -43,11 +255,11 @@ trait QueryTestTrait
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -87,7 +299,7 @@ trait QueryTestTrait
 
         for ($i = 0; $i < 1000; $i++) {
             $data[] = [
-                'name' => 'Test '.($i + 1)
+                'name' => 'Test '.($i + 1),
             ];
         }
 
@@ -111,7 +323,7 @@ trait QueryTestTrait
         $Items = ModelRegistry::use('Items');
 
         $item = $Items->newEntity([
-            'name' => 'Test'
+            'name' => 'Test',
         ]);
 
         $this->assertTrue(
@@ -119,7 +331,7 @@ trait QueryTestTrait
         );
 
         $Items->patchEntity($item, [
-            'name' => 'Test 2'
+            'name' => 'Test 2',
         ]);
 
         $this->assertTrue(
@@ -135,7 +347,7 @@ trait QueryTestTrait
         $this->assertSame(
             [
                 'id' => 1,
-                'name' => 'Test 2'
+                'name' => 'Test 2',
             ],
             $item->toArray()
         );
@@ -147,11 +359,11 @@ trait QueryTestTrait
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -168,11 +380,11 @@ trait QueryTestTrait
 
         $Items->patchEntities($items, [
             [
-                'name' => 'Test 3'
+                'name' => 'Test 3',
             ],
             [
-                'name' => 'Test 4'
-            ]
+                'name' => 'Test 4',
+            ],
         ]);
 
         $this->assertTrue(
@@ -185,12 +397,12 @@ trait QueryTestTrait
             [
                 [
                     'id' => 1,
-                    'name' => 'Test 3'
+                    'name' => 'Test 3',
                 ],
                 [
                     'id' => 2,
-                    'name' => 'Test 4'
-                ]
+                    'name' => 'Test 4',
+                ],
             ],
             array_map(
                 fn($item) => $item->toArray(),
@@ -207,7 +419,7 @@ trait QueryTestTrait
 
         for ($i = 0; $i < 1000; $i++) {
             $data[] = [
-                'name' => 'Test'
+                'name' => 'Test',
             ];
         }
 
@@ -219,9 +431,9 @@ trait QueryTestTrait
 
         $data = [];
 
-        foreach ($items AS $i => $item) {
+        foreach ($items as $i => $item) {
             $data[] = [
-                'name' => 'Test '.($i + 1)
+                'name' => 'Test '.($i + 1),
             ];
         }
 
@@ -244,218 +456,4 @@ trait QueryTestTrait
             )
         );
     }
-
-    public function testDelete(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $item = $Items->newEntity([
-            'name' => 'Test'
-        ]);
-
-        $this->assertTrue(
-            $Items->save($item)
-        );
-
-        $this->assertTrue(
-            $Items->delete($item)
-        );
-
-        $this->assertSame(
-            0,
-            $Items->find()->count()
-        );
-    }
-
-    public function testDeleteMany(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $items = $Items->newEntities([
-            [
-                'name' => 'Test 1'
-            ],
-            [
-                'name' => 'Test 2'
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Items->saveMany($items)
-        );
-
-        $this->assertTrue(
-            $Items->deleteMany($items)
-        );
-
-        $this->assertSame(
-            0,
-            $Items->find()->count()
-        );
-    }
-
-    public function testGet(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $items = $Items->newEntities([
-            [
-                'name' => 'Test 1'
-            ],
-            [
-                'name' => 'Test 2'
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Items->saveMany($items)
-        );
-
-        $item = $Items->get(2);
-
-        $this->assertSame(
-            2,
-            $item->id
-        );
-    }
-
-    public function testGetInvalid(): void
-    {
-        $this->assertNull(
-            ModelRegistry::use('Items')->get(1)
-        );
-    }
-
-    public function testExists(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $item = $Items->newEntity([
-            'name' => 'Test'
-        ]);
-
-        $this->assertTrue(
-            $Items->save($item)
-        );
-
-        $this->assertTrue(
-            $Items->exists(['name' => 'Test'])
-        );
-    }
-
-    public function testExistsNotExists(): void
-    {
-        $this->assertFalse(
-            ModelRegistry::use('Items')->exists(['name' => 'Test'])
-        );
-    }
-
-    public function testFindOptionSql(): void
-    {
-        $this->assertSame(
-            'SELECT Items.id AS Items__id, CONCAT(Items.name, " ", Items2.name) AS title FROM items AS Items LEFT JOIN items AS Items2 ON Items2.id = Items.id WHERE Items.id = 1 GROUP BY Items.id ORDER BY Items.name DESC HAVING title = \'Test Test\' LIMIT 1 FOR UPDATE',
-            ModelRegistry::use('Items')->find([
-                'fields' => [
-                    'title' => 'CONCAT(Items.name, " ", Items2.name)'
-                ],
-                'join' => [
-                    'Items2' => [
-                        'table' => 'items',
-                        'type' => 'LEFT',
-                        'conditions' => [
-                            'Items2.id = Items.id'
-                        ]
-                    ]
-                ],
-                'conditions' => [
-                    'Items.id' => 1
-                ],
-                'group' => [
-                    'Items.id'
-                ],
-                'order' => [
-                    'Items.name' => 'DESC'
-                ],
-                'having' => [
-                    'title' => 'Test Test'
-                ],
-                'limit' => 1,
-                'offset' => 0,
-                'epilog' => 'FOR UPDATE'
-            ])->sql()
-        );
-    }
-
-    public function testFindSubquery(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $this->assertSame(
-            'SELECT Items.id AS Items__id, (SELECT Users.name AS user_name FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id WHERE Users.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
-            $Items->find([
-                'fields' => [
-                    'user_name' => ModelRegistry::use('Users')
-                        ->subquery()
-                        ->select([
-                            'user_name' => 'Users.name'
-                        ])
-                        ->innerJoinWith('Posts')
-                        ->where([
-                            'Users.id = Items.id'
-                        ])
-                        ->limit(1)
-                ]
-            ])->sql()
-        );
-    }
-
-    public function testFindSubqueryAlias(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $this->assertSame(
-            'SELECT Items.id AS Items__id, (SELECT Alias.name AS user_name FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
-            $Items->find([
-                'fields' => [
-                    'user_name' => ModelRegistry::use('Users')
-                        ->subquery([
-                            'alias' => 'Alias'
-                        ])
-                        ->select([
-                            'user_name' => 'Alias.name'
-                        ])
-                        ->innerJoinWith('Posts')
-                        ->where([
-                            'Alias.id = Items.id'
-                        ])
-                        ->limit(1)
-                ]
-            ])->sql()
-        );
-    }
-
-    public function testFindAutoFields(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $item = $Items->newEntity([
-            'name' => 'Test'
-        ]);
-
-        $this->assertTrue(
-            $Items->save($item)
-        );
-
-        $item = $Items->get(1, [
-            'autoFields' => false
-        ]);
-
-        $this->assertSame(
-            [
-                'id' => 1
-            ],
-            $item->toArray()
-        );
-    }
-
 }

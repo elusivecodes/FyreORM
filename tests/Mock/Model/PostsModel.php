@@ -11,11 +11,10 @@ use Fyre\Validation\Validator;
 
 class PostsModel extends Model
 {
-
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'title'
+            'testField' => 'title',
         ]);
 
         $this->belongsTo('Users');
@@ -40,5 +39,4 @@ class PostsModel extends Model
 
         return $validator;
     }
-
 }

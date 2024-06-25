@@ -19,9 +19,9 @@ use function count;
  */
 trait QueryTrait
 {
-
     /**
      * Delete an Entity.
+     *
      * @param Entity $entity The Entity.
      * @param array $options The options for deleting.
      * @return bool TRUE if the delete was successful, otherwise FALSE.
@@ -37,6 +37,7 @@ trait QueryTrait
 
         if ($options['events'] && !$this->handleEvent('beforeDelete', $entity, $options)) {
             $connection->rollback();
+
             return false;
         }
 
@@ -46,16 +47,19 @@ trait QueryTrait
 
         if (!$this->deleteAll($conditions)) {
             $connection->rollback();
+
             return false;
         }
 
         if ($options['cascade'] && !$this->deleteChildren([$entity], $options)) {
             $connection->rollback();
+
             return false;
         }
 
         if ($options['events'] && !$this->handleEvent('afterDelete', $entity, $options)) {
             $connection->rollback();
+
             return false;
         }
 
@@ -66,6 +70,7 @@ trait QueryTrait
 
     /**
      * Delete all rows matching conditions.
+     *
      * @param array $conditions The conditions.
      * @return int The number of rows affected.
      */
@@ -80,6 +85,7 @@ trait QueryTrait
 
     /**
      * Delete multiple entities.
+     *
      * @param array $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the delete was successful, otherwise FALSE.
@@ -106,16 +112,17 @@ trait QueryTrait
         $primaryKeys = $this->getPrimaryKey();
 
         if ($options['events']) {
-            foreach ($entities AS $entity) {
+            foreach ($entities as $entity) {
                 if (!$this->handleEvent('beforeDelete', $entity, $options)) {
                     $connection->rollback();
+
                     return false;
                 }
             }
         }
 
         $rowValues = [];
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             $rowValues[] = $entity->extract($primaryKeys);
         }
 
@@ -123,18 +130,21 @@ trait QueryTrait
 
         if (!$this->deleteAll($conditions)) {
             $connection->rollback();
+
             return false;
         }
 
         if ($options['cascade'] && !$this->deleteChildren($entities, $options)) {
             $connection->rollback();
+
             return false;
         }
 
         if ($options['events']) {
-            foreach ($entities AS $entity) {
+            foreach ($entities as $entity) {
                 if (!$this->handleEvent('afterDelete', $entity, $options)) {
                     $connection->rollback();
+
                     return false;
                 }
             }
@@ -147,6 +157,7 @@ trait QueryTrait
 
     /**
      * Determine if matching rows exist.
+     *
      * @param array $conditions The conditions.
      * @return bool TRUE if matching rows exist, otherwise FALSE.
      */
@@ -161,8 +172,10 @@ trait QueryTrait
 
     /**
      * Create a new SelectQuery.
+     *
      * @param array $data The find data.
      * @return SelectQuery The Query.
+     *
      * @throws OrmException if find property does not exist.
      */
     public function find(array $data = []): SelectQuery
@@ -170,7 +183,7 @@ trait QueryTrait
         $methods = [];
         $options = [];
 
-        foreach ($data AS $property => $value) {
+        foreach ($data as $property => $value) {
             if (array_key_exists($property, static::QUERY_METHODS)) {
                 $method = static::QUERY_METHODS[$property];
                 $methods[$method] = $value;
@@ -184,7 +197,7 @@ trait QueryTrait
 
         $query = $this->selectQuery($options);
 
-        foreach ($methods AS $method => $value) {
+        foreach ($methods as $method => $value) {
             call_user_func([$query, $method], $value);
         }
 
@@ -193,11 +206,12 @@ trait QueryTrait
 
     /**
      * Retrieve a single entity.
+     *
      * @param int|string|array $primaryValues The primary key values.
      * @param array $data The find data.
      * @return Entity|null The Entity.
      */
-    public function get(int|string|array $primaryValues, array $data = []): Entity|null
+    public function get(array|int|string $primaryValues, array $data = []): Entity|null
     {
         $primaryKeys = $this->getPrimaryKey();
         $primaryKeys = array_map(
@@ -213,6 +227,7 @@ trait QueryTrait
 
     /**
      * Save an Entity.
+     *
      * @param Entity $entity The Entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -271,6 +286,7 @@ trait QueryTrait
 
     /**
      * Save multiple entities.
+     *
      * @param array $entities The entities.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -292,7 +308,7 @@ trait QueryTrait
             return $this->save($entities[0], $options);
         }
 
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             if ($entity->hasErrors()) {
                 return false;
             }
@@ -316,7 +332,7 @@ trait QueryTrait
         $autoIncrementEntities = [];
 
         $result = true;
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             if ($autoIncrementKey && $entity->isNew() && !$entity->hasValue($autoIncrementKey)) {
                 $autoIncrementEntities[] = $entity;
             }
@@ -351,6 +367,7 @@ trait QueryTrait
 
     /**
      * Update all rows matching conditions.
+     *
      * @param array $data The data to update.
      * @param array $conditions The conditions.
      * @return int The number of rows affected.
@@ -367,6 +384,7 @@ trait QueryTrait
 
     /**
      * Save a single Entity.
+     *
      * @param Entity $entity The Entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -434,5 +452,4 @@ trait QueryTrait
 
         return true;
     }
-
 }

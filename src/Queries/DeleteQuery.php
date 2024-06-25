@@ -11,11 +11,11 @@ use Fyre\ORM\Queries\Traits\ModelTrait;
  */
 class DeleteQuery extends \Fyre\DB\Queries\DeleteQuery
 {
-
     use ModelTrait;
 
     /**
      * New DeleteQuery constructor.
+     *
      * @param Model $model The Model.
      * @param array $options The DeleteQuery options.
      */
@@ -27,8 +27,7 @@ class DeleteQuery extends \Fyre\DB\Queries\DeleteQuery
         parent::__construct($this->model->getConnection(), $options['alias']);
 
         $this->from([
-            $options['alias'] => $this->model->getTable()
+            $options['alias'] => $this->model->getTable(),
         ]);
     }
-
 }

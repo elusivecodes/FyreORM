@@ -9,10 +9,9 @@ use Fyre\ORM\Result;
 
 class OthersModel extends Model
 {
-
     public function afterFind(Result $result): Result
     {
-        foreach ($result AS $item) {
+        foreach ($result as $item) {
             $item->test = 'Test';
         }
 
@@ -22,8 +21,7 @@ class OthersModel extends Model
     public function beforeFind(SelectQuery $query): SelectQuery
     {
         return $query->where([
-            'value' => 1
+            'value' => 1,
         ]);
     }
-
 }

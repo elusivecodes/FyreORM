@@ -18,13 +18,14 @@ use function array_key_exists;
  */
 trait RelationshipsTrait
 {
-
     protected array $relationships = [];
 
     /**
      * Add a Relationship.
+     *
      * @param Relationship $relationship The Relationship.
      * @return Model The Model.
+     *
      * @throws OrmException if relationship alias or property is already used.
      */
     public function addRelationship(Relationship $relationship): static
@@ -48,6 +49,7 @@ trait RelationshipsTrait
 
     /**
      * Create a "belongs to" relationship.
+     *
      * @param string $name The relationship name.
      * @param array $data The relationship data.
      * @return BelongsTo The relationship.
@@ -65,6 +67,7 @@ trait RelationshipsTrait
 
     /**
      * Get a Relationship.
+     *
      * @param string $name The relationship name.
      * @return Relationship|null The Relationship.
      */
@@ -75,6 +78,7 @@ trait RelationshipsTrait
 
     /**
      * Get all relationships.
+     *
      * @return array The relationships.
      */
     public function getRelationships(): array
@@ -84,6 +88,7 @@ trait RelationshipsTrait
 
     /**
      * Create a "has many" relationship.
+     *
      * @param string $name The relationship name.
      * @param array $data The relationship data.
      * @return HasMany The relationship.
@@ -101,6 +106,7 @@ trait RelationshipsTrait
 
     /**
      * Create a "has one" relationship.
+     *
      * @param string $name The relationship name.
      * @param array $data The relationship data.
      * @return HasOne The relationship.
@@ -118,6 +124,7 @@ trait RelationshipsTrait
 
     /**
      * Determine if a Relationship exists.
+     *
      * @param string $name The relationship name.
      * @return bool TRUE if the Relationship exists, otherwise FALSE.
      */
@@ -128,6 +135,7 @@ trait RelationshipsTrait
 
     /**
      * Create a "many to many" relationship.
+     *
      * @param string $name The relationship name.
      * @param array $data The relationship data.
      * @return ManyToMany The relationship.
@@ -145,6 +153,7 @@ trait RelationshipsTrait
 
     /**
      * Remove an existing Relationship.
+     *
      * @param string $name The relationship name.
      * @return Model The Model.
      */
@@ -157,13 +166,14 @@ trait RelationshipsTrait
 
     /**
      * Delete entities children.
+     *
      * @param array $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the delete was successful, otherwise FALSE.
      */
     protected function deleteChildren(array $entities, array $options = []): bool
     {
-        foreach ($this->relationships AS $relationship) {
+        foreach ($this->relationships as $relationship) {
             if (!$relationship->isOwningSide($this)) {
                 continue;
             }
@@ -178,6 +188,7 @@ trait RelationshipsTrait
 
     /**
      * Save children of an entity.
+     *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -186,7 +197,7 @@ trait RelationshipsTrait
     {
         $options['clean'] = false;
 
-        foreach ($this->relationships AS $relationship) {
+        foreach ($this->relationships as $relationship) {
             if (!$relationship->isOwningSide($this)) {
                 continue;
             }
@@ -201,6 +212,7 @@ trait RelationshipsTrait
 
     /**
      * Save parents of an entity.
+     *
      * @param Entity $entity The entity.
      * @param array $options The entity for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -209,7 +221,7 @@ trait RelationshipsTrait
     {
         $options['clean'] = false;
 
-        foreach ($this->relationships AS $relationship) {
+        foreach ($this->relationships as $relationship) {
             if ($relationship->isOwningSide($this)) {
                 continue;
             }
@@ -221,5 +233,4 @@ trait RelationshipsTrait
 
         return true;
     }
-
 }

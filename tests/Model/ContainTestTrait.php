@@ -10,6 +10,300 @@ use function array_map;
 
 trait ContainTestTrait
 {
+    public function testContainAutoFields(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                    'tags' => [
+                        [
+                            'tag' => 'test1',
+                        ],
+                        [
+                            'tag' => 'test2',
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                    'tags' => [
+                        [
+                            'tag' => 'test3',
+                        ],
+                        [
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
+            ],
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Addresses',
+                'Posts' => [
+                    'autoFields' => false,
+                    'Tags' => [
+                        'autoFields' => false,
+                    ],
+                ],
+            ],
+            'autoFields' => false,
+        ]);
+
+        $this->assertSame(
+            [
+                'id' => 1,
+                'address' => [
+                    'id' => 1,
+                ],
+                'posts' => [
+                    [
+                        'id' => 1,
+                        'user_id' => 1,
+                        'tags' => [
+                            [
+                                'id' => 1,
+                                '_joinData' => [
+                                    'id' => 1,
+                                    'post_id' => 1,
+                                ],
+                            ],
+                            [
+                                'id' => 2,
+                                '_joinData' => [
+                                    'id' => 2,
+                                    'post_id' => 1,
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'id' => 2,
+                        'user_id' => 1,
+                        'tags' => [
+                            [
+                                'id' => 3,
+                                '_joinData' => [
+                                    'id' => 3,
+                                    'post_id' => 2,
+                                ],
+                            ],
+                            [
+                                'id' => 4,
+                                '_joinData' => [
+                                    'id' => 4,
+                                    'post_id' => 2,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            $user->toArray()
+        );
+    }
+
+    public function testContainFind(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test',
+            ],
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                    'comments' => [
+                        [
+                            'content' => 'This is a comment',
+                            'user' => [
+                                'name' => 'Test 2',
+                            ],
+                        ],
+                    ],
+                    'tags' => [
+                        [
+                            'tag' => 'test1',
+                        ],
+                        [
+                            'tag' => 'test2',
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                    'comments' => [
+                        [
+                            'content' => 'This is a comment',
+                            'user' => [
+                                'name' => 'Test 3',
+                            ],
+                        ],
+                    ],
+                    'tags' => [
+                        [
+                            'tag' => 'test3',
+                        ],
+                        [
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Addresses',
+                'Posts' => [
+                    'Comments' => [
+                        'Users',
+                    ],
+                    'Tags',
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($post) => $post->id,
+                $user->posts
+            )
+        );
+
+        $this->assertSame(
+            1,
+            $user->address->id
+        );
+
+        $this->assertSame(
+            [
+                [1, 2],
+                [3, 4],
+            ],
+            array_map(
+                fn($user) => array_map(
+                    fn($tag) => $tag->id,
+                    $user->tags
+                ),
+                $user->posts
+            )
+        );
+
+        $this->assertSame(
+            [
+                [1],
+                [2],
+            ],
+            array_map(
+                fn($user) => array_map(
+                    fn($comment) => $comment->id,
+                    $user->comments
+                ),
+                $user->posts
+            )
+        );
+
+        $this->assertSame(
+            [
+                [2],
+                [3],
+            ],
+            array_map(
+                fn($user) => array_map(
+                    fn($comment) => $comment->user->id,
+                    $user->comments
+                ),
+                $user->posts
+            )
+        );
+    }
+
+    public function testContainFindOptions(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Posts' => [
+                    'order' => [
+                        'title' => 'DESC',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            [2, 1],
+            array_map(
+                fn($post) => $post->id,
+                $user->posts
+            )
+        );
+    }
+
+    public function testContainFindSql(): void
+    {
+        $this->assertSame(
+            'SELECT Posts.id AS Posts__id, Users.id AS Users__id, Addresses.id AS Addresses__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
+            ModelRegistry::use('Posts')
+                ->find([
+                    'contain' => [
+                        'Users' => [
+                            'Addresses',
+                        ],
+                    ],
+                ])
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
 
     public function testContainInsert(): void
     {
@@ -23,29 +317,29 @@ trait ContainTestTrait
                     'content' => 'This is the content.',
                     'tags' => [
                         [
-                            'tag' => 'test1'
+                            'tag' => 'test1',
                         ],
                         [
-                            'tag' => 'test2'
-                        ]
-                    ]
+                            'tag' => 'test2',
+                        ],
+                    ],
                 ],
                 [
                     'title' => 'Test 2',
                     'content' => 'This is the content.',
                     'tags' => [
                         [
-                            'tag' => 'test3'
+                            'tag' => 'test3',
                         ],
                         [
-                            'tag' => 'test4'
-                        ]
-                    ]
-                ]
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
             ],
             'address' => [
-                'suburb' => 'Test'
-            ]
+                'suburb' => 'Test',
+            ],
         ]);
 
         $this->assertTrue(
@@ -81,7 +375,7 @@ trait ContainTestTrait
         $this->assertSame(
             [
                 [1, 2],
-                [3, 4]
+                [3, 4],
             ],
             array_map(
                 fn($user) => array_map(
@@ -93,299 +387,15 @@ trait ContainTestTrait
         );
     }
 
-    public function testContainFind(): void
+    public function testContainInvalid(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $this->expectException(OrmException::class);
 
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'address' => [
-                'suburb' => 'Test'
-            ],
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.',
-                    'comments' => [
-                        [
-                            'content' => 'This is a comment',
-                            'user' => [
-                                'name' => 'Test 2'
-                            ]
-                        ]
-                    ],
-                    'tags' => [
-                        [
-                            'tag' => 'test1'
-                        ],
-                        [
-                            'tag' => 'test2'
-                        ]
-                    ]
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.',
-                    'comments' => [
-                        [
-                            'content' => 'This is a comment',
-                            'user' => [
-                                'name' => 'Test 3'
-                            ]
-                        ]
-                    ],
-                    'tags' => [
-                        [
-                            'tag' => 'test3'
-                        ],
-                        [
-                            'tag' => 'test4'
-                        ]
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user = $Users->get(1, [
+        ModelRegistry::use('Users')->find([
             'contain' => [
-                'Addresses',
-                'Posts' => [
-                    'Comments' => [
-                        'Users'
-                    ],
-                    'Tags'
-                ]
-            ]
+                'Invalid',
+            ],
         ]);
-
-        $this->assertSame(
-            1,
-            $user->id
-        );
-
-        $this->assertSame(
-            [1, 2],
-            array_map(
-                fn($post) => $post->id,
-                $user->posts
-            )
-        );
-
-        $this->assertSame(
-            1,
-            $user->address->id
-        );
-
-        $this->assertSame(
-            [
-                [1, 2],
-                [3, 4]
-            ],
-            array_map(
-                fn($user) => array_map(
-                    fn($tag) => $tag->id,
-                    $user->tags
-                ),
-                $user->posts
-            )
-        );
-
-        $this->assertSame(
-            [
-                [1],
-                [2]
-            ],
-            array_map(
-                fn($user) => array_map(
-                    fn($comment) => $comment->id,
-                    $user->comments
-                ),
-                $user->posts
-            )
-        );
-
-        $this->assertSame(
-            [
-                [2],
-                [3]
-            ],
-            array_map(
-                fn($user) => array_map(
-                    fn($comment) => $comment->user->id,
-                    $user->comments
-                ),
-                $user->posts
-            )
-        );
-    }
-
-    public function testContainFindOptions(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user = $Users->get(1, [
-            'contain' => [
-                'Posts' => [
-                    'order' => [
-                        'title' => 'DESC'
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertSame(
-            [2, 1],
-            array_map(
-                fn($post) => $post->id,
-                $user->posts
-            )
-        );
-    }
-
-    public function testContainAutoFields(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.',
-                    'tags' => [
-                        [
-                            'tag' => 'test1'
-                        ],
-                        [
-                            'tag' => 'test2'
-                        ]
-                    ]
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.',
-                    'tags' => [
-                        [
-                            'tag' => 'test3'
-                        ],
-                        [
-                            'tag' => 'test4'
-                        ]
-                    ]
-                ]
-            ],
-            'address' => [
-                'suburb' => 'Test'
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Users->save($user)
-        );
-
-        $user = $Users->get(1, [
-            'contain' => [
-                'Addresses',
-                'Posts' => [
-                    'autoFields' => false,
-                    'Tags' => [
-                        'autoFields' => false
-                    ]
-                ]
-            ],
-            'autoFields' => false
-        ]);
-
-        $this->assertSame(
-            [
-                'id' => 1,
-                'address' => [
-                    'id' => 1
-                ],
-                'posts' => [
-                    [
-                        'id' => 1,
-                        'user_id' => 1,
-                        'tags' => [
-                            [
-                                'id' => 1,
-                                '_joinData' => [
-                                    'id' => 1,
-                                    'post_id' => 1
-                                ]
-                            ],
-                            [
-                                'id' => 2,
-                                '_joinData' => [
-                                    'id' => 2,
-                                    'post_id' => 1
-                                ]
-                            ]
-                        ]
-                    ],
-                    [
-                        'id' => 2,
-                        'user_id' => 1,
-                        'tags' => [
-                            [
-                                'id' => 3,
-                                '_joinData' => [
-                                    'id' => 3,
-                                    'post_id' => 2
-                                ]
-                            ],
-                            [
-                                'id' => 4,
-                                '_joinData' => [
-                                    'id' => 4,
-                                    'post_id' => 2
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            $user->toArray()
-        );
-    }
-
-    public function testContainFindSql(): void
-    {
-        $this->assertSame(
-            'SELECT Posts.id AS Posts__id, Users.id AS Users__id, Addresses.id AS Addresses__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Posts')
-                ->find([
-                    'contain' => [
-                        'Users' => [
-                            'Addresses'
-                        ]
-                    ]
-                ])
-                ->enableAutoFields(false)
-                ->sql()
-        );
     }
 
     public function testContainMerge(): void
@@ -394,7 +404,7 @@ trait ContainTestTrait
         $Users = ModelRegistry::use('Users');
 
         $user = $Users->newEntity([
-            'name' => 'Test'
+            'name' => 'Test',
         ]);
 
         $this->assertTrue(
@@ -408,14 +418,14 @@ trait ContainTestTrait
             'comments' => [
                 [
                     'user_id' => $user->id,
-                    'content' => 'This is a comment'
-                ]
+                    'content' => 'This is a comment',
+                ],
             ],
             'tags' => [
                 [
-                    'tag' => 'test1'
-                ]
-            ]
+                    'tag' => 'test1',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -424,20 +434,20 @@ trait ContainTestTrait
 
         $user = $Users->find([
             'conditions' => [
-                'Users.id' => 1
-            ]
+                'Users.id' => 1,
+            ],
         ])
-        ->contain([
-            'Posts' => [
-                'Comments'
-            ]
-        ])
-        ->contain([
-            'Posts' => [
-                'Tags'
-            ]
-        ])
-        ->first();
+            ->contain([
+                'Posts' => [
+                    'Comments',
+                ],
+            ])
+            ->contain([
+                'Posts' => [
+                    'Tags',
+                ],
+            ])
+            ->first();
 
         $this->assertSame(
             1,
@@ -459,16 +469,4 @@ trait ContainTestTrait
             $user->posts[0]->tags[0]->id
         );
     }
-
-    public function testContainInvalid(): void
-    {
-        $this->expectException(OrmException::class);
-
-        ModelRegistry::use('Users')->find([
-            'contain' => [
-                'Invalid'
-            ]
-        ]);
-    }
-
 }

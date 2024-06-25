@@ -5,7 +5,4 @@ namespace Tests\Mock\Entity;
 
 use Fyre\Entity\Entity;
 
-class Other extends Entity
-{
-
-}
+class Other extends Entity {}

@@ -12,13 +12,13 @@ use function trim;
 
 abstract class BehaviorRegistry
 {
+    protected static array $behaviors = [];
 
     protected static array $namespaces = [];
 
-    protected static array $behaviors = [];
-
     /**
      * Add a namespace for loading behaviors.
+     *
      * @param string $namespace The namespace.
      */
     public static function addNamespace(string $namespace): void
@@ -41,6 +41,7 @@ abstract class BehaviorRegistry
 
     /**
      * Find a behavior class.
+     *
      * @param string $name The behavior name.
      * @return string|null The behavior class.
      */
@@ -51,6 +52,7 @@ abstract class BehaviorRegistry
 
     /**
      * Get the namespaces.
+     *
      * @return array The namespaces.
      */
     public static function getNamespaces(): array
@@ -60,6 +62,7 @@ abstract class BehaviorRegistry
 
     /**
      * Determine if a namespace exists.
+     *
      * @param string $namespace The namespace.
      * @return bool TRUE if the namespace exists, otherwise FALSE.
      */
@@ -72,10 +75,12 @@ abstract class BehaviorRegistry
 
     /**
      * Load a behavior.
+     *
      * @param string $name The behavior name.
      * @param Model $model The Model.
      * @param array $options The behavior options.
      * @return Behavior The Behavior.
+     *
      * @throws OrmException if the behavior does not exist.
      */
     public static function load(string $name, Model $model, array $options = []): Behavior
@@ -91,6 +96,7 @@ abstract class BehaviorRegistry
 
     /**
      * Remove a namespace.
+     *
      * @param string $namespace The namespace.
      * @return bool TRUE If the namespace was removed, otherwise FALSE.
      */
@@ -98,7 +104,7 @@ abstract class BehaviorRegistry
     {
         $namespace = static::normalizeNamespace($namespace);
 
-        foreach (static::$namespaces AS $i => $otherNamespace) {
+        foreach (static::$namespaces as $i => $otherNamespace) {
             if ($otherNamespace !== $namespace) {
                 continue;
             }
@@ -113,6 +119,7 @@ abstract class BehaviorRegistry
 
     /**
      * Locate a behavior class.
+     *
      * @param string $name The behavior name.
      * @return string|null The behavior class.
      */
@@ -120,7 +127,7 @@ abstract class BehaviorRegistry
     {
         $namespaces = array_merge(static::$namespaces, ['\Fyre\ORM\Behaviors\\']);
 
-        foreach ($namespaces AS $namespace) {
+        foreach ($namespaces as $namespace) {
             $className = $namespace.$name.'Behavior';
 
             if (class_exists($className) && is_subclass_of($className, Behavior::class)) {
@@ -133,6 +140,7 @@ abstract class BehaviorRegistry
 
     /**
      * Normalize a namespace
+     *
      * @param string $namespace The namespace.
      * @return string The normalized namespace.
      */
@@ -144,5 +152,4 @@ abstract class BehaviorRegistry
             '\\'.$namespace.'\\' :
             '\\';
     }
-
 }

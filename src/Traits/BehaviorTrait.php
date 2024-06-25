@@ -14,14 +14,15 @@ use function array_key_exists;
  */
 trait BehaviorTrait
 {
-
     protected array $behaviors = [];
 
     /**
      * Add a Behavior to the Model.
+     *
      * @param string $name The behavior name.
      * @param array $options The behavior options.
      * @return Model The Model.
+     *
      * @throws OrmException if the behavior exists.
      */
     public function addBehavior(string $name, array $options = []): static
@@ -37,6 +38,7 @@ trait BehaviorTrait
 
     /**
      * Get a loaded Behavior.
+     *
      * @param string $name The behavior name.
      * @return Behavior|null The Behavior.
      */
@@ -47,6 +49,7 @@ trait BehaviorTrait
 
     /**
      * Determine if the Model has a Behavior.
+     *
      * @param string $name The behavior name.
      * @return bool TRUE if the Model has the Behavior, otherwise FALSE.
      */
@@ -57,8 +60,10 @@ trait BehaviorTrait
 
     /**
      * Remove a Behavior from the Model.
+     *
      * @param string $name The behavior name.
      * @return Model The Model.
+     *
      * @throws OrmException if the behavior does not exist.
      */
     public function removeBehavior(string $name): static
@@ -71,5 +76,4 @@ trait BehaviorTrait
 
         return $this;
     }
-
 }

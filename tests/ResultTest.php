@@ -12,14 +12,30 @@ use Tests\Mock\Entity\Item;
 
 final class ResultTest extends TestCase
 {
-
     use ConnectionTrait;
 
-    public function testResult(): void
+    public function testColumnCount(): void
     {
-        $this->assertInstanceOf(
-            Result::class,
-            ModelRegistry::use('Items')->find()->getResult()
+        $this->assertSame(
+            2,
+            ModelRegistry::use('Items')
+                ->find()
+                ->getResult()
+                ->columnCount()
+        );
+    }
+
+    public function testColumns(): void
+    {
+        $this->assertSame(
+            [
+                'Items__id',
+                'Items__name',
+            ],
+            ModelRegistry::use('Items')
+                ->find()
+                ->getResult()
+                ->columns()
         );
     }
 
@@ -29,11 +45,11 @@ final class ResultTest extends TestCase
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -66,11 +82,11 @@ final class ResultTest extends TestCase
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -97,17 +113,43 @@ final class ResultTest extends TestCase
         );
     }
 
+    public function testFree(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $result = $Items->find()->getResult();
+        $result->free();
+
+        $this->assertSame(
+            [],
+            $result->all()
+        );
+    }
+
     public function testLast(): void
     {
         $Items = ModelRegistry::use('Items');
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -134,28 +176,11 @@ final class ResultTest extends TestCase
         );
     }
 
-    public function testColumnCount(): void
+    public function testResult(): void
     {
-        $this->assertSame(
-            2,
-            ModelRegistry::use('Items')
-                ->find()
-                ->getResult()
-                ->columnCount()
-        );
-    }
-
-    public function testColumns(): void
-    {
-        $this->assertSame(
-            [
-                'Items__id',
-                'Items__name'
-            ],
-            ModelRegistry::use('Items')
-                ->find()
-                ->getResult()
-                ->columns()
+        $this->assertInstanceOf(
+            Result::class,
+            ModelRegistry::use('Items')->find()->getResult()
         );
     }
 
@@ -166,14 +191,13 @@ final class ResultTest extends TestCase
             ModelRegistry::use('Items')
                 ->find([
                     'fields' => [
-                        'name' => 'Items.name'
-                    ]
+                        'name' => 'Items.name',
+                    ],
                 ])
                 ->getResult()
                 ->getType('name')
         );
     }
-
 
     public function testTypeVirtualField(): void
     {
@@ -182,38 +206,11 @@ final class ResultTest extends TestCase
             ModelRegistry::use('Items')
                 ->find([
                     'fields' => [
-                        'virtual' => 'NOW()'
-                    ]
+                        'virtual' => 'NOW()',
+                    ],
                 ])
                 ->getResult()
                 ->getType('virtual')
         );
     }
-
-    public function testFree(): void
-    {
-        $Items = ModelRegistry::use('Items');
-
-        $items = $Items->newEntities([
-            [
-                'name' => 'Test 1'
-            ],
-            [
-                'name' => 'Test 2'
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Items->saveMany($items)
-        );
-
-        $result = $Items->find()->getResult();
-        $result->free();
-
-        $this->assertSame(
-            [],
-            $result->all()
-        );
-    }
-
 }

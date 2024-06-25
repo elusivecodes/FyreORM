@@ -15,7 +15,6 @@ use function array_key_exists;
 use function array_map;
 use function count;
 use function explode;
-use function in_array;
 use function is_numeric;
 use function is_string;
 use function str_replace;
@@ -25,31 +24,37 @@ use function str_replace;
  */
 class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 {
+    use ModelTrait;
 
     protected string $alias;
-    protected array $options = [];
-
-    protected Result|bool|null $result = null;
-
-    protected array $contain = [];
-    protected array $containJoin = [];
-    protected array $matching = [];
 
     protected bool|null $autoFields = null;
-    protected array $eagerLoadPaths = [];
-
-    protected array|null $originalFields = null;
-    protected array|null $originalJoins = null;
-    protected bool $prepared = false;
-
-    protected int|null $count = null;
 
     protected bool $beforeFindTriggered = false;
 
-    use ModelTrait;
+    protected array $contain = [];
+
+    protected array $containJoin = [];
+
+    protected int|null $count = null;
+
+    protected array $eagerLoadPaths = [];
+
+    protected array $matching = [];
+
+    protected array $options = [];
+
+    protected array|null $originalFields = null;
+
+    protected array|null $originalJoins = null;
+
+    protected bool $prepared = false;
+
+    protected bool|Result|null $result = null;
 
     /**
      * New SelectQuery constructor.
+     *
      * @param Model $model The Model.
      * @param array $options The SelectQuery options.
      */
@@ -70,12 +75,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         parent::__construct($this->model->getConnection($this->options['connectionType']), []);
 
         $this->from([
-            $this->alias => $this->model->getTable()
+            $this->alias => $this->model->getTable(),
         ]);
     }
 
     /**
      * Get the results as an array.
+     *
      * @return array The results.
      */
     public function all(): array
@@ -85,6 +91,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Clear the buffered result.
+     *
      * @return SelectQuery The SelectQuery.
      */
     public function clearResult(): static
@@ -96,10 +103,11 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Set the contain relationships.
+     *
      * @param string|array $contain The contain relationships.
      * @return SelectQuery The SelectQuery.
      */
-    public function contain(string|array $contain): static
+    public function contain(array|string $contain): static
     {
         $contain = Model::normalizeContain($contain, $this->model);
 
@@ -112,6 +120,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the result count.
+     *
      * @return int The result count.
      */
     public function count(): int
@@ -125,17 +134,16 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
             $this->count = $query->getConnection()
                 ->select([
-                    'count' => 'COUNT(*)'
+                    'count' => 'COUNT(*)',
                 ])
                 ->from([
                     'count_source' => $query
                         ->orderBy([], true)
                         ->groupBy([], true)
-                        ->limit(null, 0)
+                        ->limit(null, 0),
                 ])
                 ->execute()
-                ->first()
-                ['count'] ?? 0;
+                ->first()['count'] ?? 0;
         }
 
         return $this->count;
@@ -143,6 +151,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Enable or disable auto fields.
+     *
      * @param bool Whether to enable or disable auto fields.
      * @return SelectQuery The SelectQuery.
      */
@@ -155,6 +164,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the first result.
+     *
      * @return Entity|null The first result.
      */
     public function first(): Entity|null
@@ -168,6 +178,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the alias.
+     *
      * @return string The alias.
      */
     public function getAlias(): string
@@ -177,6 +188,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the connection type.
+     *
      * @return string The connection type.
      */
     public function getConnectionType(): string
@@ -186,6 +198,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the contain array.
+     *
      * @return array The contain array.
      */
     public function getContain(): array
@@ -195,6 +208,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the eager load paths.
+     *
      * @return array The eager load paths.
      */
     public function getEagerLoadPaths(): array
@@ -204,6 +218,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the matching array.
+     *
      * @return array The matching array.
      */
     public function getMatching(): array
@@ -213,6 +228,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the query options.
+     *
      * @return array The query options.
      */
     public function getOptions(): array
@@ -222,6 +238,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Get the query result.
+     *
      * @return Result The query result.
      */
     public function getResult(): Result
@@ -241,11 +258,12 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             }
         }
 
-        return $this->result; 
+        return $this->result;
     }
 
     /**
      * INNER JOIN a relationship table.
+     *
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
      * @return SelectQuery The SelectQuery.
@@ -257,6 +275,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * LEFT JOIN a relationship table.
+     *
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
      * @return SelectQuery The SelectQuery.
@@ -268,6 +287,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * INNER JOIN a relationship table and load matching data.
+     *
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
      * @return SelectQuery The SelectQuery.
@@ -279,6 +299,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * LEFT JOIN a relationship table and exclude matching rows.
+     *
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
      * @return SelectQuery The SelectQuery.
@@ -290,6 +311,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Prepare the query.
+     *
      * @return SelectQuery The SelectQuery.
      */
     public function prepare(): static
@@ -305,7 +327,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $this->joins = [];
 
         $usedAliases = [
-            $this->alias
+            $this->alias,
         ];
 
         if ($this->autoFields !== false) {
@@ -316,7 +338,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
         $this->fields += $fields;
 
-        foreach ($this->matching AS $name => $relationship) {
+        foreach ($this->matching as $name => $relationship) {
             $target = $relationship->getTarget();
 
             if ($this->autoFields !== false) {
@@ -328,13 +350,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
         $this->containAll($this->contain, $this->model, $this->alias);
 
-        foreach ($this->containJoin AS $alias => $join) {
+        foreach ($this->containJoin as $alias => $join) {
             unset($join['path']);
 
             $this->joins[$alias] = $join;
         }
 
-        foreach ($joins AS $alias => $join) {
+        foreach ($joins as $alias => $join) {
             if (is_numeric($alias)) {
                 $alias = $join['alias'] ?? $join['table'] ?? null;
             }
@@ -361,6 +383,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Reset the query.
+     *
      * @return SelectQuery The SelectQuery.
      */
     public function reset(): static
@@ -379,11 +402,12 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Set the SELECT fields.
+     *
      * @param string|array $fields The fields.
      * @param bool $overwrite Whether to overwrite the existing fields.
      * @return SelectQuery The SelectQuery.
      */
-    public function select(string|array $fields = '*', bool $overwrite = false): static
+    public function select(array|string $fields = '*', bool $overwrite = false): static
     {
         if ($overwrite) {
             $this->fields = [];
@@ -402,6 +426,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Generate the SQL query.
+     *
      * @param ValueBinder|null $binder The ValueBinder.
      * @param bool $reset Whether to reset the prepared query.
      * @return string The SQL query.
@@ -421,6 +446,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Add SELECT fields.
+     *
      * @param array $fields The fields to add.
      * @param Model $model The Model.
      * @param string $alias The table alias.
@@ -429,9 +455,10 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      */
     protected function addFields(array $fields, Model $model, string $alias, bool $overwrite = true, bool $prefixAlias = false): void
     {
-        foreach ($fields AS $name => $field) {
+        foreach ($fields as $name => $field) {
             if ($field === '*') {
                 $this->autoFields($model, $alias);
+
                 continue;
             }
 
@@ -441,6 +468,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
             if ($this->options['subquery'] && is_numeric($name)) {
                 $this->fields[] = $field;
+
                 continue;
             }
 
@@ -460,18 +488,20 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Automatically add SELECT fields from a Model schema.
+     *
      * @param Model $model The Model.
      * @param string $alias The table alias.
      */
     protected function autoFields(Model $model, string $alias): void
     {
         $columns = $model->getSchema(Model::READ)->columnNames();
-    
+
         $this->addFields($columns, $model, $alias, false);
     }
 
     /**
      * Add contain relationships to query.
+     *
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
      * @param string $alias The table alias.
@@ -479,7 +509,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      */
     protected function containAll(array $contain, Model $model, string $alias, string $pathPrefix = ''): void
     {
-        foreach ($contain AS $name => $data) {
+        foreach ($contain as $name => $data) {
             $relationship = $model->getRelationship($name);
 
             $data['strategy'] ??= $relationship->getStrategy();
@@ -488,6 +518,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $bindingKey = $relationship->getBindingKey();
                 $this->addFields([$bindingKey], $model, $alias);
                 $this->eagerLoadPaths[] = $pathPrefix.'.'.$name;
+
                 continue;
             }
 
@@ -499,12 +530,12 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 'alias' => $name,
                 'sourceAlias' => $alias,
                 'type' => $data['type'] ?? null,
-                'conditions' => $data['conditions'] ?? []
+                'conditions' => $data['conditions'] ?? [],
             ]);
 
             $path = $pathPrefix;
             $usedAlias = false;
-            foreach ($joins AS $joinAlias => $join) {
+            foreach ($joins as $joinAlias => $join) {
                 $path .= '.'.$joinAlias;
 
                 if (array_key_exists($joinAlias, $this->joins)) {
@@ -522,10 +553,11 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $bindingKey = $relationship->getBindingKey();
                 $this->addFields([$bindingKey], $model, $alias);
                 $this->eagerLoadPaths[] = $pathPrefix.'.'.$name;
+
                 continue;
             }
 
-            foreach ($joins AS $joinAlias => $join) {
+            foreach ($joins as $joinAlias => $join) {
                 $this->joins[$joinAlias] ??= $join;
             }
 
@@ -545,11 +577,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     /**
      * Add a relationship JOIN.
+     *
      * @param string $contain The contain string.
      * @param array $conditions The JOIN conditions.
      * @param string $type The JOIN type.
      * @param bool|null $matching Whether this is a matching/noMatching join.
      * @return SelectQuery The SelectQuery.
+     *
      * @throws OrmException if a relationship is not valid.
      */
     protected function containJoin(string $contain, array $conditions, string $type = 'LEFT', bool|null $matching = null): static
@@ -561,7 +595,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $sourceAlias = $this->alias;
 
         $path = '';
-        foreach ($contain AS $i => $alias) {
+        foreach ($contain as $i => $alias) {
             $isLastJoin = $i === $lastContain;
 
             $relationship = $model->getRelationship($alias);
@@ -578,10 +612,10 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 'conditions' => $isLastJoin ?
                     $conditions :
                     [],
-                'type' => $type
+                'type' => $type,
             ]);
 
-            foreach ($joins AS $joinAlias => $join) {
+            foreach ($joins as $joinAlias => $join) {
                 $path .= '.'.$joinAlias;
 
                 if (array_key_exists($joinAlias, $this->containJoin) && $path !== $this->containJoin[$joinAlias]['path']) {
@@ -628,5 +662,4 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $this->count = null;
         $this->result = null;
     }
-
 }

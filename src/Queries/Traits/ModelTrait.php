@@ -10,16 +10,15 @@ use Fyre\ORM\Model;
  */
 trait ModelTrait
 {
-
     protected Model $model;
 
     /**
      * Get the Model.
+     *
      * @return Model The Model.
      */
     public function getModel(): Model
     {
         return $this->model;
     }
-
 }

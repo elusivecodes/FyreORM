@@ -29,6 +29,14 @@ use function method_exists;
  */
 class Model
 {
+    use BehaviorTrait;
+    use EntityTrait;
+    use HelperTrait;
+    use ParserTrait;
+    use QueryTrait;
+    use RelationshipsTrait;
+    use SchemaTrait;
+    use ValidationTrait;
 
     public const QUERY_METHODS = [
         'fields' => 'select',
@@ -41,29 +49,22 @@ class Model
         'limit' => 'limit',
         'offset' => 'offset',
         'epilog' => 'epilog',
-        'autoFields' => 'enableAutoFields'
+        'autoFields' => 'enableAutoFields',
     ];
 
-    public const WRITE = 'write';
     public const READ = 'read';
 
+    public const WRITE = 'write';
+
     protected array $connectionKeys = [
-        self::WRITE => 'default'
+        self::WRITE => 'default',
     ];
 
     protected array $connections = [];
 
-    use BehaviorTrait;
-    use EntityTrait;
-    use HelperTrait;
-    use ParserTrait;
-    use QueryTrait;
-    use RelationshipsTrait;
-    use SchemaTrait;
-    use ValidationTrait;
-
     /**
      * Create a new DeleteQuery.
+     *
      * @param array $options The option for the query.
      * @return DeleteQuery The DeleteQuery.
      */
@@ -74,6 +75,7 @@ class Model
 
     /**
      * Get the Connection.
+     *
      * @param string|null $type The connection type.
      * @return Connection The Connection.
      */
@@ -88,6 +90,7 @@ class Model
 
     /**
      * Handle an event callbacks.
+     *
      * @param string $event The event name.
      * @return bool TRUE if the callbacks processed successfully, otherwise FALSE.
      */
@@ -97,7 +100,7 @@ class Model
             return false;
         }
 
-        foreach ($this->behaviors AS $behavior) {
+        foreach ($this->behaviors as $behavior) {
             if (method_exists($behavior, $event) && call_user_func_array([$behavior, $event], $arguments) === false) {
                 return false;
             }
@@ -108,6 +111,7 @@ class Model
 
     /**
      * Create a new InsertQuery.
+     *
      * @return InsertQuery The InsertQuery.
      */
     public function insertQuery(): InsertQuery
@@ -117,6 +121,7 @@ class Model
 
     /**
      * Create a new ReplaceQuery.
+     *
      * @return ReplaceQuery The ReplaceQuery.
      */
     public function ReplaceQuery(): ReplaceQuery
@@ -126,6 +131,7 @@ class Model
 
     /**
      * Create a new SelectQuery.
+     *
      * @param array $options The option for the query.
      * @return SelectQuery The SelectQuery.
      */
@@ -136,6 +142,7 @@ class Model
 
     /**
      * Set the Connection.
+     *
      * @param Connection $connection The Connection.
      * @param string $type The connection type.
      * @return Model The Model.
@@ -149,6 +156,7 @@ class Model
 
     /**
      * Create a new subquery SelectQuery.
+     *
      * @param array $options The option for the query.
      * @return SelectQuery The SelectQuery.
      */
@@ -158,17 +166,8 @@ class Model
     }
 
     /**
-     * Create a new UpdateQuery.
-     * @param array $options The option for the query.
-     * @return UpdateQuery The UpdateQuery.
-     */
-    public function updateQuery(array $options = []): UpdateQuery
-    {
-        return new UpdateQuery($this, $options);
-    }
-
-    /**
      * Create a new UpdateBatchQuery.
+     *
      * @param array $options The option for the query.
      * @return UpdateBatchQuery The UpdateBatchQuery.
      */
@@ -177,4 +176,14 @@ class Model
         return new UpdateBatchQuery($this, $options);
     }
 
+    /**
+     * Create a new UpdateQuery.
+     *
+     * @param array $options The option for the query.
+     * @return UpdateQuery The UpdateQuery.
+     */
+    public function updateQuery(array $options = []): UpdateQuery
+    {
+        return new UpdateQuery($this, $options);
+    }
 }

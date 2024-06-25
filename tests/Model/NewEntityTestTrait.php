@@ -12,7 +12,6 @@ use Tests\Mock\Entity\User;
 
 trait NewEntityTestTrait
 {
-
     public function testNewEmptyEntity(): void
     {
         $item = ModelRegistry::use('Items')->newEmptyEntity();
@@ -31,7 +30,7 @@ trait NewEntityTestTrait
     public function testNewEntity(): void
     {
         $item = ModelRegistry::use('Items')->newEntity([
-            'name' => 'Test'
+            'name' => 'Test',
         ]);
 
         $this->assertInstanceOf(
@@ -58,6 +57,90 @@ trait NewEntityTestTrait
         );
     }
 
+    public function testNewEntityAssociated(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                    'tags' => [
+                        [
+                            'tag' => 'test1',
+                        ],
+                        [
+                            'tag' => 'test2',
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                    'tags' => [
+                        [
+                            'tag' => 'test3',
+                        ],
+                        [
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
+            ],
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ], [
+            'associated' => [
+                'Posts',
+            ],
+        ]);
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[0]
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[1]
+        );
+
+        $this->assertSame(
+            'Users',
+            $user->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Posts',
+            $user->posts[1]->getSource()
+        );
+
+        $this->assertNull(
+            $user->address
+        );
+
+        $this->assertNull(
+            $user->posts[0]->tags
+        );
+
+        $this->assertNull(
+            $user->posts[1]->tags
+        );
+    }
+
     public function testNewEntityBelongsTo(): void
     {
         $Addresses = ModelRegistry::use('Addresses');
@@ -65,8 +148,8 @@ trait NewEntityTestTrait
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
             'user' => [
-                'name' => 'Test'
-            ]
+                'name' => 'Test',
+            ],
         ]);
 
         $this->assertInstanceOf(
@@ -106,200 +189,6 @@ trait NewEntityTestTrait
         );
     }
 
-    public function testNewEntityHasMany(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'posts' => [
-                [
-                    'title' => 'Test 1',
-                    'content' => 'This is the content.'
-                ],
-                [
-                    'title' => 'Test 2',
-                    'content' => 'This is the content.'
-                ]
-            ]
-        ]);
-
-        $this->assertInstanceOf(
-            User::class,
-            $user
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $user->posts[0]
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $user->posts[1]
-        );
-
-        $this->assertSame(
-            'Users',
-            $user->getSource()
-        );
-
-        $this->assertSame(
-            'Posts',
-            $user->posts[0]->getSource()
-        );
-
-        $this->assertSame(
-            'Posts',
-            $user->posts[1]->getSource()
-        );
-
-        $this->assertTrue(
-            $user->isNew()
-        );
-
-        $this->assertTrue(
-            $user->posts[0]->isNew()
-        );
-
-        $this->assertTrue(
-            $user->posts[1]->isNew()
-        );
-
-        $this->assertTrue(
-            $user->isDirty()
-        );
-
-        $this->assertTrue(
-            $user->posts[0]->isDirty()
-        );
-
-        $this->assertTrue(
-            $user->posts[1]->isDirty()
-        );
-    }
-
-    public function testNewEntityHasOne(): void
-    {
-        $Users = ModelRegistry::use('Users');
-
-        $user = $Users->newEntity([
-            'name' => 'Test',
-            'address' => [
-                'suburb' => 'Test'
-            ]
-        ]);
-
-        $this->assertInstanceOf(
-            User::class,
-            $user
-        );
-
-        $this->assertInstanceOf(
-            Address::class,
-            $user->address
-        );
-
-        $this->assertSame(
-            'Users',
-            $user->getSource()
-        );
-
-        $this->assertSame(
-            'Addresses',
-            $user->address->getSource()
-        );
-
-        $this->assertTrue(
-            $user->isNew()
-        );
-
-        $this->assertTrue(
-            $user->address->isNew()
-        );
-
-        $this->assertTrue(
-            $user->isDirty()
-        );
-
-        $this->assertTrue(
-            $user->address->isDirty()
-        );
-    }
-
-    public function testNewEntityManyToMany(): void
-    {
-        $Posts = ModelRegistry::use('Posts');
-
-        $post = $Posts->newEntity([
-            'user_id' => 1,
-            'title' => 'Test',
-            'content' => 'This is the content.',
-            'tags' => [
-                [
-                    'tag' => 'test1'
-                ],
-                [
-                    'tag' => 'test2'
-                ]
-            ]
-        ]);
-
-        $this->assertInstanceOf(
-            Post::class,
-            $post
-        );
-
-        $this->assertInstanceOf(
-            Tag::class,
-            $post->tags[0]
-        );
-
-        $this->assertInstanceOf(
-            Tag::class,
-            $post->tags[1]
-        );
-
-        $this->assertSame(
-            'Posts',
-            $post->getSource()
-        );
-
-        $this->assertSame(
-            'Tags',
-            $post->tags[0]->getSource()
-        );
-
-        $this->assertSame(
-            'Tags',
-            $post->tags[1]->getSource()
-        );
-
-        $this->assertTrue(
-            $post->isNew()
-        );
-
-        $this->assertTrue(
-            $post->tags[0]->isNew()
-        );
-
-        $this->assertTrue(
-            $post->tags[1]->isNew()
-        );
-
-        $this->assertTrue(
-            $post->isDirty()
-        );
-
-        $this->assertTrue(
-            $post->tags[0]->isDirty()
-        );
-
-        $this->assertTrue(
-            $post->tags[1]->isDirty()
-        );
-    }
-
     public function testNewEntityContain(): void
     {
         $Users = ModelRegistry::use('Users');
@@ -312,29 +201,29 @@ trait NewEntityTestTrait
                     'content' => 'This is the content.',
                     'tags' => [
                         [
-                            'tag' => 'test1'
+                            'tag' => 'test1',
                         ],
                         [
-                            'tag' => 'test2'
-                        ]
-                    ]
+                            'tag' => 'test2',
+                        ],
+                    ],
                 ],
                 [
                     'title' => 'Test 2',
                     'content' => 'This is the content.',
                     'tags' => [
                         [
-                            'tag' => 'test3'
+                            'tag' => 'test3',
                         ],
                         [
-                            'tag' => 'test4'
-                        ]
-                    ]
-                ]
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
             ],
             'address' => [
-                'suburb' => 'Test'
-            ]
+                'suburb' => 'Test',
+            ],
         ]);
 
         $this->assertInstanceOf(
@@ -418,7 +307,7 @@ trait NewEntityTestTrait
         );
     }
 
-    public function testNewEntityAssociated(): void
+    public function testNewEntityHasMany(): void
     {
         $Users = ModelRegistry::use('Users');
 
@@ -428,35 +317,12 @@ trait NewEntityTestTrait
                 [
                     'title' => 'Test 1',
                     'content' => 'This is the content.',
-                    'tags' => [
-                        [
-                            'tag' => 'test1'
-                        ],
-                        [
-                            'tag' => 'test2'
-                        ]
-                    ]
                 ],
                 [
                     'title' => 'Test 2',
                     'content' => 'This is the content.',
-                    'tags' => [
-                        [
-                            'tag' => 'test3'
-                        ],
-                        [
-                            'tag' => 'test4'
-                        ]
-                    ]
-                ]
+                ],
             ],
-            'address' => [
-                'suburb' => 'Test'
-            ]
-        ], [
-            'associated' => [
-                'Posts'
-            ]
         ]);
 
         $this->assertInstanceOf(
@@ -489,17 +355,149 @@ trait NewEntityTestTrait
             $user->posts[1]->getSource()
         );
 
-        $this->assertNull(
-            $user->address
+        $this->assertTrue(
+            $user->isNew()
         );
 
-        $this->assertNull(
-            $user->posts[0]->tags
+        $this->assertTrue(
+            $user->posts[0]->isNew()
         );
 
-        $this->assertNull(
-            $user->posts[1]->tags
+        $this->assertTrue(
+            $user->posts[1]->isNew()
+        );
+
+        $this->assertTrue(
+            $user->isDirty()
+        );
+
+        $this->assertTrue(
+            $user->posts[0]->isDirty()
+        );
+
+        $this->assertTrue(
+            $user->posts[1]->isDirty()
         );
     }
 
+    public function testNewEntityHasOne(): void
+    {
+        $Users = ModelRegistry::use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ]);
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Address::class,
+            $user->address
+        );
+
+        $this->assertSame(
+            'Users',
+            $user->getSource()
+        );
+
+        $this->assertSame(
+            'Addresses',
+            $user->address->getSource()
+        );
+
+        $this->assertTrue(
+            $user->isNew()
+        );
+
+        $this->assertTrue(
+            $user->address->isNew()
+        );
+
+        $this->assertTrue(
+            $user->isDirty()
+        );
+
+        $this->assertTrue(
+            $user->address->isDirty()
+        );
+    }
+
+    public function testNewEntityManyToMany(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => 'test1',
+                ],
+                [
+                    'tag' => 'test2',
+                ],
+            ],
+        ]);
+
+        $this->assertInstanceOf(
+            Post::class,
+            $post
+        );
+
+        $this->assertInstanceOf(
+            Tag::class,
+            $post->tags[0]
+        );
+
+        $this->assertInstanceOf(
+            Tag::class,
+            $post->tags[1]
+        );
+
+        $this->assertSame(
+            'Posts',
+            $post->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $post->tags[0]->getSource()
+        );
+
+        $this->assertSame(
+            'Tags',
+            $post->tags[1]->getSource()
+        );
+
+        $this->assertTrue(
+            $post->isNew()
+        );
+
+        $this->assertTrue(
+            $post->tags[0]->isNew()
+        );
+
+        $this->assertTrue(
+            $post->tags[1]->isNew()
+        );
+
+        $this->assertTrue(
+            $post->isDirty()
+        );
+
+        $this->assertTrue(
+            $post->tags[0]->isDirty()
+        );
+
+        $this->assertTrue(
+            $post->tags[1]->isDirty()
+        );
+    }
 }

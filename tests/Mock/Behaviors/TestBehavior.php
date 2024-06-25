@@ -12,9 +12,8 @@ use function trim;
 
 class TestBehavior extends Behavior
 {
-
     protected static array $defaults = [
-        'testField' => 'name'
+        'testField' => 'name',
     ];
 
     public function afterDelete(Entity $entity): bool
@@ -86,5 +85,4 @@ class TestBehavior extends Behavior
 
         return true;
     }
-
 }

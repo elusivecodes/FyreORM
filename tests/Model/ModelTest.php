@@ -10,7 +10,6 @@ use Tests\ConnectionTrait;
 
 final class ModelTest extends TestCase
 {
-
     use BehaviorTestTrait;
     use BelongsToCallbacksTestTrait;
     use BelongsToTestTrait;
@@ -48,7 +47,7 @@ final class ModelTest extends TestCase
     {
         $this->assertSame(
             [
-                '\Tests\Mock\Model\\'
+                '\Tests\Mock\Model\\',
             ],
             ModelRegistry::getNamespaces()
         );
@@ -85,5 +84,4 @@ final class ModelTest extends TestCase
             ModelRegistry::removeNamespace('Tests\Invalid\Model')
         );
     }
-
 }

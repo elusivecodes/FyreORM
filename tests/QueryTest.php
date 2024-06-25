@@ -10,16 +10,7 @@ use Tests\Mock\Entity\Item;
 
 final class QueryTest extends TestCase
 {
-
     use ConnectionTrait;
-
-    public function testQuery(): void
-    {
-        $this->assertInstanceOf(
-            SelectQuery::class,
-            ModelRegistry::use('Items')->find()
-        );
-    }
 
     public function testCount(): void
     {
@@ -27,11 +18,11 @@ final class QueryTest extends TestCase
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -51,11 +42,11 @@ final class QueryTest extends TestCase
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -76,11 +67,11 @@ final class QueryTest extends TestCase
 
         $items = $Items->newEntities([
             [
-                'name' => 'Test 1'
+                'name' => 'Test 1',
             ],
             [
-                'name' => 'Test 2'
-            ]
+                'name' => 'Test 2',
+            ],
         ]);
 
         $this->assertTrue(
@@ -107,7 +98,7 @@ final class QueryTest extends TestCase
         );
 
         $query->where([
-            'name' => 'Test 2'
+            'name' => 'Test 2',
         ]);
 
         $result2 = $query->first();
@@ -128,4 +119,11 @@ final class QueryTest extends TestCase
         );
     }
 
+    public function testQuery(): void
+    {
+        $this->assertInstanceOf(
+            SelectQuery::class,
+            ModelRegistry::use('Items')->find()
+        );
+    }
 }

@@ -10,7 +10,6 @@ use RunTimeException;
  */
 class OrmException extends RunTimeException
 {
-
     public static function forBehaviorExists(string $name): static
     {
         return new static('Model behavior already exists: '.$name);
@@ -26,14 +25,14 @@ class OrmException extends RunTimeException
         return new static('All entities must be an instance of Entity.');
     }
 
-    public static function forInvalidStrategy(string $strategy): static
-    {
-        return new static('Invalid relationship strategy: '.$strategy);
-    }
-
     public static function forInvalidRelationship(string $name): static
     {
         return new static('Model relationship does not exist: '.$name);
+    }
+
+    public static function forInvalidStrategy(string $strategy): static
+    {
+        return new static('Invalid relationship strategy: '.$strategy);
     }
 
     public static function forJoinAliasNotUnique(string $name): static
@@ -55,5 +54,4 @@ class OrmException extends RunTimeException
     {
         return new static('Model relationship already exists: '.$name);
     }
-
 }

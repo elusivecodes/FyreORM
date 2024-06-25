@@ -10,15 +10,15 @@ use function array_replace;
  */
 abstract class Behavior
 {
-
     protected static array $defaults = [];
-
-    protected Model $model;
 
     protected array $config;
 
+    protected Model $model;
+
     /**
      * New Behavior constructor.
+     *
      * @param Model $model The Model.
      * @param array $options The behavior options.
      */
@@ -31,6 +31,7 @@ abstract class Behavior
 
     /**
      * Get the config.
+     *
      * @return array The behavior config.
      */
     public function getConfig(): array
@@ -40,11 +41,11 @@ abstract class Behavior
 
     /**
      * Get the Model.
+     *
      * @return Model The Model.
      */
     public function getModel(): Model
     {
         return $this->model;
     }
-
 }

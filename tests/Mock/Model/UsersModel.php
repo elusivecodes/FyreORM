@@ -11,17 +11,16 @@ use Fyre\Validation\Validator;
 
 class UsersModel extends Model
 {
-
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'name'
+            'testField' => 'name',
         ]);
 
         $this->hasOne('Addresses');
         $this->hasMany('Comments');
         $this->hasMany('Posts', [
-            'dependent' => true
+            'dependent' => true,
         ]);
     }
 
@@ -42,5 +41,4 @@ class UsersModel extends Model
 
         return $validator;
     }
-
 }

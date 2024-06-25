@@ -10,6 +10,211 @@ use Tests\Mock\Entity\Tag;
 
 trait ManyToManyTestTrait
 {
+    public function testManyToManyDelete(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => 'test1',
+                ],
+                [
+                    'tag' => 'test2',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Posts->save($post)
+        );
+
+        $this->assertTrue(
+            $Posts->delete($post)
+        );
+
+        $this->assertSame(
+            0,
+            $Posts->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('PostsTags')->find()->count()
+        );
+
+        $this->assertSame(
+            2,
+            ModelRegistry::use('Tags')->find()->count()
+        );
+    }
+
+    public function testManyToManyDeleteMany(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $posts = $Posts->newEntities([
+            [
+                'user_id' => 1,
+                'title' => 'Test 1',
+                'content' => 'This is the content.',
+                'tags' => [
+                    [
+                        'tag' => 'test1',
+                    ],
+                    [
+                        'tag' => 'test2',
+                    ],
+                ],
+            ],
+            [
+                'user_id' => 1,
+                'title' => 'Test 2',
+                'content' => 'This is the content.',
+                'tags' => [
+                    [
+                        'tag' => 'test3',
+                    ],
+                    [
+                        'tag' => 'test4',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Posts->saveMany($posts)
+        );
+
+        $this->assertTrue(
+            $Posts->deleteMany($posts)
+        );
+
+        $this->assertSame(
+            0,
+            $Posts->find()->count()
+        );
+
+        $this->assertSame(
+            0,
+            ModelRegistry::use('PostsTags')->find()->count()
+        );
+
+        $this->assertSame(
+            4,
+            ModelRegistry::use('Tags')->find()->count()
+        );
+    }
+
+    public function testManyToManyFind(): void
+    {
+        $Posts = ModelRegistry::use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => 'test1',
+                ],
+                [
+                    'tag' => 'test2',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Posts->save($post)
+        );
+
+        $post = $Posts->get(1, [
+            'contain' => [
+                'Tags',
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $post->id
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($tag) => $tag->id,
+                $post->tags
+            )
+        );
+
+        $this->assertSame(
+            [1, 2],
+            array_map(
+                fn($tag) => $tag->_joinData->id,
+                $post->tags
+            )
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $post
+        );
+
+        $this->assertInstanceOf(
+            Tag::class,
+            $post->tags[0]
+        );
+
+        $this->assertInstanceOf(
+            Tag::class,
+            $post->tags[1]
+        );
+
+        $this->assertInstanceOf(
+            Entity::class,
+            $post->tags[0]->_joinData
+        );
+
+        $this->assertInstanceOf(
+            Entity::class,
+            $post->tags[1]->_joinData
+        );
+
+        $this->assertFalse(
+            $post->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[0]->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[1]->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[0]->_joinData->isNew()
+        );
+
+        $this->assertFalse(
+            $post->tags[1]->_joinData->isNew()
+        );
+    }
+
+    public function testManyToManyInnerJoinSql(): void
+    {
+        $this->assertSame(
+            'SELECT Posts.id AS Posts__id FROM posts AS Posts INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
+            ModelRegistry::use('Posts')
+                ->find()
+                ->innerJoinWith('Tags')
+                ->enableAutoFields(false)
+                ->sql()
+        );
+    }
 
     public function testManyToManyInsert(): void
     {
@@ -21,12 +226,12 @@ trait ManyToManyTestTrait
             'content' => 'This is the content.',
             'tags' => [
                 [
-                    'tag' => 'test1'
+                    'tag' => 'test1',
                 ],
                 [
-                    'tag' => 'test2'
-                ]
-            ]
+                    'tag' => 'test2',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -82,12 +287,12 @@ trait ManyToManyTestTrait
                 'content' => 'This is the content.',
                 'tags' => [
                     [
-                        'tag' => 'test1'
+                        'tag' => 'test1',
                     ],
                     [
-                        'tag' => 'test2'
-                    ]
-                ]
+                        'tag' => 'test2',
+                    ],
+                ],
             ],
             [
                 'user_id' => 1,
@@ -95,13 +300,13 @@ trait ManyToManyTestTrait
                 'content' => 'This is the content.',
                 'tags' => [
                     [
-                        'tag' => 'test3'
+                        'tag' => 'test3',
                     ],
                     [
-                        'tag' => 'test4'
-                    ]
-                ]
-            ]
+                        'tag' => 'test4',
+                    ],
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -119,7 +324,7 @@ trait ManyToManyTestTrait
         $this->assertSame(
             [
                 [1, 2],
-                [3, 4]
+                [3, 4],
             ],
             array_map(
                 fn($post) => array_map(
@@ -179,102 +384,15 @@ trait ManyToManyTestTrait
         );
     }
 
-    public function testManyToManyDelete(): void
+    public function testManyToManyLeftJoinSql(): void
     {
-        $Posts = ModelRegistry::use('Posts');
-
-        $post = $Posts->newEntity([
-            'user_id' => 1,
-            'title' => 'Test',
-            'content' => 'This is the content.',
-            'tags' => [
-                [
-                    'tag' => 'test1'
-                ],
-                [
-                    'tag' => 'test2'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Posts->save($post)
-        );
-
-        $this->assertTrue(
-            $Posts->delete($post)
-        );
-
         $this->assertSame(
-            0,
-            $Posts->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('PostsTags')->find()->count()
-        );
-
-        $this->assertSame(
-            2,
-            ModelRegistry::use('Tags')->find()->count()
-        );
-    }
-
-    public function testManyToManyDeleteMany(): void
-    {
-        $Posts = ModelRegistry::use('Posts');
-
-        $posts = $Posts->newEntities([
-            [
-                'user_id' => 1,
-                'title' => 'Test 1',
-                'content' => 'This is the content.',
-                'tags' => [
-                    [
-                        'tag' => 'test1'
-                    ],
-                    [
-                        'tag' => 'test2'
-                    ]
-                ]
-            ],
-            [
-                'user_id' => 1,
-                'title' => 'Test 2',
-                'content' => 'This is the content.',
-                'tags' => [
-                    [
-                        'tag' => 'test3'
-                    ],
-                    [
-                        'tag' => 'test4'
-                    ]
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Posts->saveMany($posts)
-        );
-
-        $this->assertTrue(
-            $Posts->deleteMany($posts)
-        );
-
-        $this->assertSame(
-            0,
-            $Posts->find()->count()
-        );
-
-        $this->assertSame(
-            0,
-            ModelRegistry::use('PostsTags')->find()->count()
-        );
-
-        $this->assertSame(
-            4,
-            ModelRegistry::use('Tags')->find()->count()
+            'SELECT Posts.id AS Posts__id FROM posts AS Posts LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
+            ModelRegistry::use('Posts')
+                ->find()
+                ->leftJoinWith('Tags')
+                ->enableAutoFields(false)
+                ->sql()
         );
     }
 
@@ -288,12 +406,12 @@ trait ManyToManyTestTrait
             'content' => 'This is the content.',
             'tags' => [
                 [
-                    'tag' => 'test1'
+                    'tag' => 'test1',
                 ],
                 [
-                    'tag' => 'test2'
-                ]
-            ]
+                    'tag' => 'test2',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -328,12 +446,12 @@ trait ManyToManyTestTrait
                 'content' => 'This is the content.',
                 'tags' => [
                     [
-                        'tag' => 'test1'
+                        'tag' => 'test1',
                     ],
                     [
-                        'tag' => 'test2'
-                    ]
-                ]
+                        'tag' => 'test2',
+                    ],
+                ],
             ],
             [
                 'user_id' => 1,
@@ -341,13 +459,13 @@ trait ManyToManyTestTrait
                 'content' => 'This is the content.',
                 'tags' => [
                     [
-                        'tag' => 'test3'
+                        'tag' => 'test3',
                     ],
                     [
-                        'tag' => 'test4'
-                    ]
-                ]
-            ]
+                        'tag' => 'test4',
+                    ],
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -356,11 +474,11 @@ trait ManyToManyTestTrait
 
         $Posts->patchEntities($posts, [
             [
-                'tags' => []
+                'tags' => [],
             ],
             [
-                'tags' => []
-            ]
+                'tags' => [],
+            ],
         ]);
 
         $this->assertTrue(
@@ -378,125 +496,6 @@ trait ManyToManyTestTrait
         );
     }
 
-    public function testManyToManyFind(): void
-    {
-        $Posts = ModelRegistry::use('Posts');
-
-        $post = $Posts->newEntity([
-            'user_id' => 1,
-            'title' => 'Test',
-            'content' => 'This is the content.',
-            'tags' => [
-                [
-                    'tag' => 'test1'
-                ],
-                [
-                    'tag' => 'test2'
-                ]
-            ]
-        ]);
-
-        $this->assertTrue(
-            $Posts->save($post)
-        );
-
-        $post = $Posts->get(1, [
-            'contain' => [
-                'Tags'
-            ]
-        ]);
-
-        $this->assertSame(
-            1,
-            $post->id
-        );
-
-        $this->assertSame(
-            [1, 2],
-            array_map(
-                fn($tag) => $tag->id,
-                $post->tags
-            )
-        );
-
-        $this->assertSame(
-            [1, 2],
-            array_map(
-                fn($tag) => $tag->_joinData->id,
-                $post->tags
-            )
-        );
-
-        $this->assertInstanceOf(
-            Post::class,
-            $post
-        );
-
-        $this->assertInstanceOf(
-            Tag::class,
-            $post->tags[0]
-        );
-
-        $this->assertInstanceOf(
-            Tag::class,
-            $post->tags[1]
-        );
-
-        $this->assertInstanceOf(
-            Entity::class,
-            $post->tags[0]->_joinData
-        );
-
-        $this->assertInstanceOf(
-            Entity::class,
-            $post->tags[1]->_joinData
-        );
-
-        $this->assertFalse(
-            $post->isNew()
-        );
-
-        $this->assertFalse(
-            $post->tags[0]->isNew()
-        );
-
-        $this->assertFalse(
-            $post->tags[1]->isNew()
-        );
-
-        $this->assertFalse(
-            $post->tags[0]->_joinData->isNew()
-        );
-
-        $this->assertFalse(
-            $post->tags[1]->_joinData->isNew()
-        );
-    }
-
-    public function testManyToManyLeftJoinSql(): void
-    {
-        $this->assertSame(
-            'SELECT Posts.id AS Posts__id FROM posts AS Posts LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
-            ModelRegistry::use('Posts')
-                ->find()
-                ->leftJoinWith('Tags')
-                ->enableAutoFields(false)
-                ->sql()
-        );
-    }
-
-    public function testManyToManyInnerJoinSql(): void
-    {
-        $this->assertSame(
-            'SELECT Posts.id AS Posts__id FROM posts AS Posts INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
-            ModelRegistry::use('Posts')
-                ->find()
-                ->innerJoinWith('Tags')
-                ->enableAutoFields(false)
-                ->sql()
-        );
-    }
-
     public function testManyToManySelfSql(): void
     {
         $Items = ModelRegistry::use('Items');
@@ -505,14 +504,14 @@ trait ManyToManyTestTrait
             'className' => 'Items',
             'through' => 'Contains',
             'foreignKey' => 'item_id',
-            'targetForeignKey' => 'contained_item_id'
+            'targetForeignKey' => 'contained_item_id',
         ]);
 
         $Items->manyToMany('ParentItems', [
             'className' => 'Items',
             'through' => 'Contains',
             'foreignKey' => 'contained_item_id',
-            'targetForeignKey' => 'item_id'
+            'targetForeignKey' => 'item_id',
         ]);
 
         $this->assertSame(
@@ -542,12 +541,12 @@ trait ManyToManyTestTrait
             'content' => 'This is the content.',
             'tags' => [
                 [
-                    'tag' => 'test1'
+                    'tag' => 'test1',
                 ],
                 [
-                    'tag' => 'test2'
-                ]
-            ]
+                    'tag' => 'test2',
+                ],
+            ],
         ]);
 
         $this->assertTrue(
@@ -557,9 +556,9 @@ trait ManyToManyTestTrait
         $post = $Posts->get(1, [
             'contain' => [
                 'Tags' => [
-                    'strategy' => 'subquery'
-                ]
-            ]
+                    'strategy' => 'subquery',
+                ],
+            ],
         ]);
 
         $this->assertSame(
@@ -628,5 +627,4 @@ trait ManyToManyTestTrait
             $post->tags[1]->_joinData->isNew()
         );
     }
-
 }

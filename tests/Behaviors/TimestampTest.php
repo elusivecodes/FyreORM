@@ -12,7 +12,6 @@ use function sleep;
 
 final class TimestampTest extends TestCase
 {
-
     use ConnectionTrait;
 
     public function testTimestampsCreate(): void
@@ -71,5 +70,4 @@ final class TimestampTest extends TestCase
             $timestamp->modified->toIsoString()
         );
     }
-
 }

@@ -11,11 +11,10 @@ use Fyre\Validation\Validator;
 
 class TagsModel extends Model
 {
-
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'tag'
+            'testField' => 'tag',
         ]);
 
         $this->manyToMany('Posts');
@@ -38,5 +37,4 @@ class TagsModel extends Model
 
         return $validator;
     }
-
 }

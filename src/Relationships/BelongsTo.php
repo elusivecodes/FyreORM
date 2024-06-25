@@ -10,13 +10,13 @@ use Fyre\Entity\Entity;
  */
 class BelongsTo extends Relationship
 {
-
     protected string $strategy = 'join';
 
     protected array $validStrategies = ['join', 'select'];
 
     /**
      * Get the binding key.
+     *
      * @return string The binding key.
      */
     public function getBindingKey(): string
@@ -26,6 +26,7 @@ class BelongsTo extends Relationship
 
     /**
      * Get the foreign key.
+     *
      * @return string The foreign key.
      */
     public function getForeignKey(): string
@@ -37,6 +38,7 @@ class BelongsTo extends Relationship
 
     /**
      * Determine if the relationship has multiple related items.
+     *
      * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */
     public function hasMultiple(): bool
@@ -46,6 +48,7 @@ class BelongsTo extends Relationship
 
     /**
      * Determine if the source is the owning side of the relationship.
+     *
      * @return bool TRUE if the source is the owning side of the relationship, otherwise FALSE.
      */
     public function isOwningSide(): bool
@@ -55,6 +58,7 @@ class BelongsTo extends Relationship
 
     /**
      * Save related data from an entity.
+     *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -83,6 +87,7 @@ class BelongsTo extends Relationship
 
     /**
      * Remove related data from entities.
+     *
      * @param array $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the unlink was successful, otherwise FALSE.
@@ -91,5 +96,4 @@ class BelongsTo extends Relationship
     {
         return true;
     }
-
 }

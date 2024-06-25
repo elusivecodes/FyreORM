@@ -10,13 +10,13 @@ use Fyre\Entity\Entity;
  */
 class HasOne extends Relationship
 {
-
     protected string $strategy = 'join';
 
     protected array $validStrategies = ['join', 'select'];
 
     /**
      * Determine if the relationship has multiple related items.
+     *
      * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */
     public function hasMultiple(): bool
@@ -26,6 +26,7 @@ class HasOne extends Relationship
 
     /**
      * Save related data from an entity.
+     *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -51,5 +52,4 @@ class HasOne extends Relationship
 
         return true;
     }
-
 }

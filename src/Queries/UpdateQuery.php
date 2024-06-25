@@ -15,13 +15,13 @@ use function array_map;
  */
 class UpdateQuery extends \Fyre\DB\Queries\UpdateQuery
 {
+    use ModelTrait;
 
     protected string $alias;
 
-    use ModelTrait;
-
     /**
      * New Query constructor.
+     *
      * @param Model $model The Model.
      * @param array $options The Query options.
      */
@@ -31,12 +31,13 @@ class UpdateQuery extends \Fyre\DB\Queries\UpdateQuery
         $this->alias = $options['alias'] ?? $this->model->getAlias();
 
         parent::__construct($this->model->getConnection(), [
-            $this->alias => $this->model->getTable()
+            $this->alias => $this->model->getTable(),
         ]);
     }
 
     /**
      * Get the alias.
+     *
      * @return string The alias.
      */
     public function getAlias(): string
@@ -46,6 +47,7 @@ class UpdateQuery extends \Fyre\DB\Queries\UpdateQuery
 
     /**
      * Set the UPDATE data.
+     *
      * @param array $data The data.
      * @param bool $overwrite Whether to overwrite the existing data.
      * @return UpdateQuery The UpdateQuery.
@@ -61,5 +63,4 @@ class UpdateQuery extends \Fyre\DB\Queries\UpdateQuery
 
         return parent::set($data, $overwrite);
     }
-
 }

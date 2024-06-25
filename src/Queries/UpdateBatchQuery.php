@@ -15,13 +15,13 @@ use function array_map;
  */
 class UpdateBatchQuery extends \Fyre\DB\Queries\UpdateBatchQuery
 {
+    use ModelTrait;
 
     protected string $alias;
 
-    use ModelTrait;
-
     /**
      * New UpdateBatchQuery constructor.
+     *
      * @param Model $model The Model.
      * @param array $options The UpdateBatchQuery options.
      */
@@ -31,12 +31,13 @@ class UpdateBatchQuery extends \Fyre\DB\Queries\UpdateBatchQuery
         $this->alias = $options['alias'] ?? $this->model->getAlias();
 
         parent::__construct($this->model->getConnection(), [
-            $this->alias => $this->model->getTable()
+            $this->alias => $this->model->getTable(),
         ]);
     }
 
     /**
      * Get the alias.
+     *
      * @return string The alias.
      */
     public function getAlias(): string
@@ -46,12 +47,13 @@ class UpdateBatchQuery extends \Fyre\DB\Queries\UpdateBatchQuery
 
     /**
      * Set the UPDATE batch data.
+     *
      * @param array $data The data.
-     * @param string|array $keys The key to use for updating.
      * @param bool $overwrite Whether to overwrite the existing data.
+     * @param string|array $keys The key to use for updating.
      * @return UpdateBatchQuery The UpdateBatchQuery.
      */
-    public function set(array $data, string|array $updateKeys, bool $overwrite = false): static
+    public function set(array $data, array|string $updateKeys, bool $overwrite = false): static
     {
         $data = array_map(
             function(array $values): array {
@@ -72,5 +74,4 @@ class UpdateBatchQuery extends \Fyre\DB\Queries\UpdateBatchQuery
 
         return parent::set($data, $updateKeys, $overwrite);
     }
-
 }

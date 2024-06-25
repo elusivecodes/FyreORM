@@ -8,9 +8,9 @@ namespace Fyre\ORM\Traits;
  */
 trait ParserTrait
 {
-
     /**
      * Parse data from user.
+     *
      * @param array $data The data.
      * @return array The user values.
      */
@@ -18,7 +18,7 @@ trait ParserTrait
     {
         $schema = $this->getSchema();
 
-        foreach ($data AS $field => $value) {
+        foreach ($data as $field => $value) {
             if (!$schema->hasColumn($field)) {
                 continue;
             }
@@ -33,6 +33,7 @@ trait ParserTrait
 
     /**
      * Convert data to database.
+     *
      * @param array $data The data.
      * @return array The database values.
      */
@@ -40,7 +41,7 @@ trait ParserTrait
     {
         $schema = $this->getSchema();
 
-        foreach ($data AS $field => $value) {
+        foreach ($data as $field => $value) {
             $data[$field] = $schema
                 ->getType($field)
                 ->toDatabase($value);
@@ -48,5 +49,4 @@ trait ParserTrait
 
         return $data;
     }
-
 }

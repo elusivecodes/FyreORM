@@ -9,18 +9,17 @@ use PHPUnit\Framework\TestCase;
 
 final class BehaviorTest extends TestCase
 {
-
     public function testGetConfig(): void
     {
         $Items = ModelRegistry::use('Items');
 
         $Items->addBehavior('Mock', [
-            'value' => 1
+            'value' => 1,
         ]);
 
         $this->assertSame(
             [
-                'value' => 1
+                'value' => 1,
             ],
             $Items->getBehavior('Mock')->getConfig()
         );
@@ -46,5 +45,4 @@ final class BehaviorTest extends TestCase
         ModelRegistry::clear();
         ModelRegistry::addNamespace('Tests\Mock\Model');
     }
-
 }

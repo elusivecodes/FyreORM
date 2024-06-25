@@ -8,7 +8,6 @@ use Fyre\Schema\SchemaRegistry;
 
 trait SchemaTestTrait
 {
-
     public function testAliasField(): void
     {
         $this->assertSame(
@@ -103,5 +102,4 @@ trait SchemaTestTrait
             $Items->getTable()
         );
     }
-
 }

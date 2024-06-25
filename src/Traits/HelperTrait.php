@@ -23,15 +23,16 @@ use function strtolower;
  */
 trait HelperTrait
 {
-
     /**
      * Check whether all entities are instances of Entity.
+     *
      * @param array $entities The entities.
+     *
      * @throws OrmException if an entity is not an instance of Entity.
      */
     public static function checkEntities(array $entities): void
     {
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             if (!$entity instanceof Entity) {
                 throw OrmException::forInvalidEntity();
             }
@@ -40,6 +41,7 @@ trait HelperTrait
 
     /**
      * Recursively clean entities.
+     *
      * @param array $entities The entities.
      * @param Model $model The Model.
      */
@@ -47,10 +49,10 @@ trait HelperTrait
     {
         $source = $model->getAlias();
 
-        foreach ($entities AS $entity) {
+        foreach ($entities as $entity) {
             $relationships = $model->getRelationships();
 
-            foreach ($relationships AS $relationship) {
+            foreach ($relationships as $relationship) {
                 $property = $relationship->getProperty();
 
                 $relations = $entity->get($property);
@@ -77,19 +79,21 @@ trait HelperTrait
 
     /**
      * Recursively merge contain data.
+     *
      * @param array $contain The original contain.
      * @param array $newContain The new contain.
      * @return array The merged contain data.
      */
     public static function mergeContain(array $contain, array $newContain): array
     {
-        foreach ($newContain AS $name => $data) {
+        foreach ($newContain as $name => $data) {
             if (!array_key_exists($name, $contain)) {
                 $contain[$name] = $data;
+
                 continue;
             }
 
-            foreach ($data AS $key => $value) {
+            foreach ($data as $key => $value) {
                 if ($key === 'contain') {
                     $contain[$name][$key] = static::mergeContain($contain[$name][$key], $value);
                 } else {
@@ -103,15 +107,17 @@ trait HelperTrait
 
     /**
      * Normalize contain data.
+     *
      * @param string|array $contain The contain data.
      * @param Model $model The Model.
      * @return array The normalized contain data.
+     *
      * @throws OrmException if a relationship is not valid.
      */
-    public static function normalizeContain(string|array $contain, Model $model): array
+    public static function normalizeContain(array|string $contain, Model $model): array
     {
         $normalized = [
-            'contain' => []
+            'contain' => [],
         ];
 
         if ($contain === '' || $contain === []) {
@@ -130,15 +136,17 @@ trait HelperTrait
             );
         }
 
-        foreach ($contain AS $key => $value) {
+        foreach ($contain as $key => $value) {
             if (is_numeric($key) || $key === 'contain') {
                 $newContain = static::normalizeContain($value, $model);
                 $normalized = static::mergeContain($normalized, $newContain);
+
                 continue;
             }
 
             if (array_key_exists($key, static::QUERY_METHODS) || in_array($key, ['strategy', 'type'])) {
                 $normalized[$key] = $value;
+
                 continue;
             }
 
@@ -157,7 +165,30 @@ trait HelperTrait
     }
 
     /**
+     * Reset columns for entities.
+     *
+     * @param array $entities The entities.
+     * @param array $columns The columns.
+     */
+    public static function resetColumns(array $entities, array $columns): void
+    {
+        foreach ($entities as $entity) {
+            foreach ($columns as $column) {
+                $value = $entity->get($column);
+                $original = $entity->getOriginal($column);
+
+                $entity->unset($column);
+
+                if ($original !== null && $value !== $original) {
+                    $entity->set($column, $original);
+                }
+            }
+        }
+    }
+
+    /**
      * Convert a class alias to table/field.
+     *
      * @param string $string The input string.
      * @return string The tableized string.
      */
@@ -170,6 +201,7 @@ trait HelperTrait
 
     /**
      * Reset entities children.
+     *
      * @param array $entities The entities.
      * @param Model $model The Model.
      */
@@ -177,7 +209,7 @@ trait HelperTrait
     {
         $relationships = $model->getRelationships();
 
-        foreach ($relationships AS $relationship) {
+        foreach ($relationships as $relationship) {
             if (!$relationship->isOwningSide()) {
                 continue;
             }
@@ -188,7 +220,7 @@ trait HelperTrait
 
             $allChildren = [];
             $newChildren = [];
-            foreach ($entities AS $entity) {
+            foreach ($entities as $entity) {
                 $children = $entity->get($property);
 
                 if (!$children) {
@@ -224,28 +256,8 @@ trait HelperTrait
     }
 
     /**
-     * Reset columns for entities.
-     * @param array $entities The entities.
-     * @param array $columns The columns.
-     */
-    public static function resetColumns(array $entities, array $columns): void
-    {
-        foreach ($entities AS $entity) {
-            foreach ($columns AS $column) {
-                $value = $entity->get($column);
-                $original = $entity->getOriginal($column);
-
-                $entity->unset($column);
-
-                if ($original !== null && $value !== $original) {
-                    $entity->set($column, $original);
-                }
-            }
-        }
-    }
-
-    /**
      * Reset entities parents.
+     *
      * @param array $entities The entities.
      * @param Model $model The Model.
      */
@@ -253,7 +265,7 @@ trait HelperTrait
     {
         $relationships = $model->getRelationships();
 
-        foreach ($relationships AS $relationship) {
+        foreach ($relationships as $relationship) {
             if ($relationship->isOwningSide()) {
                 continue;
             }
@@ -265,7 +277,7 @@ trait HelperTrait
             $allParents = [];
             $newParents = [];
             $newParentEntities = [];
-            foreach ($entities AS $entity) {
+            foreach ($entities as $entity) {
                 $parent = $entity->get($property);
 
                 if (!$parent) {
@@ -294,5 +306,4 @@ trait HelperTrait
             }
         }
     }
-
 }

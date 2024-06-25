@@ -21,11 +21,11 @@ use function is_array;
  */
 trait EntityTrait
 {
-
     protected string $entityClass;
 
     /**
      * Get the entity class.
+     *
      * @return string The entity class.
      */
     public function getEntityClass(): string
@@ -35,6 +35,7 @@ trait EntityTrait
 
     /**
      * Load contained data into entity.
+     *
      * @param Entity $entity The entity.
      * @param array $contain The relationships to contain.
      * @return Entity The entity.
@@ -46,14 +47,14 @@ trait EntityTrait
 
         $tempEntity = $this->get($primaryValues, [
             'contain' => $contain,
-            'autoFields' => false
+            'autoFields' => false,
         ]);
 
         if (!$tempEntity) {
             return $entity;
         }
 
-        foreach ($this->relationships AS $relationship) {
+        foreach ($this->relationships as $relationship) {
             $property = $relationship->getProperty();
 
             if (!$tempEntity->has($property)) {
@@ -70,6 +71,7 @@ trait EntityTrait
 
     /**
      * Build a new empty Entity.
+     *
      * @return Entity The Entity.
      */
     public function newEmptyEntity(): Entity
@@ -78,7 +80,23 @@ trait EntityTrait
     }
 
     /**
+     * Build multiple new entities using data.
+     *
+     * @param array $data The data.
+     * @param array $options The Entity options.
+     * @return array The entities.
+     */
+    public function newEntities(array $data, array $options = []): array
+    {
+        return array_map(
+            fn(array $values): Entity => $this->newEntity($values, $data),
+            $data
+        );
+    }
+
+    /**
      * Build a new Entity using data.
+     *
      * @param array $data The data.
      * @param array $options The Entity options.
      * @return Entity The Entity.
@@ -93,21 +111,26 @@ trait EntityTrait
     }
 
     /**
-     * Build multiple new entities using data.
+     * Update multiple entities using data.
+     *
+     * @param array $entities The entities.
      * @param array $data The data.
      * @param array $options The Entity options.
-     * @return array The entities.
      */
-    public function newEntities(array $data, array $options = []): array
+    public function patchEntities(array $entities, array $data, array $options = []): void
     {
-        return array_map(
-            fn(array $values): Entity => $this->newEntity($values, $data),
-            $data
-        );
+        foreach ($data as $i => $values) {
+            if (!array_key_exists($i, $entities)) {
+                continue;
+            }
+
+            $this->patchEntity($entities[$i], $values, $options);
+        }
     }
 
     /**
      * Update an Entity using data.
+     *
      * @param Entity $entity The Entity.
      * @param array $data The data.
      * @param array $options The Entity options.
@@ -118,24 +141,8 @@ trait EntityTrait
     }
 
     /**
-     * Update multiple entities using data.
-     * @param array $entities The entities.
-     * @param array $data The data.
-     * @param array $options The Entity options.
-     */
-    public function patchEntities(array $entities, array $data, array $options = []): void
-    {
-        foreach ($data AS $i => $values) {
-            if (!array_key_exists($i, $entities)) {
-                continue;
-            }
-
-            $this->patchEntity($entities[$i], $values, $options);
-        }
-    }
-
-    /**
      * Check if entities already exist, and mark them not new.
+     *
      * @param array $entities The entities.
      */
     protected function checkExists(array $entities): void
@@ -170,9 +177,9 @@ trait EntityTrait
         $matches = $this->find([
             'fields' => $primaryKeys,
             'conditions' => QueryGenerator::normalizeConditions($primaryKeys, $values),
-            'events' => false
+            'events' => false,
         ])
-        ->all();
+            ->all();
 
         if ($matches === []) {
             return;
@@ -183,8 +190,8 @@ trait EntityTrait
             $matches
         );
 
-        foreach ($values AS $i => $data) {
-            foreach ($matchedValues AS $other) {
+        foreach ($values as $i => $data) {
+            foreach ($matchedValues as $other) {
                 if (array_diff_assoc($data, $other) === []) {
                     continue;
                 }
@@ -197,6 +204,7 @@ trait EntityTrait
 
     /**
      * Create an Entity.
+     *
      * @return Entity The Entity.
      */
     protected function createEntity(): Entity
@@ -213,9 +221,10 @@ trait EntityTrait
 
     /**
      * Inject an Entity with data.
+     *
      * @param Entity $entity The Entity.
-     * @param array $options The Entity options.
      * @param array $data The data.
+     * @param array $options The Entity options.
      */
     protected function injectInto(Entity $entity, array $data, array $options): void
     {
@@ -256,21 +265,23 @@ trait EntityTrait
         }
 
         $relationships = [];
-        foreach ($this->relationships AS $relationship) {
+        foreach ($this->relationships as $relationship) {
             $alias = $relationship->getName();
             $property = $relationship->getProperty();
 
             if ($associated !== null && !array_key_exists($alias, $associated)) {
                 $relationships[$property] = false;
+
                 continue;
             }
 
             $relationships[$property] = $alias;
         }
 
-        foreach ($data AS $field => $value) {
+        foreach ($data as $field => $value) {
             if (array_key_exists($field, $errors)) {
                 $entity->setInvalid($field, $value);
+
                 continue;
             }
 
@@ -281,7 +292,7 @@ trait EntityTrait
                     $value = null;
                 } else {
                     $alias = $relationships[$field];
-                    $relationship = $this->getRelationship($alias);           
+                    $relationship = $this->getRelationship($alias);
 
                     if ($associated !== null) {
                         $options['associated'] = $associated[$alias]['contain'];
@@ -304,7 +315,7 @@ trait EntityTrait
                         $currentRelations = $entity->get($field) ?? [];
 
                         $relations = [];
-                        foreach ($value AS $i => $val) {
+                        foreach ($value as $i => $val) {
                             if (!is_array($val)) {
                                 continue;
                             }
@@ -335,7 +346,7 @@ trait EntityTrait
             }
 
             $entity->set($field, $value, [
-                'mutate' => $options['mutate']
+                'mutate' => $options['mutate'],
             ]);
 
             if ($setDirty) {
@@ -355,5 +366,4 @@ trait EntityTrait
             $this->handleEvent('afterParse', $entity, $options);
         }
     }
-
 }

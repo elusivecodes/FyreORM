@@ -5,7 +5,4 @@ namespace Tests\Mock\Entity;
 
 use Fyre\Entity\Entity;
 
-class Comment extends Entity
-{
-
-}
+class Comment extends Entity {}

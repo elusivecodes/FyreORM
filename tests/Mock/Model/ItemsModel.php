@@ -11,11 +11,10 @@ use Fyre\Validation\Validator;
 
 class ItemsModel extends Model
 {
-
     public function __construct()
     {
         $this->addBehavior('Test', [
-            'testField' => 'name'
+            'testField' => 'name',
         ]);
     }
 
@@ -36,5 +35,4 @@ class ItemsModel extends Model
 
         return $validator;
     }
-
 }
