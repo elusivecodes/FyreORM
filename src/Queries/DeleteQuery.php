@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Queries;
 
+use Fyre\DB\DbFeature;
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
 
@@ -24,7 +25,10 @@ class DeleteQuery extends \Fyre\DB\Queries\DeleteQuery
         $this->model = $model;
         $options['alias'] ??= $this->model->getAlias();
 
-        parent::__construct($this->model->getConnection(), $options['alias']);
+        $connection = $this->model->getConnection();
+        $alias = $connection->supports(DbFeature::DeleteAlias) ? $options['alias'] : null;
+
+        parent::__construct($connection, $alias);
 
         $this->from([
             $options['alias'] => $this->model->getTable(),

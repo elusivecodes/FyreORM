@@ -549,8 +549,8 @@ Create a new [*SelectQuery*](#select).
     - `contain` is a string or array containing the relationships to contain.
     - `join` is an array containing the tables to join.
     - `conditions` is an array or string representing the where conditions.
-    - `order` is an array or string representing the fields to order by.
-    - `group` is an array or string representing the fields to group by.
+    - `orderBy` is an array or string representing the fields to order by.
+    - `groupBy` is an array or string representing the fields to group by.
     - `having` is an array or string representing the having conditions.
     - `limit` is a number indicating the query limit.
     - `offset` is a number indicating the query offset.
@@ -975,9 +975,10 @@ $query->clearResult();
 Set the contain relationships.
 
 - `$contain` is a string or array containing the relationships to contain.
+- `$overwrite` is a boolean indicating whether to overwrite existing contains, and will default to *false*.
 
 ```php
-$query->contain($contain);
+$query->contain($contain, $overwrite);
 ```
 
 **Count**
@@ -1092,7 +1093,7 @@ $query->notMatching($contain, $conditions);
 
 ### Update
 
-The `\Fyre\ORM\Queries\UpdateQuery` class extends the [*UpdateQuery*](https://github.com/elusivecodes/FyreDB#update) class. The table and alias will be automatically set from the *Model*, and field names will be automatically aliased.
+The `\Fyre\ORM\Queries\UpdateQuery` class extends the [*UpdateQuery*](https://github.com/elusivecodes/FyreDB#update) class. The table will be automatically set from the *Model*.
 
 ```php
 $model->updateQuery()

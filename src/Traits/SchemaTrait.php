@@ -8,6 +8,7 @@ use Fyre\Schema\TableSchema;
 use ReflectionClass;
 
 use function array_intersect;
+use function array_key_exists;
 use function array_merge;
 use function array_shift;
 use function preg_replace;
@@ -67,9 +68,8 @@ trait SchemaTrait
 
             foreach ($this->getPrimaryKey() as $key) {
                 $column = $schema->column($key);
-                $extra = $column['extra'];
 
-                if ($extra !== 'auto_increment') {
+                if (!array_key_exists('autoIncrement', $column) || !$column['autoIncrement']) {
                     continue;
                 }
 

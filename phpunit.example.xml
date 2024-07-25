@@ -1,9 +1,14 @@
 <phpunit>
     <php>
-        <env name="DB_HOST" value="127.0.0.1" force="true" />
-        <env name="DB_USERNAME" value="root" force="true" />
-        <env name="DB_PASSWORD" value="" force="true" />
-        <env name="DB_NAME" value="test" force="true" />
-        <env name="DB_PORT" value="3306" force="true" />
+        <env name="MYSQL_HOST" value="127.0.0.1" force="true" />
+        <env name="MYSQL_USERNAME" value="root" force="true" />
+        <env name="MYSQL_PASSWORD" value="" force="true" />
+        <env name="MYSQL_DATABASE" value="test" force="true" />
+        <env name="MYSQL_PORT" value="3306" force="true" />
+        <env name="POSTGRES_HOST" value="127.0.0.1" force="true" />
+        <env name="POSTGRES_USERNAME" value="root" force="true" />
+        <env name="POSTGRES_PASSWORD" value="" force="true" />
+        <env name="POSTGRES_DATABASE" value="test" force="true" />
+        <env name="POSTGRES_PORT" value="5432" force="true" />
     </php>
 </phpunit>

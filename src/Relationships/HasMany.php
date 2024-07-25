@@ -41,6 +41,7 @@ class HasMany extends Relationship
         $bindingValue = $entity->get($bindingKey);
 
         foreach ($children as $child) {
+            $child->set($foreignKey, null);
             $child->set($foreignKey, $bindingValue);
         }
 

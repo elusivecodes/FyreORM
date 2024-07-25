@@ -218,7 +218,12 @@ class Result implements Countable, IteratorAggregate
     protected function getAliasMap(): array
     {
         if ($this->aliasMap === null) {
-            $this->aliasMap = [$this->query->getAlias() => []];
+            $this->aliasMap = [
+                $this->query->getAlias() => [
+                    'model' => $this->query->getModel(),
+                    'properties' => [],
+                ],
+            ];
             static::buildAliasMap($this->aliasMap, $this->query->getContain(), $this->query->getModel());
         }
 
@@ -265,8 +270,7 @@ class Result implements Countable, IteratorAggregate
         $data = [];
 
         foreach ($row as $column => $value) {
-            $value = $this->getType($column)->fromDatabase($value);
-
+            $schema = null;
             $parts = explode('__', $column, 2);
 
             $pointer = &$data;
@@ -280,7 +284,8 @@ class Result implements Countable, IteratorAggregate
                 }
 
                 if (array_key_exists($alias, $aliasMap)) {
-                    foreach ($aliasMap[$alias] as $property) {
+                    $schema = $aliasMap[$alias]['model']->getSchema();
+                    foreach ($aliasMap[$alias]['properties'] as $property) {
                         $pointer[$property] ??= [];
                         $pointer = & $pointer[$property];
                     }
@@ -289,7 +294,13 @@ class Result implements Countable, IteratorAggregate
                 }
             }
 
-            $pointer[$column] = $value;
+            if ($schema && $schema->hasColumn($column)) {
+                $type = $schema->getType($column);
+            } else {
+                $type = $this->getType($column);
+            }
+
+            $pointer[$column] = $type->fromDatabase($value);
         }
 
         return $data;
@@ -316,9 +327,12 @@ class Result implements Countable, IteratorAggregate
 
             $property = $relationship->getProperty();
 
-            $aliasMap[$name] = array_merge($properties, [$property]);
+            $aliasMap[$name] = [
+                'model' => $relationship->getTarget(),
+                'properties' => array_merge($properties, [$property]),
+            ];
 
-            static::buildAliasMap($aliasMap, $data['contain'], $relationship->getTarget(), $aliasMap[$name]);
+            static::buildAliasMap($aliasMap, $data['contain'], $relationship->getTarget(), $aliasMap[$name]['properties']);
         }
     }
 

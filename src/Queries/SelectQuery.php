@@ -28,6 +28,8 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
     protected string $alias;
 
+    protected bool $autoAlias = true;
+
     protected bool|null $autoFields = null;
 
     protected bool $beforeFindTriggered = false;
@@ -71,6 +73,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $options['events'] ??= true;
 
         $this->options = $options;
+        $this->autoAlias = !$options['subquery'];
 
         parent::__construct($this->model->getConnection($this->options['connectionType']), []);
 
@@ -104,14 +107,19 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     /**
      * Set the contain relationships.
      *
-     * @param string|array $contain The contain relationships.
+     * @param array|string $contain The contain relationships.
+     * @param bool $overwrite Whether to overwrite the existing contain.
      * @return SelectQuery The SelectQuery.
      */
-    public function contain(array|string $contain): static
+    public function contain(array|string $contain, bool $overwrite = false): static
     {
         $contain = Model::normalizeContain($contain, $this->model);
 
-        $this->contain = Model::mergeContain($this->contain, $contain['contain'] ?? []);
+        if ($overwrite) {
+            $this->contain = $contain['contain'] ?? [];
+        } else {
+            $this->contain = Model::mergeContain($this->contain, $contain['contain'] ?? []);
+        }
 
         $this->dirty();
 
@@ -139,7 +147,6 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 ->from([
                     'count_source' => $query
                         ->orderBy([], true)
-                        ->groupBy([], true)
                         ->limit(null, 0),
                 ])
                 ->execute()
@@ -147,6 +154,19 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         }
 
         return $this->count;
+    }
+
+    /**
+     * Enable or disable auto aliasing fields.
+     *
+     * @param bool Whether to enable or disable auto aliasing fields.
+     * @return SelectQuery The SelectQuery.
+     */
+    public function enableAutoAlias(bool $autoAlias): static
+    {
+        $this->autoAlias = $autoAlias;
+
+        return $this;
     }
 
     /**
@@ -326,10 +346,6 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         $this->fields = [];
         $this->joins = [];
 
-        $usedAliases = [
-            $this->alias,
-        ];
-
         if ($this->autoFields !== false) {
             $this->autoFields($this->model, $this->alias);
         } else if (!$this->options['subquery']) {
@@ -403,7 +419,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     /**
      * Set the SELECT fields.
      *
-     * @param string|array $fields The fields.
+     * @param array|string $fields The fields.
      * @param bool $overwrite Whether to overwrite the existing fields.
      * @return SelectQuery The SelectQuery.
      */
@@ -466,7 +482,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $field = $model->aliasField($field, $alias);
             }
 
-            if ($this->options['subquery'] && is_numeric($name)) {
+            if (!$this->autoAlias && is_numeric($name)) {
                 $this->fields[] = $field;
 
                 continue;

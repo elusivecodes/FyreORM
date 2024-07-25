@@ -14,7 +14,7 @@ use function array_key_exists;
 use function array_merge;
 use function count;
 use function in_array;
-use function str_replace;
+use function is_numeric;
 
 /**
  * Relationship
@@ -121,21 +121,17 @@ abstract class Relationship
      *
      * @param array $entities The entities.
      * @param array $data The find data.
-     * @param SelectQuery|null $query The SelectQuery.
+     * @param SelectQuery $query The SelectQuery.
      */
-    public function findRelated(array $entities, array $data, SelectQuery|null $query = null): void
+    public function findRelated(array $entities, array $data, SelectQuery $query): void
     {
-        $data['strategy'] ??= $this->getStrategy();
+        $sourceValues = $this->getRelatedKeyValues($entities);
 
-        if ($query && $data['strategy'] === 'subquery') {
-            $conditions = $this->containConditionSubquery($query);
-        } else {
-            $conditions = $this->containConditions($entities);
-        }
-
-        if ($conditions === []) {
+        if ($sourceValues === []) {
             return;
         }
+
+        $data['strategy'] ??= $this->getStrategy();
 
         $target = $this->getTarget();
         $property = $this->getProperty();
@@ -154,14 +150,19 @@ abstract class Relationship
             $data['fields'][] = $target->aliasField($targetKey, $this->name);
         }
 
-        $data['conditions'] = array_merge($conditions, $data['conditions'] ?? []);
         $data['alias'] = $this->name;
 
         $data = array_merge($query->getOptions(), $data);
 
-        $allChildren = $target
-            ->find($data)
-            ->all();
+        $newQuery = $target->find($data);
+
+        if ($data['strategy'] === 'subquery') {
+            $this->findRelatedSubquery($newQuery, $query);
+        } else {
+            $this->findRelatedConditions($newQuery, $sourceValues);
+        }
+
+        $allChildren = $newQuery->all();
 
         foreach ($entities as $entity) {
             $sourceValue = $entity->get($sourceKey);
@@ -320,24 +321,25 @@ abstract class Relationship
      */
     public function unlinkAll(array $entities, array $options = []): bool
     {
-        $containConditions = $this->containConditions($entities);
+        $sourceValues = $this->getRelatedKeyValues($entities);
 
-        if ($containConditions === []) {
+        if ($sourceValues === []) {
             return true;
         }
 
         $conditions = $options['conditions'] ?? [];
         unset($options['conditions']);
 
-        $conditions = array_merge($containConditions, $conditions);
-
         $target = $this->getTarget();
 
-        $relations = $target->find([
+        $query = $target->find([
             'alias' => $this->name,
             'conditions' => $conditions,
-        ])
-            ->all();
+        ]);
+
+        $this->findRelatedConditions($query, $sourceValues);
+
+        $relations = $query->all();
 
         if ($relations === []) {
             return true;
@@ -365,33 +367,17 @@ abstract class Relationship
     }
 
     /**
-     * Get the contain conditions for entities.
+     * Attach the find related conditions to a query.
      *
-     * @param array $entities The entities.
-     * @return array The contain conditions.
+     * @param SelectQuery $newQuery The new SelectQuery.
+     * @param array $sourceValues The source values.
      */
-    protected function containConditions(array $entities): array
+    protected function findRelatedConditions(SelectQuery $newQuery, array $sourceValues): void
     {
         if ($this->isOwningSide()) {
-            $sourceKey = $this->getBindingKey();
             $targetKey = $this->getForeignKey();
         } else {
-            $sourceKey = $this->getForeignKey();
             $targetKey = $this->getBindingKey();
-        }
-
-        $sourceValues = [];
-
-        foreach ($entities as $entity) {
-            if ($entity->isEmpty($sourceKey)) {
-                continue;
-            }
-
-            $sourceValues[] = $entity->get($sourceKey);
-        }
-
-        if ($sourceValues === []) {
-            return [];
         }
 
         $target = $this->getTarget();
@@ -403,16 +389,16 @@ abstract class Relationship
             $containConditions = [$targetKey => $sourceValues[0]];
         }
 
-        return array_merge($containConditions, $this->conditions);
+        $newQuery->where($containConditions);
     }
 
     /**
-     * Get the subquery contain conditions for a SelectQuery.
+     * Attach the find related subquery to a query.
      *
+     * @param SelectQuery $newQuery The new SelectQuery.
      * @param SelectQuery $query The SelectQuery.
-     * @return array The subquery contain conditions.
      */
-    protected function containConditionSubquery(SelectQuery $query): array
+    protected function findRelatedSubquery(SelectQuery $newQuery, SelectQuery $query): void
     {
         if ($this->isOwningSide()) {
             $sourceKey = $this->getBindingKey();
@@ -428,18 +414,75 @@ abstract class Relationship
         $alias = $query->getAlias();
         $sourceKey = $this->source->aliasField($sourceKey, $alias);
 
-        $containConditions = [
-            $targetKey.' IN' => $query->getModel()
-                ->getConnection()
-                ->select([
-                    str_replace('.', '__', $sourceKey),
-                ])
-                ->from([
-                    $alias => $query,
-                ]),
-        ];
+        $query = clone $query;
 
-        return array_merge($containConditions, $this->conditions);
+        $fields = $groupBy = [$sourceKey];
+        $orderBy = $query->getOrderBy();
+        $limit = $query->getLimit();
+        $offset = $query->getOffset();
+
+        if (!$limit && $orderBy === []) {
+            $limit = null;
+            $offset = 0;
+        } else {
+            $columns = $query->getSelect();
+            foreach ($orderBy as $key => $value) {
+                if (is_numeric($key) || !array_key_exists($key, $columns)) {
+                    continue;
+                }
+
+                $fields[$key] = $columns[$key];
+            }
+        }
+
+        $query
+            ->enableAutoAlias(false)
+            ->select($fields, true)
+            ->contain([], true)
+            ->groupBy($groupBy, true)
+            ->orderBy($orderBy, true)
+            ->having([], true)
+            ->limit($limit)
+            ->offset($offset)
+            ->epilog('');
+
+        $newQuery->join([
+            [
+                'table' => $query,
+                'alias' => $alias,
+                'type' => 'INNER',
+                'conditions' => [
+                    $sourceKey.' = '.$targetKey,
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Get the related key values.
+     *
+     * @param array $entities The entities.
+     * @return array The related key values.
+     */
+    protected function getRelatedKeyValues(array $entities): array
+    {
+        if ($this->isOwningSide()) {
+            $sourceKey = $this->getBindingKey();
+        } else {
+            $sourceKey = $this->getForeignKey();
+        }
+
+        $sourceValues = [];
+
+        foreach ($entities as $entity) {
+            if ($entity->isEmpty($sourceKey)) {
+                continue;
+            }
+
+            $sourceValues[] = $entity->get($sourceKey);
+        }
+
+        return $sourceValues;
     }
 
     /**

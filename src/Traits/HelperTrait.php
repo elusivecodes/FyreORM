@@ -11,6 +11,7 @@ use function array_key_exists;
 use function array_merge;
 use function array_reduce;
 use function array_reverse;
+use function array_unique;
 use function explode;
 use function in_array;
 use function is_numeric;
@@ -108,7 +109,7 @@ trait HelperTrait
     /**
      * Normalize contain data.
      *
-     * @param string|array $contain The contain data.
+     * @param array|string $contain The contain data.
      * @param Model $model The Model.
      * @return array The normalized contain data.
      *
@@ -216,7 +217,6 @@ trait HelperTrait
 
             $target = $relationship->getTarget();
             $property = $relationship->getProperty();
-            $autoIncrementKey = $target->getAutoIncrementKey();
 
             $allChildren = [];
             $newChildren = [];
@@ -239,14 +239,11 @@ trait HelperTrait
             }
 
             if ($newChildren !== []) {
-                $unsetKeys = [];
-                $unsetKeys[] = $relationship->getForeignKey();
+                $primaryKeys = $target->getPrimaryKey();
+                $foreignKey = $relationship->getForeignKey();
+                $resetKeys = array_unique([...$primaryKeys, $foreignKey]);
 
-                if ($autoIncrementKey && !in_array($autoIncrementKey, $unsetKeys)) {
-                    $unsetKeys[] = $autoIncrementKey;
-                }
-
-                static::resetColumns($newChildren, $unsetKeys);
+                static::resetColumns($newChildren, $resetKeys);
             }
 
             if ($allChildren !== []) {
@@ -272,7 +269,6 @@ trait HelperTrait
 
             $target = $relationship->getTarget();
             $property = $relationship->getProperty();
-            $autoIncrementKey = $target->getAutoIncrementKey();
 
             $allParents = [];
             $newParents = [];
@@ -297,8 +293,9 @@ trait HelperTrait
                 static::resetColumns($newParentEntities, [$foreignKey]);
             }
 
-            if ($autoIncrementKey && $newParents !== []) {
-                static::resetColumns($newParents, [$autoIncrementKey]);
+            if ($newParents !== []) {
+                $primaryKeys = $target->getPrimaryKey();
+                static::resetColumns($newParents, $primaryKeys);
             }
 
             if ($allParents !== []) {

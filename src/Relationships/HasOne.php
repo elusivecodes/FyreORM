@@ -44,6 +44,7 @@ class HasOne extends Relationship
         $foreignKey = $this->getForeignKey();
 
         $bindingValue = $entity->get($bindingKey);
+        $child->set($foreignKey, null);
         $child->set($foreignKey, $bindingValue);
 
         if (!$this->getTarget()->save($child, $options)) {

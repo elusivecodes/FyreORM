@@ -20,11 +20,11 @@
         }
     },
     "require": {
-        "fyre/db": "^3.0",
-        "fyre/entity": "^3.0",
+        "fyre/db": "^4.0",
+        "fyre/entity": "^4.0",
         "fyre/inflector": "^2.0",
         "fyre/lang": "^3.0",
-        "fyre/schema": "^3.0",
+        "fyre/schema": "^4.0",
         "fyre/validation": "^3.0"
     },
     "require-dev": {

@@ -84,21 +84,17 @@ class ManyToMany extends Relationship
      *
      * @param array $entities The entities.
      * @param array $data The find data.
-     * @param SelectQuery|null $query The SelectQuery.
+     * @param SelectQuery $query The SelectQuery.
      */
-    public function findRelated(array $entities, array $data, SelectQuery|null $query = null): void
+    public function findRelated(array $entities, array $data, SelectQuery $query): void
     {
-        $data['strategy'] ??= $this->getStrategy();
+        $sourceValues = $this->getRelatedKeyValues($entities);
 
-        if ($query && $data['strategy'] === 'subquery') {
-            $conditions = $this->containConditionSubquery($query);
-        } else {
-            $conditions = $this->containConditions($entities);
-        }
-
-        if ($conditions === []) {
+        if ($sourceValues === []) {
             return;
         }
+
+        $data['strategy'] ??= $this->getStrategy();
 
         $joinModel = $this->getJoinModel();
         $property = $this->getProperty();
@@ -113,9 +109,6 @@ class ManyToMany extends Relationship
             $data['fields'][] = $joinModel->aliasField($foreignKey);
         }
 
-        $data['conditions'] ??= [];
-        $data['conditions'][] = $conditions;
-
         $contain = $data['contain'];
         $data['contain'] = [$targetName => $contain];
 
@@ -127,9 +120,15 @@ class ManyToMany extends Relationship
             $joinModel->addRelationship($targetRelationship);
         }
 
-        $children = $joinModel
-            ->find($data)
-            ->all();
+        $newQuery = $joinModel->find($data);
+
+        if ($data['strategy'] === 'subquery') {
+            $this->findRelatedSubquery($newQuery, $query);
+        } else {
+            $this->findRelatedConditions($newQuery, $sourceValues);
+        }
+
+        $children = $newQuery->all();
 
         $allChildren = array_map(
             function(Entity $child) use ($joinProperty): Entity {

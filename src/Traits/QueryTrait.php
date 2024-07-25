@@ -207,7 +207,7 @@ trait QueryTrait
     /**
      * Retrieve a single entity.
      *
-     * @param int|string|array $primaryValues The primary key values.
+     * @param array|int|string $primaryValues The primary key values.
      * @param array $data The find data.
      * @return Entity|null The Entity.
      */
@@ -248,12 +248,6 @@ trait QueryTrait
         $options['events'] ??= true;
         $options['clean'] ??= true;
 
-        $autoIncrementKey = $this->getAutoIncrementKey();
-
-        if ($autoIncrementKey && $entity->hasValue($autoIncrementKey)) {
-            $autoIncrementKey = null;
-        }
-
         if ($options['checkExists']) {
             $this->checkExists([$entity]);
         }
@@ -268,8 +262,9 @@ trait QueryTrait
             static::resetParents([$entity], $this);
             static::resetChildren([$entity], $this);
 
-            if ($entity->isNew() && $autoIncrementKey) {
-                static::resetColumns([$entity], [$autoIncrementKey]);
+            if ($entity->isNew()) {
+                $primaryKeys = $this->getPrimaryKey();
+                static::resetColumns([$entity], $primaryKeys);
             }
 
             return false;
@@ -328,13 +323,12 @@ trait QueryTrait
 
         $connection->begin();
 
-        $autoIncrementKey = $this->getAutoIncrementKey();
-        $autoIncrementEntities = [];
+        $newEntities = [];
 
         $result = true;
         foreach ($entities as $entity) {
-            if ($autoIncrementKey && $entity->isNew() && !$entity->hasValue($autoIncrementKey)) {
-                $autoIncrementEntities[] = $entity;
+            if ($entity->isNew()) {
+                $newEntities[] = $entity;
             }
 
             if (!$this->_save($entity, $options)) {
@@ -349,8 +343,9 @@ trait QueryTrait
             static::resetParents($entities, $this);
             static::resetChildren($entities, $this);
 
-            if ($autoIncrementKey && $autoIncrementEntities !== []) {
-                static::resetColumns($autoIncrementEntities, [$autoIncrementKey]);
+            if ($newEntities !== []) {
+                $primaryKeys = $this->getPrimaryKey();
+                static::resetColumns($newEntities, $primaryKeys);
             }
 
             return false;
@@ -413,7 +408,9 @@ trait QueryTrait
             return false;
         }
 
-        $columns = $this->getSchema()->columnNames();
+        $schema = $this->getSchema();
+        $columns = $schema->columnNames();
+        $primaryKeys = $this->getPrimaryKey();
 
         $data = $entity->extractDirty($columns);
         $data = $this->toDatabaseSchema($data);
@@ -423,20 +420,29 @@ trait QueryTrait
                 ->values([$data])
                 ->execute();
 
-            if (!$result) {
-                return false;
-            }
+            $newData = $result->fetch() ?? [];
 
             $autoIncrementKey = $this->getAutoIncrementKey();
 
-            if ($autoIncrementKey && !$entity->hasValue($autoIncrementKey)) {
-                $id = $this->getConnection()->insertId();
+            foreach ($primaryKeys as $primaryKey) {
+                if ($entity->hasValue($primaryKey)) {
+                    continue;
+                }
 
-                $entity->set($autoIncrementKey, null);
-                $entity->set($autoIncrementKey, $id);
+                if ($primaryKey === $autoIncrementKey) {
+                    $value = $this->getConnection()->insertId();
+                } else if (array_key_exists($primaryKey, $newData)) {
+                    $value = $newData[$primaryKey];
+                } else {
+                    continue;
+                }
+
+                $value = $schema->getType($primaryKey)->parse($value);
+
+                $entity->set($primaryKey, null);
+                $entity->set($primaryKey, $value);
             }
         } else if ($data !== []) {
-            $primaryKeys = $this->getPrimaryKey();
             $primaryValues = $entity->extract($primaryKeys);
             $conditions = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
             $this->updateAll($data, $conditions);

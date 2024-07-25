@@ -43,8 +43,8 @@ class Model
         'contain' => 'contain',
         'join' => 'join',
         'conditions' => 'where',
-        'order' => 'orderBy',
-        'group' => 'groupBy',
+        'orderBy' => 'orderBy',
+        'groupBy' => 'groupBy',
         'having' => 'having',
         'limit' => 'limit',
         'offset' => 'offset',
@@ -92,6 +92,7 @@ class Model
      * Handle an event callbacks.
      *
      * @param string $event The event name.
+     * @param array $arguments
      * @return bool TRUE if the callbacks processed successfully, otherwise FALSE.
      */
     public function handleEvent(string $event, ...$arguments): bool
