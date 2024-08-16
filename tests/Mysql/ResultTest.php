@@ -13,6 +13,51 @@ final class ResultTest extends TestCase
 {
     use MysqlConnectionTrait;
 
+    public function testClearBuffer(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $result = $Items->find()
+            ->getResult();
+
+        $result->fetch(0);
+        $result->clearBuffer();
+
+        $this->assertNull(
+            $result->fetch(0)
+        );
+
+        $item = $result->fetch(1);
+
+        $this->assertInstanceOf(
+            Item::class,
+            $item
+        );
+
+        $this->assertSame(
+            'Items',
+            $item->getSource()
+        );
+
+        $this->assertSame(
+            2,
+            $item->id
+        );
+    }
+
     public function testColumnCount(): void
     {
         $this->assertSame(

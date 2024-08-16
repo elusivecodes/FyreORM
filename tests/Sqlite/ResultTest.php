@@ -13,6 +13,38 @@ final class ResultTest extends TestCase
 {
     use SqliteConnectionTrait;
 
+    public function testClearBuffer(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $result = $Items->find()
+            ->getResult();
+
+        $result->fetch(0);
+        $result->clearBuffer();
+
+        $this->assertNull(
+            $result->fetch(0)
+        );
+
+        $this->assertNull(
+            $result->fetch(1)
+        );
+    }
+
     public function testColumnCount(): void
     {
         $this->assertSame(

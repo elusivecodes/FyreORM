@@ -12,7 +12,9 @@ use Fyre\ORM\Queries\SelectQuery;
 use Iterator;
 use IteratorAggregate;
 
+use function array_fill;
 use function array_key_exists;
+use function array_key_last;
 use function array_merge;
 use function count;
 use function explode;
@@ -84,6 +86,19 @@ class Result implements Countable, IteratorAggregate
     }
 
     /**
+     * Clear the results from the buffer.
+     */
+    public function clearBuffer(): void
+    {
+        $this->result->clearBuffer();
+
+        if ($this->buffer !== null) {
+            $lastKey = array_key_last($this->buffer);
+            $this->buffer = array_fill(0, $lastKey + 1, null);
+        }
+    }
+
+    /**
      * Get the column count.
      *
      * @return int The column count.
@@ -133,9 +148,14 @@ class Result implements Countable, IteratorAggregate
 
         if (!array_key_exists($index, $this->buffer)) {
             $row = $this->result->fetch($index);
-            $data = $this->parseRow($row);
 
-            $this->buffer[$index] = $this->buildEntity($data);
+            if ($row === null) {
+                $this->buffer[$index] = null;
+            } else {
+                $data = $this->parseRow($row);
+
+                $this->buffer[$index] = $this->buildEntity($data);
+            }
         }
 
         return $this->buffer[$index];
