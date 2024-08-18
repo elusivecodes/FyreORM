@@ -142,7 +142,7 @@ trait SqliteConnectionTrait
         $connection->query('DROP TABLE IF EXISTS posts_tags');
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         BehaviorRegistry::clear();
         BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
