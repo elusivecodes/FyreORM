@@ -50,6 +50,7 @@ class TestBehavior extends Behavior
         return true;
     }
 
+
     public function beforeDelete(Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failBeforeDelete') {

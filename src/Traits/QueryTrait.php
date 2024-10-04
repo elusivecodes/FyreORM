@@ -5,14 +5,15 @@ namespace Fyre\ORM\Traits;
 
 use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
-use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Queries\SelectQuery;
+use Traversable;
 
 use function array_filter;
 use function array_key_exists;
 use function array_map;
-use function call_user_func;
 use function count;
+use function is_array;
+use function iterator_to_array;
 
 /**
  * QueryTrait
@@ -57,10 +58,16 @@ trait QueryTrait
             return false;
         }
 
-        if ($options['events'] && !$this->handleEvent('afterDelete', $entity, $options)) {
-            $connection->rollback();
+        if ($options['events']) {
+            if (!$this->handleEvent('afterDelete', $entity, $options)) {
+                $connection->rollback();
 
-            return false;
+                return false;
+            }
+
+            $connection->afterCommit(function() use ($entity, $options): void {
+                $this->handleEvent('afterDeleteCommit', $entity, $options);
+            }, 100);
         }
 
         $connection->commit();
@@ -86,12 +93,16 @@ trait QueryTrait
     /**
      * Delete multiple entities.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the delete was successful, otherwise FALSE.
      */
-    public function deleteMany(array $entities, array $options = []): bool
+    public function deleteMany(array|Traversable $entities, array $options = []): bool
     {
+        if (!is_array($entities)) {
+            $entities = iterator_to_array($entities);
+        }
+
         if ($entities === []) {
             return true;
         }
@@ -121,6 +132,12 @@ trait QueryTrait
             }
         }
 
+        if ($options['cascade'] && !$this->deleteChildren($entities, $options)) {
+            $connection->rollback();
+
+            return false;
+        }
+
         $rowValues = [];
         foreach ($entities as $entity) {
             $rowValues[] = $entity->extract($primaryKeys);
@@ -134,12 +151,6 @@ trait QueryTrait
             return false;
         }
 
-        if ($options['cascade'] && !$this->deleteChildren($entities, $options)) {
-            $connection->rollback();
-
-            return false;
-        }
-
         if ($options['events']) {
             foreach ($entities as $entity) {
                 if (!$this->handleEvent('afterDelete', $entity, $options)) {
@@ -148,6 +159,12 @@ trait QueryTrait
                     return false;
                 }
             }
+
+            $connection->afterCommit(function() use ($entities, $options): void {
+                foreach ($entities as $entity) {
+                    $this->handleEvent('afterDeleteCommit', $entity, $options);
+                }
+            }, 100);
         }
 
         $connection->commit();
@@ -164,7 +181,7 @@ trait QueryTrait
     public function exists(array $conditions): bool
     {
         return $this->find()
-            ->enableAutoFields(false)
+            ->disableAutoFields()
             ->where($conditions)
             ->limit(1)
             ->count() > 0;
@@ -173,35 +190,15 @@ trait QueryTrait
     /**
      * Create a new SelectQuery.
      *
-     * @param array $data The find data.
+     * @param array $options The find options.
      * @return SelectQuery The Query.
-     *
-     * @throws OrmException if find property does not exist.
      */
-    public function find(array $data = []): SelectQuery
+    public function find(array $options = []): SelectQuery
     {
-        $methods = [];
-        $options = [];
-
-        foreach ($data as $property => $value) {
-            if (array_key_exists($property, static::QUERY_METHODS)) {
-                $method = static::QUERY_METHODS[$property];
-                $methods[$method] = $value;
-            } else {
-                $options[$property] = $value;
-            }
-        }
-
         $options['alias'] ??= null;
         $options['connectionType'] ??= static::READ;
 
-        $query = $this->selectQuery($options);
-
-        foreach ($methods as $method => $value) {
-            call_user_func([$query, $method], $value);
-        }
-
-        return $query;
+        return $this->selectQuery($options);
     }
 
     /**
@@ -270,11 +267,19 @@ trait QueryTrait
             return false;
         }
 
-        $connection->commit();
+        if ($options['events']) {
+            $connection->afterCommit(function() use ($entity, $options): void {
+                $this->handleEvent('afterSaveCommit', $entity, $options);
+            }, 100);
+        }
 
         if ($options['clean']) {
-            static::cleanEntities([$entity], $this);
+            $connection->afterCommit(function() use ($entity): void {
+                static::cleanEntities([$entity], $this);
+            }, 200);
         }
+
+        $connection->commit();
 
         return true;
     }
@@ -282,12 +287,16 @@ trait QueryTrait
     /**
      * Save multiple entities.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @param array $options The options for saving.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
-    public function saveMany(array $entities, array $options = []): bool
+    public function saveMany(array|Traversable $entities, array $options = []): bool
     {
+        if (!is_array($entities)) {
+            $entities = iterator_to_array($entities);
+        }
+
         $entities = array_filter(
             $entities,
             fn(Entity $entity): bool => $entity->isNew() || $entity->isDirty()
@@ -351,11 +360,21 @@ trait QueryTrait
             return false;
         }
 
-        $connection->commit();
+        if ($options['events']) {
+            $connection->afterCommit(function() use ($entities, $options): void {
+                foreach ($entities AS $entity) {
+                    $this->handleEvent('afterSaveCommit', $entity, $options);
+                }
+            }, 100);
+        }
 
         if ($options['clean']) {
-            static::cleanEntities($entities, $this);
+            $connection->afterCommit(function() use ($entities): void {
+                static::cleanEntities($entities, $this);
+            }, 200);
         }
+
+        $connection->commit();
 
         return true;
     }

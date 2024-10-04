@@ -13,6 +13,7 @@ use Fyre\ORM\Result;
 
 use function array_key_exists;
 use function array_map;
+use function call_user_func_array;
 use function count;
 use function explode;
 use function is_numeric;
@@ -26,6 +27,19 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 {
     use ModelTrait;
 
+    public const QUERY_METHODS = [
+        'fields' => 'select',
+        'contain' => 'contain',
+        'join' => 'join',
+        'conditions' => 'where',
+        'orderBy' => 'orderBy',
+        'groupBy' => 'groupBy',
+        'having' => 'having',
+        'limit' => 'limit',
+        'offset' => 'offset',
+        'epilog' => 'epilog',
+    ];
+
     protected string $alias;
 
     protected bool $autoAlias = true;
@@ -33,6 +47,8 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     protected bool|null $autoFields = null;
 
     protected bool $beforeFindTriggered = false;
+
+    protected bool $buffering = true;
 
     protected array $contain = [];
 
@@ -64,36 +80,51 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     {
         $this->model = $model;
 
-        $this->alias = $options['alias'] ?? $this->model->getAlias();
-
-        unset($options['alias']);
-
+        $options['alias'] ??= $this->model->getAlias();
+        $options['autoFields'] ??= null;
         $options['subquery'] ??= false;
         $options['connectionType'] ??= Model::READ;
         $options['events'] ??= true;
 
-        $this->options = $options;
+        $this->alias = $options['alias'];
         $this->autoAlias = !$options['subquery'];
+        $this->autoFields = $options['autoFields'];
 
-        parent::__construct($this->model->getConnection($this->options['connectionType']), []);
+        unset($options['alias']);
+        unset($options['autoFields']);
+
+        parent::__construct($this->model->getConnection($options['connectionType']), []);
 
         $this->from([
             $this->alias => $this->model->getTable(),
         ]);
+
+        foreach ($options as $key => $value) {
+            if (!array_key_exists($key, static::QUERY_METHODS)) {
+                continue;
+            }
+
+            $method = static::QUERY_METHODS[$key];
+            call_user_func_array([$this, $method], [$value]);
+
+            unset($options[$key]);
+        }
+
+        $this->options = $options;
     }
 
     /**
-     * Get the results as an array.
+     * Get the results.
      *
-     * @return array The results.
+     * @return Result The results.
      */
-    public function all(): array
+    public function all(): Result
     {
-        return $this->getResult()->all();
+        return $this->getResult();
     }
 
     /**
-     * Clear the buffered result.
+     * Clear the result.
      *
      * @return SelectQuery The SelectQuery.
      */
@@ -145,9 +176,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                     'count' => 'COUNT(*)',
                 ])
                 ->from([
-                    'count_source' => $query
-                        ->orderBy([], true)
-                        ->limit(null, 0),
+                    'count_source' => $query->orderBy([], true),
                 ])
                 ->execute()
                 ->first()['count'] ?? 0;
@@ -157,27 +186,57 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     }
 
     /**
-     * Enable or disable auto aliasing fields.
+     * Disable auto fields.
      *
-     * @param bool Whether to enable or disable auto aliasing fields.
      * @return SelectQuery The SelectQuery.
      */
-    public function enableAutoAlias(bool $autoAlias): static
+    public function disableAutoFields(): static
     {
-        $this->autoAlias = $autoAlias;
+        $this->autoFields = false;
+
+        $this->dirty();
 
         return $this;
     }
 
     /**
-     * Enable or disable auto fields.
+     * Disable result buffering.
      *
-     * @param bool Whether to enable or disable auto fields.
      * @return SelectQuery The SelectQuery.
      */
-    public function enableAutoFields(bool $autoFields): static
+    public function disableBuffering(): static
     {
-        $this->autoFields = $autoFields;
+        $this->buffering = false;
+
+        $this->dirty();
+
+        return $this;
+    }
+
+    /**
+     * Enable auto fields.
+     *
+     * @return SelectQuery The SelectQuery.
+     */
+    public function enableAutoFields(): static
+    {
+        $this->autoFields = true;
+
+        $this->dirty();
+
+        return $this;
+    }
+
+    /**
+     * Enable result buffering.
+     *
+     * @return SelectQuery The SelectQuery.
+     */
+    public function enableBuffering(): static
+    {
+        $this->buffering = true;
+
+        $this->dirty();
 
         return $this;
     }
@@ -271,7 +330,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
             $result = $this->execute();
 
-            $this->result = new Result($result, $this, $this->eagerLoadPaths !== []);
+            $this->result = new Result($result, $this, $this->buffering);
 
             if ($this->options['events']) {
                 $this->model->handleEvent('afterFind', $this->result, $this->options);
@@ -458,6 +517,16 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         }
 
         return $sql;
+    }
+
+    /**
+     * Get the results as an array.
+     *
+     * @return array The results.
+     */
+    public function toArray(): array
+    {
+        return $this->getResult()->toArray();
     }
 
     /**

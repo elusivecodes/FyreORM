@@ -300,7 +300,7 @@ trait ContainTestTrait
                         ],
                     ],
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }

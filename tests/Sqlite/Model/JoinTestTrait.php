@@ -17,7 +17,7 @@ trait JoinTestTrait
                 ->innerJoinWith('Users.Addresses', [
                     'Addresses.suburb' => 'Test',
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -39,7 +39,7 @@ trait JoinTestTrait
                 ->find()
                 ->leftJoinWith('Users')
                 ->innerJoinWith('Users.Addresses')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -52,7 +52,7 @@ trait JoinTestTrait
                 ->find()
                 ->leftJoinWith('Users')
                 ->innerJoinWith('Users')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -64,7 +64,7 @@ trait JoinTestTrait
             ModelRegistry::use('Posts')
                 ->find()
                 ->innerJoinWith('Users.Addresses')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -78,7 +78,7 @@ trait JoinTestTrait
                 ->leftJoinWith('Users.Addresses', [
                     'Addresses.suburb' => 'Test',
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -100,7 +100,7 @@ trait JoinTestTrait
                 ->find()
                 ->innerJoinWith('Users')
                 ->leftJoinWith('Users.Addresses')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -113,7 +113,7 @@ trait JoinTestTrait
                 ->find()
                 ->innerJoinWith('Users')
                 ->leftJoinWith('Users')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -125,7 +125,7 @@ trait JoinTestTrait
             ModelRegistry::use('Posts')
                 ->find()
                 ->leftJoinWith('Users.Addresses')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
+use Closure;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
@@ -162,7 +163,7 @@ abstract class Relationship
             $this->findRelatedConditions($newQuery, $sourceValues);
         }
 
-        $allChildren = $newQuery->all();
+        $allChildren = $newQuery->toArray();
 
         foreach ($entities as $entity) {
             $sourceValue = $entity->get($sourceKey);
@@ -339,7 +340,7 @@ abstract class Relationship
 
         $this->findRelatedConditions($query, $sourceValues);
 
-        $relations = $query->all();
+        $relations = $query->toArray();
 
         if ($relations === []) {
             return true;
@@ -436,7 +437,6 @@ abstract class Relationship
         }
 
         $query
-            ->enableAutoAlias(false)
             ->select($fields, true)
             ->contain([], true)
             ->groupBy($groupBy, true)
@@ -445,6 +445,10 @@ abstract class Relationship
             ->limit($limit)
             ->offset($offset)
             ->epilog('');
+
+        Closure::bind(function(): void {
+            $this->autoAlias = false;
+        }, $query, $query)->__invoke();
 
         $newQuery->join([
             [

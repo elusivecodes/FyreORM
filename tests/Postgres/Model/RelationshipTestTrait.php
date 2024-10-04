@@ -35,7 +35,7 @@ trait RelationshipTestTrait
         $this->assertSame(
             'SELECT Items.id AS "Items__id" FROM items AS Items LEFT JOIN items AS Alias ON item_id = Items.id AND Alias.name = \'Test\'',
             $Items->find()
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->leftJoinWith('Alias')
                 ->sql()
         );
@@ -54,7 +54,7 @@ trait RelationshipTestTrait
         $this->assertSame(
             'SELECT Items.id AS "Items__id" FROM items AS Items LEFT JOIN items AS Alias ON Alias.name = Items.name',
             $Items->find()
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->leftJoinWith('Alias')
                 ->sql()
         );

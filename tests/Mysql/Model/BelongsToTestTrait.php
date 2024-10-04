@@ -21,7 +21,7 @@ trait BelongsToTestTrait
                         ],
                     ],
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -154,7 +154,7 @@ trait BelongsToTestTrait
                         'Users',
                     ],
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -166,7 +166,7 @@ trait BelongsToTestTrait
             ModelRegistry::use('Addresses')
                 ->find()
                 ->innerJoinWith('Users')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -305,7 +305,7 @@ trait BelongsToTestTrait
             ModelRegistry::use('Addresses')
                 ->find()
                 ->leftJoinWith('Users')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -374,7 +374,7 @@ trait BelongsToTestTrait
                         ],
                     ],
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -492,7 +492,7 @@ trait BelongsToTestTrait
             'contain' => [
                 'Users',
             ],
-        ])->all();
+        ])->toArray();
 
         $this->assertSame(
             'Test 3',

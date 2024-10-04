@@ -391,7 +391,7 @@ trait QueryTestTrait
             $Items->saveMany($items)
         );
 
-        $items = $Items->find()->all();
+        $items = $Items->find()->toArray();
 
         $this->assertSame(
             [
@@ -443,7 +443,7 @@ trait QueryTestTrait
             $Items->saveMany($items)
         );
 
-        $items = $Items->find()->all();
+        $items = $Items->find()->toArray();
 
         $this->assertSame(
             array_map(

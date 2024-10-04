@@ -174,21 +174,18 @@ trait EntityTrait
             $primaryKeys
         );
 
-        $matches = $this->find([
+        $matchedValues = $this->find([
             'fields' => $primaryKeys,
             'conditions' => QueryGenerator::normalizeConditions($primaryKeys, $values),
             'events' => false,
         ])
-            ->all();
+            ->getResult()
+            ->map(fn(Entity $entity): array => $entity->extract($primaryKeys))
+            ->toArray();
 
-        if ($matches === []) {
+        if ($matchedValues === []) {
             return;
         }
-
-        $matchedValues = array_map(
-            fn(Entity $entity): array => $entity->extract($primaryKeys),
-            $matches
-        );
 
         foreach ($values as $i => $data) {
             foreach ($matchedValues as $other) {

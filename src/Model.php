@@ -38,20 +38,6 @@ class Model
     use SchemaTrait;
     use ValidationTrait;
 
-    public const QUERY_METHODS = [
-        'fields' => 'select',
-        'contain' => 'contain',
-        'join' => 'join',
-        'conditions' => 'where',
-        'orderBy' => 'orderBy',
-        'groupBy' => 'groupBy',
-        'having' => 'having',
-        'limit' => 'limit',
-        'offset' => 'offset',
-        'epilog' => 'epilog',
-        'autoFields' => 'enableAutoFields',
-    ];
-
     public const READ = 'read';
 
     public const WRITE = 'write';

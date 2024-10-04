@@ -21,7 +21,7 @@ trait HasOneTestTrait
                         ],
                     ],
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -168,7 +168,7 @@ trait HasOneTestTrait
             ModelRegistry::use('Users')
                 ->find()
                 ->innerJoinWith('Addresses')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -307,7 +307,7 @@ trait HasOneTestTrait
             ModelRegistry::use('Users')
                 ->find()
                 ->leftJoinWith('Addresses')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -496,7 +496,7 @@ trait HasOneTestTrait
             'contain' => [
                 'Addresses',
             ],
-        ])->all();
+        ])->toArray();
 
         $this->assertSame(
             'Test 3',

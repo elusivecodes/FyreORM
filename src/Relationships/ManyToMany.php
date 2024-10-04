@@ -128,10 +128,9 @@ class ManyToMany extends Relationship
             $this->findRelatedConditions($newQuery, $sourceValues);
         }
 
-        $children = $newQuery->all();
-
-        $allChildren = array_map(
-            function(Entity $child) use ($joinProperty): Entity {
+        $allChildren = $newQuery
+            ->getResult()
+            ->map(function(Entity $child) use ($joinProperty): Entity {
                 $realChild = $child->get($joinProperty);
                 $child->unset($joinProperty);
 
@@ -139,9 +138,8 @@ class ManyToMany extends Relationship
                 $realChild->setDirty('_joinData', false);
 
                 return $realChild;
-            },
-            $children
-        );
+            })
+            ->toArray();
 
         if (!$hasRelationship) {
             $joinModel->removeRelationship($targetName);

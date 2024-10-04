@@ -25,7 +25,8 @@
         "fyre/inflector": "^2.0",
         "fyre/lang": "^3.0",
         "fyre/schema": "^4.0",
-        "fyre/validation": "^3.0"
+        "fyre/validation": "^3.0",
+        "fyre/collection": "^1.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.59",

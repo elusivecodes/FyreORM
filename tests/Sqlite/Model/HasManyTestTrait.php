@@ -150,7 +150,7 @@ trait HasManyTestTrait
                 fn($post) => $post->user_id,
                 ModelRegistry::use('Posts')
                     ->find()
-                    ->all()
+                    ->toArray()
             )
         );
     }
@@ -190,7 +190,7 @@ trait HasManyTestTrait
                 fn($post) => $post->user_id,
                 ModelRegistry::use('Posts')
                     ->find()
-                    ->all()
+                    ->toArray()
             )
         );
     }
@@ -271,7 +271,7 @@ trait HasManyTestTrait
             ModelRegistry::use('Users')
                 ->find()
                 ->innerJoinWith('Posts')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -473,7 +473,7 @@ trait HasManyTestTrait
             ModelRegistry::use('Users')
                 ->find()
                 ->leftJoinWith('Posts')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -627,7 +627,7 @@ trait HasManyTestTrait
                 fn($post) => $post->user_id,
                 ModelRegistry::use('Posts')
                     ->find()
-                    ->all()
+                    ->toArray()
             )
         );
     }
@@ -669,7 +669,7 @@ trait HasManyTestTrait
                 fn($post) => $post->user_id,
                 ModelRegistry::use('Posts')
                     ->find()
-                    ->all()
+                    ->toArray()
             )
         );
     }
@@ -909,7 +909,7 @@ trait HasManyTestTrait
             'contain' => [
                 'Posts',
             ],
-        ])->all();
+        ])->toArray();
 
         $this->assertSame(
             ['Test 3', 'Test 4'],

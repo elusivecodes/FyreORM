@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite;
 
+use Fyre\Entity\Entity;
 use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
 use PHPUnit\Framework\TestCase;
@@ -11,6 +12,72 @@ use Tests\Mock\Entity\Item;
 final class QueryTest extends TestCase
 {
     use SqliteConnectionTrait;
+
+    public function testBuffering(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $items = $Items->find()
+            ->disableAutoFields()
+            ->all();
+
+        $items->toArray();
+
+        $this->assertSame(
+            [
+                [
+                    'id' => 1,
+                ],
+                [
+                    'id' => 2,
+                ],
+            ],
+            $items->map(fn(Entity $item): array => $item->toArray())->toArray()
+        );
+    }
+
+    public function testBufferingDisabled(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $items = $Items->find()
+            ->disableAutoFields()
+            ->disableBuffering()
+            ->all();
+
+        $items->toArray();
+
+        $this->assertSame(
+            [],
+            $items->toArray()
+        );
+    }
 
     public function testCount(): void
     {
@@ -54,7 +121,7 @@ final class QueryTest extends TestCase
         );
 
         $this->assertSame(
-            2,
+            1,
             $Items->find()
                 ->limit(1)
                 ->count()

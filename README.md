@@ -780,6 +780,16 @@ public function afterDelete(Entity $entity) {}
 
 If this method returns *false* the delete will not be performed and the transaction will be rolled back.
 
+**After Delete Commit**
+
+Execute a callback after entities are deleted and transaction is committed.
+
+```php
+use Fyre\Entity\Entity;
+
+public function afterDeleteCommit(Entity $entity) {}
+```
+
 **After Find**
 
 Execute a callback after performing a find query.
@@ -823,6 +833,16 @@ public function afterSave(Entity $entity) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
+
+**After Save Commit**
+
+Execute a callback after entities are saved to the database and transaction is committed.
+
+```php
+use Fyre\Entity\Entity;
+
+public function afterSaveCommit(Entity $entity) {}
+```
 
 **Before Delete**
 
@@ -956,7 +976,7 @@ $model->selectQuery()
 
 **All**
 
-Get the results as an array.
+Get the [*Result*](#results).
 
 ```php
 $results = $query->all();
@@ -989,12 +1009,36 @@ Get the result count.
 $count = $query->count();
 ```
 
-**Enable Auto Fields**
+**Disable Auto Fields**
 
-- `$autoFields` is a boolean indicating whether to enable auto fields, and will default to *true*.
+Disable auto fields.
 
 ```php
-$query->enableAutoFields($autoFields);
+$query->disableAutoFields();
+```
+
+**Disable Buffering**
+
+Disable result buffering.
+
+```php
+$query->disableBuffering();
+```
+
+**Enable Auto Fields**
+
+Enable auto fields.
+
+```php
+$query->enableAutoFields();
+```
+
+**Enable Buffering**
+
+Enable result buffering.
+
+```php
+$query->enableBuffering();
 ```
 
 **First**
@@ -1039,7 +1083,7 @@ $matching = $query->getMatching();
 
 **Get Result**
 
-Get the query result.
+Get the [*Result*](#results).
 
 ```php
 $result = $query->getResult();
@@ -1090,6 +1134,13 @@ LEFT JOIN a relationship table and exclude matching rows.
 ```php
 $query->notMatching($contain, $conditions);
 ```
+**To Array**
+
+Get the results as an array.
+
+```php
+$array = $query->toArray();
+```
 
 ### Update
 
@@ -1131,7 +1182,7 @@ $alias = $query->getAlias();
 
 ## Results
 
-The `\Fyre\ORM\Result` class wraps the [*ResultSet*](https://github.com/elusivecodes/FyreDB#results) class, while providing additional handling for entity mapping and eager loading contained results.
+The `\Fyre\ORM\Result` class wraps the [*ResultSet*](https://github.com/elusivecodes/FyreDB#results) class, and acts as a proxy for the [*Collection*](https://github.com/elusivecodes/FyreCollection) class, providing additional handling for entity mapping and eager loading contained results.
 
 
 ## Relationships

@@ -3,19 +3,21 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
-use ArrayIterator;
+use Closure;
 use Countable;
+use Fyre\Collection\Collection;
 use Fyre\DB\ResultSet;
 use Fyre\DB\Types\Type;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Queries\SelectQuery;
+use Generator;
 use Iterator;
 use IteratorAggregate;
+use JsonSerializable;
 
-use function array_fill;
 use function array_key_exists;
-use function array_key_last;
 use function array_merge;
+use function call_user_func_array;
 use function count;
 use function explode;
 use function in_array;
@@ -23,7 +25,7 @@ use function in_array;
 /**
  * Result
  */
-class Result implements Countable, IteratorAggregate
+class Result implements Countable, IteratorAggregate, JsonSerializable
 {
     protected const ENTITY_OPTIONS = [
         'parse' => false,
@@ -35,9 +37,7 @@ class Result implements Countable, IteratorAggregate
 
     protected array|null $aliasMap = null;
 
-    protected array|null $buffer = null;
-
-    protected bool $eagerLoad = false;
+    protected Collection $collection;
 
     protected bool $freed = false;
 
@@ -50,52 +50,85 @@ class Result implements Countable, IteratorAggregate
      *
      * @param ResultSet $result The ResultSet.
      * @param SelectQuery $query The SelectQuery.
-     * @param bool $eagerLoad Whether to eager load the results.
+     * @param bool $buffer Whether to buffer the results.
      * @param array $options The result options.
      */
-    public function __construct(ResultSet $result, SelectQuery $query, bool $eagerLoad = false)
+    public function __construct(ResultSet $result, SelectQuery $query, bool $buffer = true)
     {
         $this->result = $result;
         $this->query = $query;
-        $this->eagerLoad = $eagerLoad;
+
+        $eagerLoad = $this->query->getEagerLoadPaths() !== [];
+
+        $this->collection = new Collection(function() use ($eagerLoad, $buffer): Generator {
+            $resultBuffer = null;
+
+            while ($this->result->valid()) {
+                if ($this->freed) {
+                    break;
+                }
+
+                $row = $this->result->current();
+
+                if ($row === null) {
+                    yield null;
+
+                    $this->result->next();
+
+                    continue;
+                }
+
+                $data = $this->parseRow($row);
+
+                $entity = $this->buildEntity($data);
+
+                if ($eagerLoad && !$buffer) {
+                    static::loadContain([$entity], $this->query->getContain(), $this->query->getModel(), $this->query);
+                }
+
+                if ($resultBuffer === null) {
+                    $resultBuffer = & Closure::bind(fn&(): array => $this->buffer, $this->result, $this->result)->__invoke();
+                }
+
+                $resultBuffer[$this->result->key()] = null;
+
+                yield $entity;
+
+                $this->result->next();
+            }
+
+            $this->free();
+        });
+
+        if ($buffer) {
+            $this->collection = $this->collection->cache();
+        }
+
+        if ($eagerLoad && $buffer) {
+            static::loadContain($this->collection->toArray(), $this->query->getContain(), $this->query->getModel(), $this->query);
+        }
     }
 
     /**
-     * Get the results as an array.
+     * Call a Collection method.
      *
-     * @return array The results.
+     * @param string $method The method.
+     * @param array $arguments Arguments to pass to the method.
+     * @return mixed The return value.
      */
-    public function all(): array
+    public function __call($method, $arguments = []): mixed
     {
-        if ($this->freed) {
-            return [];
-        }
-
-        if ($this->eagerLoad) {
-            return $this->getBuffer();
-        }
-
-        $results = [];
-
-        $count = $this->count();
-        for ($i = 0; $i < $count; $i++) {
-            $results[] = $this->fetch($i);
-        }
-
-        return $results;
+        return call_user_func_array([$this->collection, $method], $arguments);
     }
 
     /**
-     * Clear the results from the buffer.
+     * Convert the collection to a JSON encoded string.
+     *
+     * @return string The JSON encoded string.
      */
-    public function clearBuffer(): void
+    public function __toString(): string
     {
-        $this->result->clearBuffer();
-
-        if ($this->buffer !== null) {
-            $lastKey = array_key_last($this->buffer);
-            $this->buffer = array_fill(0, $lastKey + 1, null);
-        }
+        return (string) $this->collection;
     }
 
     /**
@@ -136,39 +169,13 @@ class Result implements Countable, IteratorAggregate
      */
     public function fetch(int $index): Entity|null
     {
-        if ($this->eagerLoad) {
-            return $this->getBuffer()[$index] ?? null;
-        }
-
-        if ($this->freed || $index > $this->count() - 1) {
-            return null;
-        }
-
-        $this->buffer ??= [];
-
-        if (!array_key_exists($index, $this->buffer)) {
-            $row = $this->result->fetch($index);
-
-            if ($row === null) {
-                $this->buffer[$index] = null;
-            } else {
-                $data = $this->parseRow($row);
-
-                $this->buffer[$index] = $this->buildEntity($data);
+        foreach ($this as $key => $entity) {
+            if ($key === $index) {
+                return $entity;
             }
         }
 
-        return $this->buffer[$index];
-    }
-
-    /**
-     * Get the first result.
-     *
-     * @return Entity|null The first result.
-     */
-    public function first(): Entity|null
-    {
-        return $this->fetch(0);
+        return null;
     }
 
     /**
@@ -176,19 +183,20 @@ class Result implements Countable, IteratorAggregate
      */
     public function free(): void
     {
-        $this->freed = true;
-        $this->buffer = [];
-        $this->result->free();
+        if (!$this->freed) {
+            $this->freed = true;
+            $this->result->free();
+        }
     }
 
     /**
-     * Get the Iterator.
+     * Get the collection Iterator.
      *
-     * @return Iterator The Iterator.
+     * @return Iterator The collection Iterator.
      */
     public function getIterator(): Iterator
     {
-        return new ArrayIterator($this->all());
+        return $this->collection->getIterator();
     }
 
     /**
@@ -203,13 +211,13 @@ class Result implements Countable, IteratorAggregate
     }
 
     /**
-     * Get the last result.
+     * Convert the collection to an array for JSON serializing.
      *
-     * @return Entity|null The last result.
+     * @return array The array for serializing.
      */
-    public function last(): Entity|null
+    public function jsonSerialize(): array
     {
-        return $this->fetch($this->count() - 1);
+        return $this->collection->jsonSerialize();
     }
 
     /**
@@ -248,32 +256,6 @@ class Result implements Countable, IteratorAggregate
         }
 
         return $this->aliasMap;
-    }
-
-    /**
-     * Get the result buffer.
-     *
-     * @return array The result buffer.
-     */
-    protected function getBuffer(): array
-    {
-        if ($this->buffer !== null) {
-            return $this->buffer;
-        }
-
-        $rows = $this->result->all();
-
-        $this->buffer = [];
-
-        foreach ($rows as $row) {
-            $data = $this->parseRow($row);
-
-            $this->buffer[] = $this->buildEntity($data);
-        }
-
-        static::loadContain($this->buffer, $this->query->getContain(), $this->query->getModel(), $this->query);
-
-        return $this->buffer;
     }
 
     /**
@@ -381,7 +363,7 @@ class Result implements Countable, IteratorAggregate
             $data['strategy'] ??= $relationship->getStrategy();
 
             if ($data['strategy'] !== 'join' || in_array($path, $eagerLoadPaths)) {
-                $data['type'] ??= $query->getConnectionType();
+                $data['connectionType'] ??= $query->getConnectionType();
                 $relationship->findRelated($entities, $data, $query);
 
                 continue;

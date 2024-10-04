@@ -211,7 +211,7 @@ trait ManyToManyTestTrait
             ModelRegistry::use('Posts')
                 ->find()
                 ->innerJoinWith('Tags')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -391,7 +391,7 @@ trait ManyToManyTestTrait
             ModelRegistry::use('Posts')
                 ->find()
                 ->leftJoinWith('Tags')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -518,7 +518,7 @@ trait ManyToManyTestTrait
             'SELECT Items.id AS "Items__id" FROM items AS Items INNER JOIN contains AS Contains ON Contains.item_id = Items.id INNER JOIN items AS ChildItems ON ChildItems.id = Contains.contained_item_id',
             $Items->find()
                 ->innerJoinWith('ChildItems')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
 
@@ -526,7 +526,7 @@ trait ManyToManyTestTrait
             'SELECT Items.id AS "Items__id" FROM items AS Items INNER JOIN contains AS Contains ON Contains.contained_item_id = Items.id INNER JOIN items AS ParentItems ON ParentItems.id = Contains.item_id',
             $Items->find()
                 ->innerJoinWith('ParentItems')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }

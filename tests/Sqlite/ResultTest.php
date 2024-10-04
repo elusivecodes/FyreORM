@@ -9,11 +9,13 @@ use Fyre\ORM\Result;
 use PHPUnit\Framework\TestCase;
 use Tests\Mock\Entity\Item;
 
+use function json_encode;
+
 final class ResultTest extends TestCase
 {
     use SqliteConnectionTrait;
 
-    public function testClearBuffer(): void
+    public function testCollection(): void
     {
         $Items = ModelRegistry::use('Items');
 
@@ -30,18 +32,15 @@ final class ResultTest extends TestCase
             $Items->saveMany($items)
         );
 
-        $result = $Items->find()
+        $items = $Items->find()
             ->getResult();
 
-        $result->fetch(0);
-        $result->clearBuffer();
-
-        $this->assertNull(
-            $result->fetch(0)
-        );
-
-        $this->assertNull(
-            $result->fetch(1)
+        $this->assertSame(
+            [
+                1 => 'Test 1',
+                2 => 'Test 2',
+            ],
+            $items->combine('id', 'name')->toArray()
         );
     }
 
@@ -166,7 +165,33 @@ final class ResultTest extends TestCase
 
         $this->assertSame(
             [],
-            $result->all()
+            $result->toArray()
+        );
+    }
+
+    public function testJson(): void
+    {
+        $Items = ModelRegistry::use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $items = $Items->find()
+            ->getResult();
+
+        $this->assertSame(
+            '[{"id":1,"name":"Test 1"},{"id":2,"name":"Test 2"}]',
+            json_encode($items)
         );
     }
 

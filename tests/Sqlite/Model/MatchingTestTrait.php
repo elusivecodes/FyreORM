@@ -19,7 +19,7 @@ trait MatchingTestTrait
                 ->matching('Posts.Tags', [
                     'Tags.tag' => 'test',
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -167,7 +167,7 @@ trait MatchingTestTrait
                 ->find()
                 ->matching('Addresses')
                 ->matching('Posts.Tags')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -179,7 +179,7 @@ trait MatchingTestTrait
             ModelRegistry::use('Users')
                 ->find()
                 ->matching('Posts.Tags')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -193,7 +193,7 @@ trait MatchingTestTrait
                 ->notMatching('Posts.Tags', [
                     'Tags.tag' => 'test',
                 ])
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -215,7 +215,7 @@ trait MatchingTestTrait
                 ->find()
                 ->notMatching('Addresses')
                 ->notMatching('Posts.Tags')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }
@@ -227,7 +227,7 @@ trait MatchingTestTrait
             ModelRegistry::use('Users')
                 ->find()
                 ->notMatching('Posts.Tags')
-                ->enableAutoFields(false)
+                ->disableAutoFields()
                 ->sql()
         );
     }

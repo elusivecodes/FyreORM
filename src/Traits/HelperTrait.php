@@ -6,6 +6,7 @@ namespace Fyre\ORM\Traits;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
+use Fyre\ORM\Queries\SelectQuery;
 
 use function array_key_exists;
 use function array_merge;
@@ -111,11 +112,12 @@ trait HelperTrait
      *
      * @param array|string $contain The contain data.
      * @param Model $model The Model.
+     * @param int $depth The contain depth.
      * @return array The normalized contain data.
      *
      * @throws OrmException if a relationship is not valid.
      */
-    public static function normalizeContain(array|string $contain, Model $model): array
+    public static function normalizeContain(array|string $contain, Model $model, int $depth = 0): array
     {
         $normalized = [
             'contain' => [],
@@ -139,13 +141,19 @@ trait HelperTrait
 
         foreach ($contain as $key => $value) {
             if (is_numeric($key) || $key === 'contain') {
-                $newContain = static::normalizeContain($value, $model);
+                $newContain = static::normalizeContain($value, $model, $depth);
                 $normalized = static::mergeContain($normalized, $newContain);
 
                 continue;
             }
 
-            if (array_key_exists($key, static::QUERY_METHODS) || in_array($key, ['strategy', 'type'])) {
+            if (
+                $depth > 0 &&
+                (
+                    array_key_exists($key, SelectQuery::QUERY_METHODS) ||
+                    in_array($key, ['autoFields', 'strategy', 'type'])
+                )
+            ) {
                 $normalized[$key] = $value;
 
                 continue;
@@ -158,7 +166,7 @@ trait HelperTrait
             }
 
             $normalized['contain'][$key] ??= [];
-            $newContain = static::normalizeContain($value, $relationship->getTarget());
+            $newContain = static::normalizeContain($value, $relationship->getTarget(), $depth + 1);
             $normalized['contain'][$key] = static::mergeContain($normalized['contain'][$key], $newContain);
         }
 
