@@ -127,16 +127,25 @@ abstract class Relationship
     public function findRelated(array $entities, array $data, SelectQuery $query): void
     {
         $sourceValues = $this->getRelatedKeyValues($entities);
+        $property = $this->getProperty();
+        $hasMultiple = $this->hasMultiple();
 
         if ($sourceValues === []) {
+            foreach ($entities as $entity) {
+                if (!$hasMultiple) {
+                    $entity->set($property, null);
+                } else {
+                    $entity->set($property, []);
+                }
+    
+                $entity->setDirty($property, false);
+            }
             return;
         }
 
         $data['strategy'] ??= $this->getStrategy();
 
         $target = $this->getTarget();
-        $property = $this->getProperty();
-        $hasMultiple = $this->hasMultiple();
 
         if ($this->isOwningSide()) {
             $sourceKey = $this->getBindingKey();

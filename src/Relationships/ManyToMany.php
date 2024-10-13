@@ -89,15 +89,19 @@ class ManyToMany extends Relationship
     public function findRelated(array $entities, array $data, SelectQuery $query): void
     {
         $sourceValues = $this->getRelatedKeyValues($entities);
+        $property = $this->getProperty();
 
         if ($sourceValues === []) {
+            foreach ($entities as $entity) {
+                $entity->set($property, []);
+                $entity->setDirty($property, false);
+            }
             return;
         }
 
         $data['strategy'] ??= $this->getStrategy();
 
         $joinModel = $this->getJoinModel();
-        $property = $this->getProperty();
         $bindingKey = $this->getBindingKey();
         $foreignKey = $this->getForeignKey();
         $targetRelationship = $this->getTargetRelationship();
