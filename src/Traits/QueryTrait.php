@@ -362,7 +362,7 @@ trait QueryTrait
 
         if ($options['events']) {
             $connection->afterCommit(function() use ($entities, $options): void {
-                foreach ($entities AS $entity) {
+                foreach ($entities as $entity) {
                     $this->handleEvent('afterSaveCommit', $entity, $options);
                 }
             }, 100);

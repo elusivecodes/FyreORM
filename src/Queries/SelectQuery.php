@@ -13,7 +13,6 @@ use Fyre\ORM\Result;
 
 use function array_key_exists;
 use function array_map;
-use function call_user_func_array;
 use function count;
 use function explode;
 use function is_numeric;
@@ -105,7 +104,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             }
 
             $method = static::QUERY_METHODS[$key];
-            call_user_func_array([$this, $method], [$value]);
+            $this->$method($value);
 
             unset($options[$key]);
         }

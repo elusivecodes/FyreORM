@@ -21,7 +21,6 @@ use Fyre\ORM\Traits\SchemaTrait;
 use Fyre\ORM\Traits\ValidationTrait;
 
 use function array_key_exists;
-use function call_user_func_array;
 use function method_exists;
 
 /**
@@ -83,12 +82,12 @@ class Model
      */
     public function handleEvent(string $event, ...$arguments): bool
     {
-        if (method_exists($this, $event) && call_user_func_array([$this, $event], $arguments) === false) {
+        if (method_exists($this, $event) && $this->$event(...$arguments) === false) {
             return false;
         }
 
         foreach ($this->behaviors as $behavior) {
-            if (method_exists($behavior, $event) && call_user_func_array([$behavior, $event], $arguments) === false) {
+            if (method_exists($behavior, $event) && $behavior->$event(...$arguments) === false) {
                 return false;
             }
         }

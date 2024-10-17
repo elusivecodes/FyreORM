@@ -96,6 +96,7 @@ class ManyToMany extends Relationship
                 $entity->set($property, []);
                 $entity->setDirty($property, false);
             }
+
             return;
         }
 

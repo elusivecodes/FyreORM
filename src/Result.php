@@ -17,7 +17,6 @@ use JsonSerializable;
 
 use function array_key_exists;
 use function array_merge;
-use function call_user_func_array;
 use function count;
 use function explode;
 use function in_array;
@@ -118,7 +117,7 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
      */
     public function __call($method, $arguments = []): mixed
     {
-        return call_user_func_array([$this->collection, $method], $arguments);
+        return $this->collection->$method(...$arguments);
     }
 
     /**

@@ -137,9 +137,10 @@ abstract class Relationship
                 } else {
                     $entity->set($property, []);
                 }
-    
+
                 $entity->setDirty($property, false);
             }
+
             return;
         }
 
