@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Fyre\ORM;
 
+use Fyre\Container\Container;
+use Fyre\ORM\Exceptions\OrmException;
+
 use function array_key_exists;
 use function array_splice;
 use function class_exists;
@@ -13,35 +16,68 @@ use function trim;
 /**
  * ModelRegistry
  */
-abstract class ModelRegistry
+class ModelRegistry
 {
-    protected static string $defaultModelClass = Model::class;
+    protected Container $container;
 
-    protected static array $instances = [];
+    protected string $defaultModelClass = Model::class;
 
-    protected static array $namespaces = [];
+    protected array $instances = [];
+
+    protected array $namespaces = [];
+
+    public function __construct(Container $container, array $namespaces = [])
+    {
+        $this->container = $container;
+
+        foreach ($namespaces as $namespace) {
+            $this->addNamespace($namespace);
+        }
+    }
 
     /**
      * Add a namespace for loading models.
      *
      * @param string $namespace The namespace.
+     * @return static The ModelRegistry.
      */
-    public static function addNamespace(string $namespace): void
+    public function addNamespace(string $namespace): static
     {
         $namespace = static::normalizeNamespace($namespace);
 
-        if (!in_array($namespace, static::$namespaces)) {
-            static::$namespaces[] = $namespace;
+        if (!in_array($namespace, $this->namespaces)) {
+            $this->namespaces[] = $namespace;
         }
+
+        return $this;
+    }
+
+    /**
+     * Build a Model.
+     *
+     * @param string $alias The model class alias.
+     * @return Model The Model.
+     */
+    public function build(string $classAlias): Model
+    {
+        foreach ($this->namespaces as $namespace) {
+            $fullClass = $namespace.$classAlias.'Model';
+
+            if (class_exists($fullClass) && is_subclass_of($fullClass, Model::class)) {
+                return $this->container->build($fullClass);
+            }
+        }
+
+        return static::createDefaultModel()->setClassAlias($classAlias);
     }
 
     /**
      * Clear all namespaces and models.
      */
-    public static function clear(): void
+    public function clear(): void
     {
-        static::$namespaces = [];
-        static::$instances = [];
+        $this->namespaces = [];
+        $this->instances = [];
     }
 
     /**
@@ -49,11 +85,9 @@ abstract class ModelRegistry
      *
      * @return Model The Model.
      */
-    public static function createDefaultModel(): Model
+    public function createDefaultModel(): Model
     {
-        $modelClass = static::$defaultModelClass;
-
-        return new $modelClass();
+        return $this->container->build($this->defaultModelClass);
     }
 
     /**
@@ -61,9 +95,9 @@ abstract class ModelRegistry
      *
      * @return string The default model class name.
      */
-    public static function getDefaultModelClass(): string
+    public function getDefaultModelClass(): string
     {
-        return static::$defaultModelClass;
+        return $this->defaultModelClass;
     }
 
     /**
@@ -71,9 +105,9 @@ abstract class ModelRegistry
      *
      * @return array The namespaces.
      */
-    public static function getNamespaces(): array
+    public function getNamespaces(): array
     {
-        return static::$namespaces;
+        return $this->namespaces;
     }
 
     /**
@@ -82,11 +116,11 @@ abstract class ModelRegistry
      * @param string $namespace The namespace.
      * @return bool TRUE if the namespace exists, otherwise FALSE.
      */
-    public static function hasNamespace(string $namespace): bool
+    public function hasNamespace(string $namespace): bool
     {
         $namespace = static::normalizeNamespace($namespace);
 
-        return in_array($namespace, static::$namespaces);
+        return in_array($namespace, $this->namespaces);
     }
 
     /**
@@ -95,89 +129,79 @@ abstract class ModelRegistry
      * @param string $alias The model alias.
      * @return bool TRUE if the model is loaded, otherwise FALSE.
      */
-    public static function isLoaded(string $alias): bool
+    public function isLoaded(string $alias): bool
     {
-        return array_key_exists($alias, static::$instances);
-    }
-
-    /**
-     * Load a Model.
-     *
-     * @param string $alias The model alias.
-     * @return Model The Model.
-     */
-    public static function load(string $alias): Model
-    {
-        foreach (static::$namespaces as $namespace) {
-            $fullClass = $namespace.$alias.'Model';
-
-            if (class_exists($fullClass) && is_subclass_of($fullClass, Model::class)) {
-                return new $fullClass();
-            }
-        }
-
-        return static::createDefaultModel()->setAlias($alias);
+        return array_key_exists($alias, $this->instances);
     }
 
     /**
      * Remove a namespace.
      *
      * @param string $namespace The namespace.
-     * @return bool TRUE If the namespace was removed, otherwise FALSE.
+     * @return static The ModelRegistry.
      */
-    public static function removeNamespace(string $namespace): bool
+    public function removeNamespace(string $namespace): static
     {
         $namespace = static::normalizeNamespace($namespace);
 
-        foreach (static::$namespaces as $i => $otherNamespace) {
+        foreach ($this->namespaces as $i => $otherNamespace) {
             if ($otherNamespace !== $namespace) {
                 continue;
             }
 
-            array_splice(static::$namespaces, $i, 1);
-
-            return true;
+            array_splice($this->namespaces, $i, 1);
+            break;
         }
 
-        return false;
+        return $this;
     }
 
     /**
      * Set the default model class name.
      *
      * @param string $defaultModelClass The default model class name.
+     * @return static The ModelRegistry.
      */
-    public static function setDefaultModelClass(string $defaultModelClass): void
+    public function setDefaultModelClass(string $defaultModelClass): static
     {
-        static::$defaultModelClass = $defaultModelClass;
+        $this->defaultModelClass = $defaultModelClass;
+
+        return $this;
     }
 
     /**
      * Unload a model.
      *
      * @param string $alias The model alias.
-     * @return bool TRUE if the model was removed, otherwise FALSE.
+     * @return static The ModelRegistry.
      */
-    public static function unload(string $alias): bool
+    public function unload(string $alias): static
     {
-        if (!array_key_exists($alias, static::$instances)) {
-            return false;
-        }
+        unset($this->instances[$alias]);
 
-        unset(static::$instances[$alias]);
-
-        return true;
+        return $this;
     }
 
     /**
      * Load a shared Model instance.
      *
      * @param string $alias The model alias.
+     * @param string|null $classAlias The model class alias.
      * @return Model The Model.
+     *
+     * @throws OrmException if the alias is used by a different class.
      */
-    public static function use(string $alias): Model
+    public function use(string $alias, string|null $classAlias = null): Model
     {
-        return static::$instances[$alias] ??= static::load($alias);
+        if (!array_key_exists($alias, $this->instances)) {
+            $this->instances[$alias] = $classAlias && $classAlias !== $alias ?
+                static::build($classAlias)->setAlias($alias) :
+                static::build($alias);
+        } else if ($classAlias && $this->instances[$alias]->getClassAlias() !== $classAlias) {
+            throw OrmException::forAliasNotUnique($alias);
+        }
+
+        return $this->instances[$alias];
     }
 
     /**
@@ -188,10 +212,6 @@ abstract class ModelRegistry
      */
     protected static function normalizeNamespace(string $namespace): string
     {
-        $namespace = trim($namespace, '\\');
-
-        return $namespace ?
-            '\\'.$namespace.'\\' :
-            '\\';
+        return trim($namespace, '\\').'\\';
     }
 }

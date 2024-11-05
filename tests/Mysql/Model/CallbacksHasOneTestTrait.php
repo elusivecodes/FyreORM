@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 
 trait CallbacksHasOneTestTrait
 {
     public function testAfterParseHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -28,7 +26,7 @@ trait CallbacksHasOneTestTrait
 
     public function testAfterParseHasOneMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -53,7 +51,7 @@ trait CallbacksHasOneTestTrait
 
     public function testAfterRulesHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -85,13 +83,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testAfterRulesManyHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -143,13 +141,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testAfterSaveHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -181,13 +179,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testAfterSaveManyHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -239,13 +237,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testBeforeParseHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -262,7 +260,7 @@ trait CallbacksHasOneTestTrait
 
     public function testBeforeParseHasOneMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -292,7 +290,7 @@ trait CallbacksHasOneTestTrait
 
     public function testBeforeRulesHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -324,13 +322,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testBeforeRulesManyHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -382,13 +380,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testBeforeSaveHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -420,13 +418,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testBeforeSaveManyHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -478,13 +476,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testRulesHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -516,13 +514,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testRulesNoCheckRulesHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -544,13 +542,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             1,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testValidationHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -582,13 +580,13 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testValidationNoCheckRulesHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -622,7 +620,7 @@ trait CallbacksHasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 }

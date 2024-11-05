@@ -5,6 +5,7 @@
 
 ## Table Of Contents
 - [Installation](#installation)
+- [Basic Usage](#basic-usage)
 - [Methods](#methods)
 - [Models](#models)
     - [Schema](#schema)
@@ -49,6 +50,30 @@ use Fyre\ORM\ModelRegistry;
 ```
 
 
+## Basic Usage
+
+- `$container` is a  [*Container*](https://github.com/elusivecodes/FyreContainer).
+- `$namespaces` is an array containing the namespaces.
+
+```php
+$modelRegistry = new ModelRegistry($container, $namespaces);
+```
+
+**Autoloading**
+
+It is recommended to bind the *ModelRegistry* to the [*Container*](https://github.com/elusivecodes/FyreContainer) as a singleton.
+
+```php
+$container->singleton(ModelRegistry::class);
+```
+
+Any dependencies will be injected automatically when loading from the [*Container*](https://github.com/elusivecodes/FyreContainer).
+
+```php
+$modelRegistry = $container->use(ModelRegistry::class);
+```
+
+
 ## Methods
 
 **Add Namespace**
@@ -58,15 +83,27 @@ Add a namespace for loading models.
 - `$namespace` is a string representing the namespace.
 
 ```php
-ModelRegistry::addNamespace($namespace);
+$modelRegistry->addNamespace($namespace);
 ```
+
+**Build**
+
+Build a [*Model*](#models).
+
+- `$classAlias` is a string representing the model class alias.
+
+```php
+$model = $modelRegistry->build($classAlias);
+```
+
+[*Model*](#models) dependencies will be resolved automatically from the [*Container*](https://github.com/elusivecodes/FyreContainer).
 
 **Clear**
 
 Clear all namespaces and models.
 
 ```php
-ModelRegistry::clear();
+$modelRegistry->clear();
 ```
 
 **Create Default Model**
@@ -74,15 +111,17 @@ ModelRegistry::clear();
 Create a default [*Model*](#models).
 
 ```php
-$model = ModelRegistry::createDefaultModel();
+$model = $modelRegistry->createDefaultModel();
 ```
+
+[*Model*](#models) dependencies will be resolved automatically from the [*Container*](https://github.com/elusivecodes/FyreContainer).
 
 **Get Default Model Class**
 
 Get the default model class name.
 
 ```php
-$defaultModelClass = ModelRegistry::getDefaultModelClass();
+$defaultModelClass = $modelRegistry->getDefaultModelClass();
 ```
 
 **Get Namespaces**
@@ -90,7 +129,7 @@ $defaultModelClass = ModelRegistry::getDefaultModelClass();
 Get the namespaces.
 
 ```php
-$namespaces = ModelRegistry::getNamespaces();
+$namespaces = $modelRegistry->getNamespaces();
 ```
 
 **Has Namespace**
@@ -100,7 +139,7 @@ Check if a namespace exists.
 - `$namespace` is a string representing the namespace.
 
 ```php
-$hasNamespace = ModelRegistry::hasNamespace($namespace);
+$hasNamespace = $modelRegistry->hasNamespace($namespace);
 ```
 
 **Is Loaded**
@@ -110,17 +149,7 @@ Check if a model is loaded.
 - `$alias` is a string representing the model alias.
 
 ```php
-$isLoaded = ModelRegistry::isLoaded($alias);
-```
-
-**Load**
-
-Load a [*Model*](#models).
-
-- `$alias` is a string representing the model alias.
-
-```php
-$model = ModelRegistry::load($alias);
+$isLoaded = $modelRegistry->isLoaded($alias);
 ```
 
 **Remove Namespace**
@@ -130,7 +159,7 @@ Remove a namespace.
 - `$namespace` is a string representing the namespace.
 
 ```php
-$removed = ModelRegistry::removeNamespace($namespace);
+$modelRegistry->removeNamespace($namespace);
 ```
 
 **Set Default Model Class**
@@ -140,7 +169,7 @@ Set the default model class name.
 - `$defaultModelClass` is a string representing the default model class name.
 
 ```php
-ModelRegistry::setDefaultModelClass($defaultModelClass);
+$modelRegistry->setDefaultModelClass($defaultModelClass);
 ```
 
 **Unload**
@@ -150,7 +179,7 @@ Unload a model.
 - `$alias` is a string representing the model alias.
 
 ```php
-$unloaded = ModelRegistry::unload($alias);
+$modelRegistry->unload($alias);
 ```
 
 **Use**
@@ -158,10 +187,13 @@ $unloaded = ModelRegistry::unload($alias);
 Load a shared [*Model*](#models) instance.
 
 - `$alias` is a string representing the model alias.
+- `$classAlias` is a string representing the model class alias, and will default to the model alias.
 
 ```php
-$model = ModelRegistry::use($alias);
+$model = $modelRegistry->use($alias, $classAlias);
 ```
+
+[*Model*](#models) dependencies will be resolved automatically from the [*Container*](https://github.com/elusivecodes/FyreContainer).
 
 
 ## Models
@@ -298,7 +330,7 @@ Get the model alias.
 $alias = $model->getAlias();
 ```
 
-By default, the alias will be the class name or the alias used when loading the model with *ModelRegistry*.
+By default, the alias will be the class alias.
 
 **Get Auto Increment Key**
 
@@ -307,6 +339,16 @@ Get the table auto increment column.
 ```php
 $autoIncrementKey = $model->getAutoIncrementKey();
 ```
+
+**Get Class Alias**
+
+Get the model class alias.
+
+```php
+$classAlias = $model->getClassAlias();
+```
+
+By default, the alias will be the class name or the alias used when loading the model with *ModelRegistry*.
 
 **Get Display Name**
 
@@ -346,7 +388,7 @@ Get the table name.
 $table = $model->getTable();
 ```
 
-By default, the table name will be the snake case form of the model alias, or you can specify a table name using the `table` property in your models.
+By default, the table name will be the snake case form of the model class alias, or you can specify a table name using the `table` property in your models.
 
 ```php
 protected string $table = 'my_table';
@@ -360,6 +402,16 @@ Set the model alias.
 
 ```php
 $model->setAlias($alias);
+```
+
+**Set Class Alias**
+
+Set the model class alias.
+
+- `$classAlias` is a string representing the model class alias.
+
+```php
+$model->setClassAlias($classAlias);
 ```
 
 **Set Display Name**
@@ -385,18 +437,12 @@ $model->setTable($table);
 
 ### Entities
 
-**Get Entity Class**
+Models will use the [*EntityLocator*](https://github.com/elusivecodes/FyreEntity#entity-locator) to find an entity class using the model class alias.
 
-Get the entity class.
-
-```php
-$entityClass = $model->getEntityClass();
-```
-
-Models will use the [*EntityLocator*](https://github.com/elusivecodes/FyreEntity#entity-locator) to find an entity using the model alias, or you can specify a class using the `entityClass` property in your models.
+You can map a model alias to a specific entity class using the [*EntityLocator*](https://github.com/elusivecodes/FyreEntity#entity-locator).
 
 ```php
-protected string $entityClass = MyEntity::class;
+$entityLocator->map($alias, $className);
 ```
 
 **Load Into**
@@ -589,6 +635,7 @@ Save an [*Entity*](https://github.com/elusivecodes/FyreEntity).
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
     - `saveRelated` is a boolean indicating whether to save related data, and will default to *true*.
+    - `saveState` is a boolean indicating whether to save the [*Entity*](https://github.com/elusivecodes/FyreEntity) before saving, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity after saving, and will default to *true*.
 
@@ -605,6 +652,7 @@ Save multiple entities.
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
     - `saveRelated` is a boolean indicating whether to save related data, and will default to *true*.
+    - `saveState` is a boolean indicating whether to save the [*Entity*](https://github.com/elusivecodes/FyreEntity) before saving, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity after saving, and will default to *true*.
 
@@ -731,7 +779,7 @@ Get the model [*RuleSet*](#rules).
 $rules = $model->getRules();
 ```
 
-You can build custom rules by specifying a `buildRules` [callback](#callbacks) in your models.
+You can build custom rules by specifying a `buildRules` method in your models.
 
 **Get Validator**
 
@@ -741,7 +789,7 @@ Get the model [*Validator*](https://github.com/elusivecodes/FyreValidation).
 $validator = $model->getValidator();
 ```
 
-You can build a custom validator by specifying a `buildValidation` [callback](#callbacks) in your models.
+You can build a custom validator by specifying a `buildValidation` method in your models.
 
 **Set Rules**
 
@@ -775,7 +823,7 @@ Execute a callback after entities are deleted.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterDelete(Entity $entity) {}
+public function afterDelete(Entity $entity, array $options) {}
 ```
 
 If this method returns *false* the delete will not be performed and the transaction will be rolled back.
@@ -787,7 +835,7 @@ Execute a callback after entities are deleted and transaction is committed.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterDeleteCommit(Entity $entity) {}
+public function afterDeleteCommit(Entity $entity, array $options) {}
 ```
 
 **After Find**
@@ -797,7 +845,7 @@ Execute a callback after performing a find query.
 ```php
 use Fyre\ORM\Result;
 
-public function afterFind(Result $result): Result {}
+public function afterFind(Result $result, array $options): Result {}
 ```
 
 **After Rules**
@@ -807,7 +855,7 @@ Execute a callback after model rules are processed.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterRules(Entity $entity) {}
+public function afterRules(Entity $entity, array $options) {}
 ```
 
 If this method returns *false* the save will not be performed.
@@ -819,7 +867,7 @@ Execute a callback after parsing user data into an entity.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterParse(Entity $entity) {}
+public function afterParse(Entity $entity, array $options) {}
 ```
 
 **After Save**
@@ -829,7 +877,7 @@ Execute a callback after entities are saved to the database.
 ```php
 use Fyre\Entity\Entity;
 
-public function afterSave(Entity $entity) {}
+public function afterSave(Entity $entity, array $options) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
@@ -841,7 +889,7 @@ Execute a callback after entities are saved to the database and transaction is c
 ```php
 use Fyre\Entity\Entity;
 
-public function afterSaveCommit(Entity $entity) {}
+public function afterSaveCommit(Entity $entity, array $options) {}
 ```
 
 **Before Delete**
@@ -851,7 +899,7 @@ Execute a callback before entities are deleted.
 ```php
 use Fyre\Entity\Entity;
 
-public function beforeDelete(Entity $entity) {}
+public function beforeDelete(Entity $entity, array $options) {}
 ```
 
 If this method returns *false* the delete will not be performed.
@@ -863,7 +911,7 @@ Execute a callback before performing a find query.
 ```php
 use Fyre\ORM\Query;
 
-public function beforeFind(Query $query): Query {}
+public function beforeFind(Query $query, array $options): Query {}
 ```
 
 **Before Parse**
@@ -873,7 +921,7 @@ Execute a callback before parsing user data into an entity.
 ```php
 use ArrayObject;
 
-public function beforeParse(ArrayObject $data) {}
+public function beforeParse(ArrayObject $data, array $options) {}
 ```
 
 **Before Rules**
@@ -883,7 +931,7 @@ Before rules callback.
 ```php
 use Fyre\Entity\Entity;
 
-public function beforeRules(Entity $entity) {}
+public function beforeRules(Entity $entity, array $options) {}
 ```
 
 If this method returns *false* the save will not be performed.
@@ -895,32 +943,20 @@ Execute a callback before entities are saved to the database.
 ```php
 use Fyre\Entity\Entity;
 
-public function beforeSave(Entity $entity) {}
+public function beforeSave(Entity $entity, array $options) {}
 ```
 
 If this method returns *false* the save will not be performed and the transaction will be rolled back.
 
-**Build Rules**
+**Initialize**
+
+Initialize the model.
 
 ```php
-use Fyre\ORM\RuleSet;
-
-public function buildRules(RuleSet $rules): RuleSet
-{
-    return $rules;
-}
+$model->initialize();
 ```
 
-**Build Validation**
-
-```php
-use Fyre\Validation\Validator;
-
-public function buildValidation(Validator $validator): Validator
-{
-    return $validator;
-}
-```
+This method is called automatically when the model is loaded. You can define this method on your custom models to attach [*relationships*](#relationships) or [*behaviors*](#behaviors).
 
 
 ## Queries
@@ -1187,11 +1223,13 @@ The `\Fyre\ORM\Result` class wraps the [*ResultSet*](https://github.com/elusivec
 
 ## Relationships
 
+Relationships can be accessed directly as a property on the model, using the relationship name.
+
 ### Belongs To
 
 - `$name` is a string representing the relationship name.
 - `$data` is an array containing relationship data.
-    - `className` is a string representing the target alias, and will default to the relationship name.
+    - `classAlias` is a string representing the target class alias, and will default to the relationship name.
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the singular relationship name.
     - `foreignKey` is a string representing the foreign key column in the current table, and will default to the snake case singular name of the target alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the target table, and will default to the primary key.
@@ -1206,7 +1244,7 @@ $model->belongsTo($name, $data);
 
 - `$name` is a string representing the relationship name.
 - `$data` is an array containing relationship data.
-    - `className` is a string representing the target alias, and will default to the relationship name.
+    - `classAlias` is a string representing the target class alias, and will default to the relationship name.
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the relationship name.
     - `foreignKey` is a string representing the foreign key column in the target table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
@@ -1222,7 +1260,7 @@ $model->hasMany($name, $data);
 
 - `$name` is a string representing the relationship name.
 - `$data` is an array containing relationship data.
-    - `className` is a string representing the target alias, and will default to the relationship name.
+    - `classAlias` is a string representing the target class alias, and will default to the relationship name.
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the singular relationship name.
     - `foreignKey` is a string representing the foreign key column in the target table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
@@ -1238,7 +1276,7 @@ $model->hasOne($name, $data);
 
 - `$name` is a string representing the relationship name.
 - `$data` is an array containing relationship data.
-    - `className` is a string representing the target alias, and will default to the relationship name.
+    - `classAlias` is a string representing the target class alias, and will default to the relationship name.
     - `through` is a string representing the join alias, and will default to the concatenated form of the current alias and relationship name (sorted alphabetically).
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the relationship name.
     - `foreignKey` is a string representing the foreign key column in the join table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
@@ -1260,6 +1298,28 @@ When loading results, the join table data will be accessible via the `_joinData`
 use Fyre\ORM\BehaviorRegistry;
 ```
 
+- `$container` is a  [*Container*](https://github.com/elusivecodes/FyreContainer).
+- `$namespaces` is an array containing the namespaces.
+
+```php
+$behaviorRegistry = new BehaviorRegistry($container, $namespaces);
+```
+
+**Autoloading**
+
+It is recommended to bind the *BehaviorRegistry* to the [*Container*](https://github.com/elusivecodes/FyreContainer) as a singleton.
+
+```php
+$container->singleton(BehaviorRegistry::class);
+```
+
+Any dependencies will be injected automatically when loading from the [*Container*](https://github.com/elusivecodes/FyreContainer).
+
+```php
+$behaviorRegistry = $container->use(BehaviorRegistry::class);
+```
+
+
 **Add Namespace**
 
 Add a namespace for automatically loading behaviors.
@@ -1267,7 +1327,19 @@ Add a namespace for automatically loading behaviors.
 - `$namespace` is a string representing the namespace.
 
 ```php
-BehaviorRegistry::addNamespace($namespace);
+$behaviorRegistry->addNamespace($namespace);
+```
+
+**Build**
+
+Build a behavior.
+
+- `$name` is a string representing the behavior name.
+- `$model` is a *Model*.
+- `$options` is an array containing the behavior options, and will default to *[]*.
+
+```php
+$behavior = $behaviorRegistry->build($name, $model, $options);
 ```
 
 **Clear**
@@ -1275,7 +1347,7 @@ BehaviorRegistry::addNamespace($namespace);
 Clear all namespaces and behaviors.
 
 ```php
-BehaviorRegistry::clear();
+$behaviorRegistry->clear();
 ```
 
 **Find**
@@ -1285,7 +1357,7 @@ Find a behavior class.
 - `$name` is a string representing the behavior name.
 
 ```php
-$className = BehaviorRegistry::find($name);
+$className = $behaviorRegistry->find($name);
 ```
 
 **Get Namespaces**
@@ -1293,7 +1365,7 @@ $className = BehaviorRegistry::find($name);
 Get the namespaces.
 
 ```php
-$namespaces = BehaviorRegistry::getNamespaces();
+$namespaces = $behaviorRegistry->getNamespaces();
 ```
 
 **Has Namespace**
@@ -1303,19 +1375,7 @@ Check if a namespace exists.
 - `$namespace` is a string representing the namespace.
 
 ```php
-$hasNamespace = BehaviorRegistry::hasNamespace($namespace);
-```
-
-**Load**
-
-Load a behavior.
-
-- `$name` is a string representing the behavior name.
-- `$model` is a *Model*.
-- `$options` is an array containing the behavior options, and will default to *[]*.
-
-```php
-$behavior = BehaviorRegistry::load($name, $model, $options);
+$hasNamespace = $behaviorRegistry->hasNamespace($namespace);
 ```
 
 **Remove Namespace**
@@ -1325,19 +1385,13 @@ Remove a namespace.
 - `$namespace` is a string representing the namespace.
 
 ```php
-$removed = BehaviorRegistry::removeNamespace($namespace);
+$behaviorRegistry->removeNamespace($namespace);
 ```
 
 
 ## Behaviors
 
-Behaviors must be attached to a [*Model*](#models) using the `addBehavior` method. Loaded behaviors can be accessed inside a [*Model*](#models) using the class name as a property of `$this`.
-
-```php
-$this->addBehavior('MyBehavior');
-
-$behavior = $this->MyBehavior;
-```
+Behaviors must be attached to a [*Model*](#models) using the `addBehavior` method. Behavior methods can then be called directly on the model.
 
 Custom behaviors can be created by extending `\Fyre\ORM\Behavior`, suffixing the class name with "*Behavior*", and ensuring the `__construct` method accepts [*Model*](#models) as the argument (and optionally an `$options` array as the second parameter).
 

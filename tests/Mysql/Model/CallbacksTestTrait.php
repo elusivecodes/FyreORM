@@ -3,13 +3,11 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 trait CallbacksTestTrait
 {
     public function testAfterDelete(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failAfterDelete',
@@ -31,7 +29,7 @@ trait CallbacksTestTrait
 
     public function testAfterDeleteMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -58,7 +56,7 @@ trait CallbacksTestTrait
 
     public function testAfterFind(): void
     {
-        $Others = ModelRegistry::use('Others');
+        $Others = $this->modelRegistry->use('Others');
 
         $other = $Others->newEntity([
             'value' => 1,
@@ -78,7 +76,7 @@ trait CallbacksTestTrait
 
     public function testAfterParse(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'afterParse',
@@ -92,7 +90,7 @@ trait CallbacksTestTrait
 
     public function testAfterParseMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -116,7 +114,7 @@ trait CallbacksTestTrait
 
     public function testAfterRules(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failAfterRules',
@@ -134,7 +132,7 @@ trait CallbacksTestTrait
 
     public function testAfterRulesMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -157,7 +155,7 @@ trait CallbacksTestTrait
 
     public function testAfterSave(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failAfterSave',
@@ -175,7 +173,7 @@ trait CallbacksTestTrait
 
     public function testAfterSaveMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -198,7 +196,7 @@ trait CallbacksTestTrait
 
     public function testBeforeDelete(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failBeforeDelete',
@@ -220,7 +218,7 @@ trait CallbacksTestTrait
 
     public function testBeforeDeleteMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -247,7 +245,7 @@ trait CallbacksTestTrait
 
     public function testBeforeFind(): void
     {
-        $Others = ModelRegistry::use('Others');
+        $Others = $this->modelRegistry->use('Others');
 
         $others = $Others->newEntities([
             [
@@ -270,7 +268,7 @@ trait CallbacksTestTrait
 
     public function testBeforeParse(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => '  Test  ',
@@ -284,7 +282,7 @@ trait CallbacksTestTrait
 
     public function testBeforeParseMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -308,7 +306,7 @@ trait CallbacksTestTrait
 
     public function testBeforeRules(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failBeforeRules',
@@ -326,7 +324,7 @@ trait CallbacksTestTrait
 
     public function testBeforeRulesMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -349,7 +347,7 @@ trait CallbacksTestTrait
 
     public function testBeforeSave(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failBeforeSave',
@@ -367,7 +365,7 @@ trait CallbacksTestTrait
 
     public function testBeforeSaveMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -390,7 +388,7 @@ trait CallbacksTestTrait
 
     public function testRules(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failRules',
@@ -408,7 +406,7 @@ trait CallbacksTestTrait
 
     public function testRulesNoCheckRules(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'failRules',
@@ -428,7 +426,7 @@ trait CallbacksTestTrait
 
     public function testValidation(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => '',
@@ -446,7 +444,7 @@ trait CallbacksTestTrait
 
     public function testValidationNoCheckRules(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => '',

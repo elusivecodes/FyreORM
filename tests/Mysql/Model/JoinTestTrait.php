@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Tests\Mysql\Model;
 
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\ModelRegistry;
 
 trait JoinTestTrait
 {
@@ -12,7 +11,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts INNER JOIN users AS Users ON Users.id = Posts.user_id INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id AND Addresses.suburb = \'Test\'',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->innerJoinWith('Users.Addresses', [
                     'Addresses.suburb' => 'Test',
@@ -26,7 +25,7 @@ trait JoinTestTrait
     {
         $this->expectException(OrmException::class);
 
-        ModelRegistry::use('Posts')
+        $this->modelRegistry->use('Posts')
             ->find()
             ->innerJoinWith('Invalid');
     }
@@ -35,7 +34,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->leftJoinWith('Users')
                 ->innerJoinWith('Users.Addresses')
@@ -48,7 +47,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts INNER JOIN users AS Users ON Users.id = Posts.user_id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->leftJoinWith('Users')
                 ->innerJoinWith('Users')
@@ -61,7 +60,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts INNER JOIN users AS Users ON Users.id = Posts.user_id INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->innerJoinWith('Users.Addresses')
                 ->disableAutoFields()
@@ -73,7 +72,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id AND Addresses.suburb = \'Test\'',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->leftJoinWith('Users.Addresses', [
                     'Addresses.suburb' => 'Test',
@@ -87,7 +86,7 @@ trait JoinTestTrait
     {
         $this->expectException(OrmException::class);
 
-        ModelRegistry::use('Posts')
+        $this->modelRegistry->use('Posts')
             ->find()
             ->leftJoinWith('Invalid');
     }
@@ -96,7 +95,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts INNER JOIN users AS Users ON Users.id = Posts.user_id LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->innerJoinWith('Users')
                 ->leftJoinWith('Users.Addresses')
@@ -109,7 +108,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->innerJoinWith('Users')
                 ->leftJoinWith('Users')
@@ -122,7 +121,7 @@ trait JoinTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find()
                 ->leftJoinWith('Users.Addresses')
                 ->disableAutoFields()

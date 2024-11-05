@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Fyre\ORM;
 
 use Closure;
+use Fyre\Container\Container;
 use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\Lang\Lang;
@@ -18,6 +19,10 @@ use function in_array;
  */
 class RuleSet
 {
+    protected Container $container;
+
+    protected Lang $lang;
+
     protected Model $model;
 
     protected array $rules = [];
@@ -25,11 +30,17 @@ class RuleSet
     /**
      * New RuleSet constructor.
      *
+     * @param Container $container The Container.
+     * @param Lang $lang The Lang.
      * @param Model $model The Model.
      */
-    public function __construct(Model $model)
+    public function __construct(Container $container, Lang $lang, Model $model)
     {
+        $this->container = $container;
+        $this->lang = $lang;
         $this->model = $model;
+
+        $this->lang->addPath(__DIR__.'/../lang');
     }
 
     /**
@@ -58,10 +69,6 @@ class RuleSet
         $options['targetFields'] ??= null;
         $options['callback'] ??= null;
         $options['allowNullableNulls'] ??= false;
-        $options['message'] ??= Lang::get('RuleSet.existsIn', [
-            'fields' => implode(', ', $fields),
-            'name' => $name,
-        ]) ?? 'invalid';
 
         return function(Entity $entity) use ($fields, $name, $options): bool {
             if ($fields === []) {
@@ -96,6 +103,11 @@ class RuleSet
                 return true;
             }
 
+            $options['message'] ??= $this->lang->get('RuleSet.existsIn', [
+                'fields' => implode(', ', $fields),
+                'alias' => $name,
+            ]) ?? 'invalid';
+
             foreach ($fields as $field) {
                 $entity->setError($field, $options['message']);
             }
@@ -113,10 +125,6 @@ class RuleSet
      */
     public function isClean(array $fields, array $options = []): Closure
     {
-        $options['message'] ??= Lang::get('RuleSet.isClean', [
-            'fields' => implode(', ', $fields),
-        ]) ?? 'invalid';
-
         return function(Entity $entity) use ($fields, $options): bool {
             if ($fields === []) {
                 return true;
@@ -131,6 +139,10 @@ class RuleSet
             if ($dirty === []) {
                 return true;
             }
+
+            $options['message'] ??= $this->lang->get('RuleSet.isClean', [
+                'fields' => implode(', ', $fields),
+            ]) ?? 'invalid';
 
             foreach ($dirty as $field) {
                 $entity->setError($field, $options['message']);
@@ -151,9 +163,6 @@ class RuleSet
     {
         $options['callback'] ??= null;
         $options['allowMultipleNulls'] ??= false;
-        $options['message'] ??= Lang::get('RuleSet.isUnique', [
-            'fields' => implode(', ', $fields),
-        ]) ?? 'invalid';
 
         return function(Entity $entity) use ($fields, $options): bool {
             if ($fields === []) {
@@ -198,6 +207,9 @@ class RuleSet
             if (!$query->count()) {
                 return true;
             }
+            $options['message'] ??= $this->lang->get('RuleSet.isUnique', [
+                'fields' => implode(', ', $fields),
+            ]) ?? 'invalid';
 
             foreach ($fields as $field) {
                 $entity->setError($field, $options['message']);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Tests\Sqlite\Model;
 
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\ModelRegistry;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\Tag;
 
@@ -14,7 +13,7 @@ trait MatchingTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id, Tags.id AS Tags__id FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id AND Tags.tag = \'test\'',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->matching('Posts.Tags', [
                     'Tags.tag' => 'test',
@@ -26,7 +25,7 @@ trait MatchingTestTrait
 
     public function testMatchingData(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -82,7 +81,7 @@ trait MatchingTestTrait
 
     public function testMatchingDataMultiple(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -154,7 +153,7 @@ trait MatchingTestTrait
     {
         $this->expectException(OrmException::class);
 
-        ModelRegistry::use('Users')
+        $this->modelRegistry->use('Users')
             ->find()
             ->matching('Invalid');
     }
@@ -163,7 +162,7 @@ trait MatchingTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id, Addresses.id AS Addresses__id, Tags.id AS Tags__id FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id INNER JOIN posts AS Posts ON Posts.user_id = Users.id INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->matching('Addresses')
                 ->matching('Posts.Tags')
@@ -176,7 +175,7 @@ trait MatchingTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id, Tags.id AS Tags__id FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->matching('Posts.Tags')
                 ->disableAutoFields()
@@ -188,7 +187,7 @@ trait MatchingTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id AND Tags.tag = \'test\' WHERE Tags.id IS NULL',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->notMatching('Posts.Tags', [
                     'Tags.tag' => 'test',
@@ -202,7 +201,7 @@ trait MatchingTestTrait
     {
         $this->expectException(OrmException::class);
 
-        ModelRegistry::use('Users')
+        $this->modelRegistry->use('Users')
             ->find()
             ->notMatching('Invalid');
     }
@@ -211,7 +210,7 @@ trait MatchingTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id LEFT JOIN posts AS Posts ON Posts.user_id = Users.id LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id WHERE Addresses.id IS NULL AND Tags.id IS NULL',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->notMatching('Addresses')
                 ->notMatching('Posts.Tags')
@@ -224,7 +223,7 @@ trait MatchingTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id WHERE Tags.id IS NULL',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->notMatching('Posts.Tags')
                 ->disableAutoFields()

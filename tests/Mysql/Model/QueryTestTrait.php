@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 use function range;
 
@@ -12,7 +10,7 @@ trait QueryTestTrait
 {
     public function testDelete(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'Test',
@@ -34,7 +32,7 @@ trait QueryTestTrait
 
     public function testDeleteMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -61,7 +59,7 @@ trait QueryTestTrait
 
     public function testExists(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'Test',
@@ -79,13 +77,13 @@ trait QueryTestTrait
     public function testExistsNotExists(): void
     {
         $this->assertFalse(
-            ModelRegistry::use('Items')->exists(['name' => 'Test'])
+            $this->modelRegistry->use('Items')->exists(['name' => 'Test'])
         );
     }
 
     public function testFindAutoFields(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'Test',
@@ -111,7 +109,7 @@ trait QueryTestTrait
     {
         $this->assertSame(
             'SELECT Items.id AS Items__id, CONCAT(Items.name, " ", Items2.name) AS title FROM items AS Items LEFT JOIN items AS Items2 ON Items2.id = Items.id WHERE Items.id = 1 GROUP BY Items.id ORDER BY Items.name DESC HAVING title = \'Test Test\' LIMIT 1 FOR UPDATE',
-            ModelRegistry::use('Items')->find([
+            $this->modelRegistry->use('Items')->find([
                 'fields' => [
                     'title' => 'CONCAT(Items.name, " ", Items2.name)',
                 ],
@@ -145,13 +143,13 @@ trait QueryTestTrait
 
     public function testFindSubquery(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertSame(
             'SELECT Items.id AS Items__id, (SELECT Users.name AS user_name FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id WHERE Users.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
             $Items->find([
                 'fields' => [
-                    'user_name' => ModelRegistry::use('Users')
+                    'user_name' => $this->modelRegistry->use('Users')
                         ->subquery()
                         ->select([
                             'user_name' => 'Users.name',
@@ -168,13 +166,13 @@ trait QueryTestTrait
 
     public function testFindSubqueryAlias(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertSame(
             'SELECT Items.id AS Items__id, (SELECT Alias.name AS user_name FROM users AS Alias INNER JOIN posts AS Posts ON Posts.user_id = Alias.id WHERE Alias.id = Items.id LIMIT 1) AS user_name FROM items AS Items',
             $Items->find([
                 'fields' => [
-                    'user_name' => ModelRegistry::use('Users')
+                    'user_name' => $this->modelRegistry->use('Users')
                         ->subquery([
                             'alias' => 'Alias',
                         ])
@@ -193,7 +191,7 @@ trait QueryTestTrait
 
     public function testGet(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -219,13 +217,13 @@ trait QueryTestTrait
     public function testGetInvalid(): void
     {
         $this->assertNull(
-            ModelRegistry::use('Items')->get(1)
+            $this->modelRegistry->use('Items')->get(1)
         );
     }
 
     public function testInsert(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'Test',
@@ -251,7 +249,7 @@ trait QueryTestTrait
 
     public function testInsertMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -293,7 +291,7 @@ trait QueryTestTrait
 
     public function testInsertManyBatch(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $data = [];
 
@@ -320,7 +318,7 @@ trait QueryTestTrait
 
     public function testUpdate(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEntity([
             'name' => 'Test',
@@ -355,7 +353,7 @@ trait QueryTestTrait
 
     public function testUpdateMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -413,7 +411,7 @@ trait QueryTestTrait
 
     public function testUpdateManyBatch(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $data = [];
 

@@ -11,13 +11,6 @@ use Fyre\Validation\Validator;
 
 class ItemsModel extends Model
 {
-    public function __construct()
-    {
-        $this->addBehavior('Test', [
-            'testField' => 'name',
-        ]);
-    }
-
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(Entity $entity) {
@@ -34,5 +27,12 @@ class ItemsModel extends Model
         $validator->add('name', Rule::required(), ['on' => 'create']);
 
         return $validator;
+    }
+
+    public function initialize(): void
+    {
+        $this->addBehavior('Test', [
+            'testField' => 'name',
+        ]);
     }
 }

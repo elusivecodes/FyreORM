@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite\Model;
 
-use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Queries\SelectQuery;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\User;
 
@@ -13,7 +14,7 @@ trait BelongsToTestTrait
     {
         $this->assertSame(
             'SELECT Addresses.id AS Addresses__id, Users.id AS Users__id FROM addresses AS Addresses INNER JOIN users AS Users ON Users.id = Addresses.user_id',
-            ModelRegistry::use('Addresses')
+            $this->modelRegistry->use('Addresses')
                 ->find([
                     'contain' => [
                         'Users' => [
@@ -28,7 +29,7 @@ trait BelongsToTestTrait
 
     public function testBelongsToDelete(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -52,13 +53,13 @@ trait BelongsToTestTrait
 
         $this->assertSame(
             1,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToDeleteMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -90,13 +91,13 @@ trait BelongsToTestTrait
 
         $this->assertSame(
             2,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToFind(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -144,11 +145,37 @@ trait BelongsToTestTrait
         );
     }
 
+    public function testBelongsToFindCallback(): void
+    {
+        $this->expectException(OrmException::class);
+
+        $Addresses = $this->modelRegistry->use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Addresses->save($address)
+        );
+
+        $address = $Addresses->get(1, [
+            'contain' => [
+                'Users' => [
+                    'callback' => fn(SelectQuery $query): SelectQuery => $query->where(['Users.id' => 1]),
+                ],
+            ],
+        ]);
+    }
+
     public function testBelongsToFindSql(): void
     {
         $this->assertSame(
             'SELECT Addresses.id AS Addresses__id, Users.id AS Users__id FROM addresses AS Addresses LEFT JOIN users AS Users ON Users.id = Addresses.user_id',
-            ModelRegistry::use('Addresses')
+            $this->modelRegistry->use('Addresses')
                 ->find([
                     'contain' => [
                         'Users',
@@ -163,7 +190,7 @@ trait BelongsToTestTrait
     {
         $this->assertSame(
             'SELECT Addresses.id AS Addresses__id FROM addresses AS Addresses INNER JOIN users AS Users ON Users.id = Addresses.user_id',
-            ModelRegistry::use('Addresses')
+            $this->modelRegistry->use('Addresses')
                 ->find()
                 ->innerJoinWith('Users')
                 ->disableAutoFields()
@@ -173,7 +200,7 @@ trait BelongsToTestTrait
 
     public function testBelongsToInsert(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -220,7 +247,7 @@ trait BelongsToTestTrait
 
     public function testBelongsToInsertMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = [
             $Addresses->newEntity([
@@ -302,7 +329,7 @@ trait BelongsToTestTrait
     {
         $this->assertSame(
             'SELECT Addresses.id AS Addresses__id FROM addresses AS Addresses LEFT JOIN users AS Users ON Users.id = Addresses.user_id',
-            ModelRegistry::use('Addresses')
+            $this->modelRegistry->use('Addresses')
                 ->find()
                 ->leftJoinWith('Users')
                 ->disableAutoFields()
@@ -312,7 +339,7 @@ trait BelongsToTestTrait
 
     public function testBelongsToStrategyFind(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -362,11 +389,54 @@ trait BelongsToTestTrait
         );
     }
 
+    public function testBelongsToStrategyFindCallback(): void
+    {
+        $Addresses = $this->modelRegistry->use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Addresses->save($address)
+        );
+
+        $address = $Addresses->get(1, [
+            'contain' => [
+                'Users' => [
+                    'strategy' => 'select',
+                    'callback' => fn(SelectQuery $query): SelectQuery => $query->where(['Users.id' => 2]),
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $address->id
+        );
+
+        $this->assertNull(
+            $address->user
+        );
+
+        $this->assertInstanceOf(
+            Address::class,
+            $address
+        );
+
+        $this->assertFalse(
+            $address->isNew()
+        );
+    }
+
     public function testBelongsToStrategyFindSql(): void
     {
         $this->assertSame(
             'SELECT Addresses.id AS Addresses__id FROM addresses AS Addresses',
-            ModelRegistry::use('Addresses')
+            $this->modelRegistry->use('Addresses')
                 ->find([
                     'contain' => [
                         'Users' => [
@@ -381,7 +451,7 @@ trait BelongsToTestTrait
 
     public function testBelongsToUpdate(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -432,7 +502,7 @@ trait BelongsToTestTrait
 
     public function testBelongsToUpdateMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [

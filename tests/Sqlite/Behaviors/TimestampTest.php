@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Tests\Sqlite\Behaviors;
 
 use Fyre\DateTime\DateTime;
-use Fyre\ORM\ModelRegistry;
 use PHPUnit\Framework\TestCase;
 use Tests\Sqlite\SqliteConnectionTrait;
 
@@ -16,7 +15,7 @@ final class TimestampTest extends TestCase
 
     public function testTimestampsCreate(): void
     {
-        $Timestamps = ModelRegistry::use('Timestamps');
+        $Timestamps = $this->modelRegistry->use('Timestamps');
 
         $Timestamps->addBehavior('Timestamp');
 
@@ -41,7 +40,7 @@ final class TimestampTest extends TestCase
 
     public function testTimestampsUpdate(): void
     {
-        $Timestamps = ModelRegistry::use('Timestamps');
+        $Timestamps = $this->modelRegistry->use('Timestamps');
 
         $Timestamps->addBehavior('Timestamp');
 

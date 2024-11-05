@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Tests\Mysql;
 
 use Fyre\DB\Types\DateTimeType;
-use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Result;
 use PHPUnit\Framework\TestCase;
 use Tests\Mock\Entity\Item;
@@ -17,7 +16,7 @@ final class ResultTest extends TestCase
 
     public function testCollection(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -48,7 +47,7 @@ final class ResultTest extends TestCase
     {
         $this->assertSame(
             2,
-            ModelRegistry::use('Items')
+            $this->modelRegistry->use('Items')
                 ->find()
                 ->getResult()
                 ->columnCount()
@@ -62,7 +61,7 @@ final class ResultTest extends TestCase
                 'Items__id',
                 'Items__name',
             ],
-            ModelRegistry::use('Items')
+            $this->modelRegistry->use('Items')
                 ->find()
                 ->getResult()
                 ->columns()
@@ -71,7 +70,7 @@ final class ResultTest extends TestCase
 
     public function testFetch(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -108,7 +107,7 @@ final class ResultTest extends TestCase
 
     public function testFirst(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -145,7 +144,7 @@ final class ResultTest extends TestCase
 
     public function testFree(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -171,7 +170,7 @@ final class ResultTest extends TestCase
 
     public function testJson(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -197,7 +196,7 @@ final class ResultTest extends TestCase
 
     public function testLast(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -236,7 +235,7 @@ final class ResultTest extends TestCase
     {
         $this->assertInstanceOf(
             Result::class,
-            ModelRegistry::use('Items')->find()->getResult()
+            $this->modelRegistry->use('Items')->find()->getResult()
         );
     }
 
@@ -244,7 +243,7 @@ final class ResultTest extends TestCase
     {
         $this->assertInstanceOf(
             DateTimeType::class,
-            ModelRegistry::use('Timestamps')
+            $this->modelRegistry->use('Timestamps')
                 ->find([
                     'fields' => [
                         'created' => 'Timestamps.created',
@@ -259,7 +258,7 @@ final class ResultTest extends TestCase
     {
         $this->assertInstanceOf(
             DateTimeType::class,
-            ModelRegistry::use('Items')
+            $this->modelRegistry->use('Items')
                 ->find([
                     'fields' => [
                         'virtual' => 'NOW()',

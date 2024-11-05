@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite\Model;
 
-use Fyre\ORM\ModelRegistry;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\Item;
 use Tests\Mock\Entity\Post;
@@ -14,7 +13,7 @@ trait NewEntityTestTrait
 {
     public function testNewEmptyEntity(): void
     {
-        $item = ModelRegistry::use('Items')->newEmptyEntity();
+        $item = $this->modelRegistry->use('Items')->newEmptyEntity();
 
         $this->assertInstanceOf(
             Item::class,
@@ -29,7 +28,7 @@ trait NewEntityTestTrait
 
     public function testNewEntity(): void
     {
-        $item = ModelRegistry::use('Items')->newEntity([
+        $item = $this->modelRegistry->use('Items')->newEntity([
             'name' => 'Test',
         ]);
 
@@ -59,7 +58,7 @@ trait NewEntityTestTrait
 
     public function testNewEntityAssociated(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -143,7 +142,7 @@ trait NewEntityTestTrait
 
     public function testNewEntityBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -191,7 +190,7 @@ trait NewEntityTestTrait
 
     public function testNewEntityContain(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -309,7 +308,7 @@ trait NewEntityTestTrait
 
     public function testNewEntityHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -382,7 +381,7 @@ trait NewEntityTestTrait
 
     public function testNewEntityHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -430,7 +429,7 @@ trait NewEntityTestTrait
 
     public function testNewEntityManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,

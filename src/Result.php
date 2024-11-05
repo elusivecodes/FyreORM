@@ -86,7 +86,7 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
                 }
 
                 if ($resultBuffer === null) {
-                    $resultBuffer = & Closure::bind(fn&(): array => $this->buffer, $this->result, $this->result)->__invoke();
+                    $resultBuffer = & Closure::bind(fn&(): array => $this->buffer, $this->result, $this->result)();
                 }
 
                 $resultBuffer[$this->result->key()] = null;

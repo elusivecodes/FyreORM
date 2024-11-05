@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 
 trait CallbacksHasManyTestTrait
 {
     public function testAfterParseHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -35,7 +33,7 @@ trait CallbacksHasManyTestTrait
 
     public function testAfterParseHasManyMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -74,7 +72,7 @@ trait CallbacksHasManyTestTrait
 
     public function testAfterRulesHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -121,13 +119,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testAfterRulesManyHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -205,13 +203,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testAfterSaveHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -258,13 +256,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testAfterSaveManyHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -342,13 +340,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testBeforeParseHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -377,7 +375,7 @@ trait CallbacksHasManyTestTrait
 
     public function testBeforeParseHasManyMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -431,7 +429,7 @@ trait CallbacksHasManyTestTrait
 
     public function testBeforeRulesHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -478,13 +476,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testBeforeRulesManyHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -563,13 +561,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testBeforeSaveHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -616,13 +614,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testBeforeSaveManyHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -700,13 +698,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testRulesHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -753,13 +751,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testRulesNoCheckRulesHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -788,13 +786,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             2,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testValidationHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -841,13 +839,13 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testValidationNoCheckRulesHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -896,7 +894,7 @@ trait CallbacksHasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 }

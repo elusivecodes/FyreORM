@@ -11,15 +11,6 @@ use Fyre\Validation\Validator;
 
 class AddressesModel extends Model
 {
-    public function __construct()
-    {
-        $this->addBehavior('Test', [
-            'testField' => 'suburb',
-        ]);
-
-        $this->belongsTo('Users');
-    }
-
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(Entity $entity) {
@@ -36,5 +27,14 @@ class AddressesModel extends Model
         $validator->add('suburb', Rule::required(), ['on' => 'create']);
 
         return $validator;
+    }
+
+    public function initialize(): void
+    {
+        $this->addBehavior('Test', [
+            'testField' => 'suburb',
+        ]);
+
+        $this->belongsTo('Users');
     }
 }

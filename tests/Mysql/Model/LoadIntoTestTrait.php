@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 
 trait LoadIntoTestTrait
 {
     public function testLoadInto(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -97,7 +95,7 @@ trait LoadIntoTestTrait
 
     public function testLoadIntoOverwrites(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',

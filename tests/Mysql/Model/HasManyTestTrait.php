@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Queries\SelectQuery;
 use Tests\Mock\Entity\Post;
 use Tests\Mock\Entity\User;
 
@@ -13,7 +13,7 @@ trait HasManyTestTrait
 {
     public function testHasManyDelete(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -44,13 +44,13 @@ trait HasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testHasManyDeleteMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -96,13 +96,13 @@ trait HasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testHasManyDeleteManyUnlink(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $Users->removeRelationship('Posts');
         $Users->hasMany('Posts');
@@ -148,7 +148,7 @@ trait HasManyTestTrait
             [null, null, null, null],
             array_map(
                 fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
+                $this->modelRegistry->use('Posts')
                     ->find()
                     ->toArray()
             )
@@ -157,7 +157,7 @@ trait HasManyTestTrait
 
     public function testHasManyDeleteUnlink(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $Users->removeRelationship('Posts');
         $Users->hasMany('Posts');
@@ -188,7 +188,7 @@ trait HasManyTestTrait
             [null, null],
             array_map(
                 fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
+                $this->modelRegistry->use('Posts')
                     ->find()
                     ->toArray()
             )
@@ -197,7 +197,7 @@ trait HasManyTestTrait
 
     public function testHasManyFind(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -264,11 +264,73 @@ trait HasManyTestTrait
         );
     }
 
+    public function testHasManyFindCallback(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Posts' => [
+                    'callback' => fn(SelectQuery $query): SelectQuery => $query->where(['Posts.id' => 2]),
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertSame(
+            [2],
+            array_map(
+                fn($post) => $post->id,
+                $user->posts
+            )
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertInstanceOf(
+            Post::class,
+            $user->posts[0]
+        );
+
+        $this->assertFalse(
+            $user->isNew()
+        );
+
+        $this->assertFalse(
+            $user->posts[0]->isNew()
+        );
+    }
+
     public function testHasManyInnerJoinSql(): void
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users INNER JOIN posts AS Posts ON Posts.user_id = Users.id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->innerJoinWith('Posts')
                 ->disableAutoFields()
@@ -278,7 +340,7 @@ trait HasManyTestTrait
 
     public function testHasManyInsert(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -346,7 +408,7 @@ trait HasManyTestTrait
 
     public function testHasManyInsertMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -470,7 +532,7 @@ trait HasManyTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->leftJoinWith('Posts')
                 ->disableAutoFields()
@@ -480,7 +542,7 @@ trait HasManyTestTrait
 
     public function testHasManyReplace(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -508,13 +570,13 @@ trait HasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testHasManyReplaceMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -564,13 +626,13 @@ trait HasManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Posts')->find()->count()
+            $this->modelRegistry->use('Posts')->find()->count()
         );
     }
 
     public function testHasManyReplaceManyUnlink(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $Users->removeRelationship('Posts');
         $Users->hasMany('Posts');
@@ -625,7 +687,7 @@ trait HasManyTestTrait
             [null, null, null, null],
             array_map(
                 fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
+                $this->modelRegistry->use('Posts')
                     ->find()
                     ->toArray()
             )
@@ -634,7 +696,7 @@ trait HasManyTestTrait
 
     public function testHasManyReplaceUnlink(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $Users->removeRelationship('Posts');
         $Users->hasMany('Posts');
@@ -667,7 +729,7 @@ trait HasManyTestTrait
             [null, null],
             array_map(
                 fn($post) => $post->user_id,
-                ModelRegistry::use('Posts')
+                $this->modelRegistry->use('Posts')
                     ->find()
                     ->toArray()
             )
@@ -676,7 +738,7 @@ trait HasManyTestTrait
 
     public function testHasManyStrategyFind(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -747,7 +809,7 @@ trait HasManyTestTrait
 
     public function testHasManyUpdate(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -817,7 +879,7 @@ trait HasManyTestTrait
 
     public function testHasManyUpdateMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [

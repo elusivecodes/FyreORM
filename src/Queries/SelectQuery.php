@@ -167,7 +167,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             $query = clone $this;
 
             if ($this->options['events'] && !$this->beforeFindTriggered) {
-                $this->model->handleEvent('beforeFind', $query, $this->options);
+                $this->model->handleEvent('beforeFind', [$query, $this->options]);
             }
 
             $this->count = $query->getConnection()
@@ -323,7 +323,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     {
         if ($this->result === null) {
             if ($this->options['events'] && !$this->beforeFindTriggered) {
-                $this->model->handleEvent('beforeFind', $this, $this->options);
+                $this->model->handleEvent('beforeFind', [$this, $this->options]);
                 $this->beforeFindTriggered = true;
             }
 
@@ -332,7 +332,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             $this->result = new Result($result, $this, $this->buffering);
 
             if ($this->options['events']) {
-                $this->model->handleEvent('afterFind', $this->result, $this->options);
+                $this->model->handleEvent('afterFind', [$this->result, $this->options]);
             }
         }
 
@@ -606,9 +606,13 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 continue;
             }
 
-            $data['autoFields'] ??= $this->autoFields;
+            if (array_key_exists('callback', $data) && $data['callback']) {
+                throw OrmException::forInvalidStrategyContainCallback($data['strategy']);
+            }
 
             $target = $relationship->getTarget();
+
+            $data['autoFields'] ??= $this->autoFields;
 
             $joins = $relationship->buildJoins([
                 'alias' => $name,

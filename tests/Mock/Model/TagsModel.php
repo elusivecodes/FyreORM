@@ -11,15 +11,6 @@ use Fyre\Validation\Validator;
 
 class TagsModel extends Model
 {
-    public function __construct()
-    {
-        $this->addBehavior('Test', [
-            'testField' => 'tag',
-        ]);
-
-        $this->manyToMany('Posts');
-    }
-
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(Entity $entity) {
@@ -36,5 +27,14 @@ class TagsModel extends Model
         $validator->add('tag', Rule::required(), ['on' => 'create']);
 
         return $validator;
+    }
+
+    public function initialize(): void
+    {
+        $this->addBehavior('Test', [
+            'testField' => 'tag',
+        ]);
+
+        $this->manyToMany('Posts');
     }
 }

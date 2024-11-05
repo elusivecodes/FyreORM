@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Relationships;
 
+use Fyre\Container\Container;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Model;
 use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
+use Fyre\Utility\Inflector;
 
 use function array_key_exists;
 use function array_merge;
@@ -19,6 +21,8 @@ use function natsort;
  */
 class ManyToMany extends Relationship
 {
+    protected Container $container;
+
     protected string $joinAlias;
 
     protected Model|null $joinModel = null;
@@ -32,18 +36,23 @@ class ManyToMany extends Relationship
     /**
      * New relationship constructor.
      *
+     * @param Container $container The Container.
+     * @param ModelRegistry $modelRegistry The ModelRegistry.
+     * @param Inflector $inflector The Inflector.
      * @param string $name The relationship name.
      * @param array $options The relationship options.
      */
-    public function __construct(string $name, array $options = [])
+    public function __construct(Container $container, ModelRegistry $modelRegistry, Inflector $inflector, string $name, array $options = [])
     {
-        parent::__construct($name, $options);
+        parent::__construct($modelRegistry, $inflector, $name, $options);
+
+        $this->container = $container;
 
         if (array_key_exists('through', $options)) {
             $this->joinAlias = $options['through'];
         } else {
             $aliases = [
-                $this->source->getAlias(),
+                $this->source->getClassAlias(),
                 $this->name,
             ];
 
@@ -133,6 +142,10 @@ class ManyToMany extends Relationship
             $this->findRelatedConditions($newQuery, $sourceValues);
         }
 
+        if (array_key_exists('callback', $data) && $data['callback']) {
+            $newQuery = $data['callback']($newQuery);
+        }
+
         $allChildren = $newQuery
             ->getResult()
             ->map(function(Entity $child) use ($joinProperty): Entity {
@@ -176,7 +189,7 @@ class ManyToMany extends Relationship
      */
     public function getJoinModel(): Model
     {
-        return $this->joinModel ??= ModelRegistry::use($this->joinAlias);
+        return $this->joinModel ??= $this->modelRegistry->use($this->joinAlias);
     }
 
     /**
@@ -186,11 +199,14 @@ class ManyToMany extends Relationship
      */
     public function getSourceRelationship(): HasMany
     {
-        return $this->sourceRelationship ??= new HasMany($this->joinAlias, [
-            'source' => $this->getSource(),
-            'foreignKey' => $this->getForeignKey(),
-            'bindingKey' => $this->getBindingKey(),
-            'dependent' => true,
+        return $this->sourceRelationship ??= $this->container->build(HasMany::class, [
+            'name' => $this->joinAlias,
+            'options' => [
+                'source' => $this->getSource(),
+                'foreignKey' => $this->getForeignKey(),
+                'bindingKey' => $this->getBindingKey(),
+                'dependent' => true,
+            ],
         ]);
     }
 
@@ -201,9 +217,7 @@ class ManyToMany extends Relationship
      */
     public function getTargetForeignKey(): string
     {
-        return $this->targetForeignKey ??= static::modelKey(
-            $this->getTarget()->getAlias()
-        );
+        return $this->targetForeignKey ??= $this->modelKey($this->name);
     }
 
     /**
@@ -213,9 +227,13 @@ class ManyToMany extends Relationship
      */
     public function getTargetRelationship(): BelongsTo
     {
-        return $this->targetRelationship ??= new BelongsTo($this->getTarget()->getAlias(), [
-            'source' => $this->getJoinModel(),
-            'foreignKey' => $this->getTargetForeignKey(),
+        return $this->targetRelationship ??= $this->container->build(BelongsTo::class, [
+            'name' => $this->name,
+            'options' => [
+                'source' => $this->getJoinModel(),
+                'classAlias' => $this->classAlias,
+                'foreignKey' => $this->getTargetForeignKey(),
+            ],
         ]);
     }
 
@@ -248,7 +266,13 @@ class ManyToMany extends Relationship
             return true;
         }
 
+        foreach ($relations as $relation) {
+            $relation->saveState();
+        }
+
         $target = $this->getTarget();
+
+        $options['saveState'] = false;
 
         if (!$target->saveMany($relations, $options)) {
             return false;

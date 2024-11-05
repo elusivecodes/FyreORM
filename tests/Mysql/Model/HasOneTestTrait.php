@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Exceptions\OrmException;
+use Fyre\ORM\Queries\SelectQuery;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\User;
 
@@ -13,7 +14,7 @@ trait HasOneTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id, Addresses.id AS Addresses__id FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find([
                     'contain' => [
                         'Addresses' => [
@@ -28,7 +29,7 @@ trait HasOneTestTrait
 
     public function testHasOneDelete(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -52,13 +53,13 @@ trait HasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testHasOneDeleteMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -90,13 +91,13 @@ trait HasOneTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Addresses')->find()->count()
+            $this->modelRegistry->use('Addresses')->find()->count()
         );
     }
 
     public function testHasOneFind(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -144,11 +145,37 @@ trait HasOneTestTrait
         );
     }
 
+    public function testHasOneFindCallback(): void
+    {
+        $this->expectException(OrmException::class);
+
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Addresses' => [
+                    'callback' => fn(SelectQuery $query): SelectQuery => $query->where(['Addresses.id' => 1]),
+                ],
+            ],
+        ]);
+    }
+
     public function testHasOneFindSql(): void
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id, Addresses.id AS Addresses__id FROM users AS Users LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find([
                     'fields' => [
                         'Users.id',
@@ -165,7 +192,7 @@ trait HasOneTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->innerJoinWith('Addresses')
                 ->disableAutoFields()
@@ -175,7 +202,7 @@ trait HasOneTestTrait
 
     public function testHasOneInsert(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -222,7 +249,7 @@ trait HasOneTestTrait
 
     public function testHasOneInsertMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [
@@ -304,7 +331,7 @@ trait HasOneTestTrait
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find()
                 ->leftJoinWith('Addresses')
                 ->disableAutoFields()
@@ -314,7 +341,7 @@ trait HasOneTestTrait
 
     public function testHasOneStrategyFind(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -364,11 +391,54 @@ trait HasOneTestTrait
         );
     }
 
+    public function testHasOneStrategyFindCallback(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1, [
+            'contain' => [
+                'Addresses' => [
+                    'strategy' => 'select',
+                    'callback' => fn(SelectQuery $query): SelectQuery => $query->where(['Addresses.id' => 2]),
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertNull(
+            $user->address
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
+
+        $this->assertFalse(
+            $user->isNew()
+        );
+    }
+
     public function testHasOneStrategyFindSql(): void
     {
         $this->assertSame(
             'SELECT Users.id AS Users__id FROM users AS Users',
-            ModelRegistry::use('Users')
+            $this->modelRegistry->use('Users')
                 ->find([
                     'fields' => [
                         'Users.id',
@@ -385,7 +455,7 @@ trait HasOneTestTrait
 
     public function testHasOneUpdate(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test 1',
@@ -436,7 +506,7 @@ trait HasOneTestTrait
 
     public function testHasOneUpdateMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $users = $Users->newEntities([
             [

@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\DB\ConnectionManager;
-use Fyre\ORM\ModelRegistry;
 use PHPUnit\Framework\TestCase;
 use Tests\Mysql\MysqlConnectionTrait;
 
@@ -38,8 +36,8 @@ final class ModelTest extends TestCase
     public function testConnection(): void
     {
         $this->assertSame(
-            ConnectionManager::use(),
-            ModelRegistry::use('Test')->getConnection()
+            $this->db,
+            $this->modelRegistry->use('Test')->getConnection()
         );
     }
 
@@ -47,41 +45,43 @@ final class ModelTest extends TestCase
     {
         $this->assertSame(
             [
-                '\Tests\Mock\Model\\',
+                'Tests\Mock\Model\\',
             ],
-            ModelRegistry::getNamespaces()
+            $this->modelRegistry->getNamespaces()
         );
     }
 
     public function testHasNamespace(): void
     {
         $this->assertTrue(
-            ModelRegistry::hasNamespace('Tests\Mock\Model')
+            $this->modelRegistry->hasNamespace('Tests\Mock\Model')
         );
     }
 
     public function testHasNamespaceInvalid(): void
     {
         $this->assertFalse(
-            ModelRegistry::hasNamespace('Tests\Invalid\Model')
+            $this->modelRegistry->hasNamespace('Tests\Invalid\Model')
         );
     }
 
     public function testRemoveNamespace(): void
     {
-        $this->assertTrue(
-            ModelRegistry::removeNamespace('Tests\Mock\Model')
+        $this->assertSame(
+            $this->modelRegistry,
+            $this->modelRegistry->removeNamespace('Tests\Mock\Model')
         );
 
         $this->assertFalse(
-            ModelRegistry::hasNamespace('Tests\Mock\Model')
+            $this->modelRegistry->hasNamespace('Tests\Mock\Model')
         );
     }
 
     public function testRemoveNamespaceInvalid(): void
     {
-        $this->assertFalse(
-            ModelRegistry::removeNamespace('Tests\Invalid\Model')
+        $this->assertSame(
+            $this->modelRegistry,
+            $this->modelRegistry->removeNamespace('Tests\Invalid\Model')
         );
     }
 }

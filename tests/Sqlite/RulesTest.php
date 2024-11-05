@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite;
 
-use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
 use Fyre\ORM\RuleSet;
 use Fyre\Validation\Validator;
@@ -15,10 +14,10 @@ final class RulesTest extends TestCase
 
     public function testExistsIn(): void
     {
-        $Users = ModelRegistry::use('Users');
-        $Posts = ModelRegistry::use('Posts');
+        $Users = $this->modelRegistry->use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
 
-        $rules = new RuleSet($Posts);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
         $rules->add($rules->existsIn(['user_id'], 'Users'));
 
@@ -45,10 +44,10 @@ final class RulesTest extends TestCase
 
     public function testExistsInCallback(): void
     {
-        $Users = ModelRegistry::use('Users');
-        $Posts = ModelRegistry::use('Posts');
+        $Users = $this->modelRegistry->use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
 
-        $rules = new RuleSet($Posts);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
         $rules->add($rules->existsIn(['user_id'], 'Users', [
             'callback' => fn(SelectQuery $q): SelectQuery => $q->where(['id !=' => 1]),
@@ -77,9 +76,9 @@ final class RulesTest extends TestCase
 
     public function testExistsInInvalid(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
-        $rules = new RuleSet($Posts);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
         $rules->add($rules->existsIn(['user_id'], 'Users'));
 
@@ -98,7 +97,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'user_id' => [
-                    'invalid',
+                    'The user_id must exist in the Users table.',
                 ],
             ],
             $post->getErrors()
@@ -107,9 +106,9 @@ final class RulesTest extends TestCase
 
     public function testExistsInNull(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
-        $rules = new RuleSet($Posts);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
         $rules->add($rules->existsIn(['user_id'], 'Users'));
 
@@ -128,7 +127,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'user_id' => [
-                    'invalid',
+                    'The user_id must exist in the Users table.',
                 ],
             ],
             $post->getErrors()
@@ -137,9 +136,9 @@ final class RulesTest extends TestCase
 
     public function testExistsInNullNullable(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
-        $rules = new RuleSet($Posts);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
         $rules->add($rules->existsIn(['user_id'], 'Users', ['allowNullableNulls' => true]));
 
@@ -158,10 +157,10 @@ final class RulesTest extends TestCase
 
     public function testExistsInTargetFields(): void
     {
-        $Users = ModelRegistry::use('Users');
-        $Posts = ModelRegistry::use('Posts');
+        $Users = $this->modelRegistry->use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
 
-        $rules = new RuleSet($Posts);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
         $rules->add($rules->existsIn(['title'], 'Users', [
             'targetFields' => ['name'],
@@ -190,9 +189,9 @@ final class RulesTest extends TestCase
 
     public function testIsClean(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $rules = new RuleSet($Items);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isClean(['name']));
 
@@ -215,7 +214,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'name' => [
-                    'invalid',
+                    'The name cannot be modified.',
                 ],
             ],
             $item->getErrors()
@@ -224,9 +223,9 @@ final class RulesTest extends TestCase
 
     public function testIsUnique(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $rules = new RuleSet($Items);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name']));
 
@@ -251,7 +250,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'name' => [
-                    'invalid',
+                    'The name must be unique.',
                 ],
             ],
             $item2->getErrors()
@@ -260,9 +259,9 @@ final class RulesTest extends TestCase
 
     public function testIsUniqueCallback(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $rules = new RuleSet($Items);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name'], [
             'callback' => fn(SelectQuery $q): SelectQuery => $q->where(['name !=' => 'Test']),
@@ -289,10 +288,10 @@ final class RulesTest extends TestCase
 
     public function testIsUniqueNull(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $validator = new Validator();
-        $rules = new RuleSet($Items);
+        $validator = $this->container->build(Validator::class);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name']));
 
@@ -318,7 +317,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'name' => [
-                    'invalid',
+                    'The name must be unique.',
                 ],
             ],
             $item2->getErrors()
@@ -327,10 +326,10 @@ final class RulesTest extends TestCase
 
     public function testIsUniqueNullMultiple(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $validator = new Validator();
-        $rules = new RuleSet($Items);
+        $validator = $this->container->build(Validator::class);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name'], ['allowMultipleNulls' => true]));
 
@@ -356,9 +355,9 @@ final class RulesTest extends TestCase
 
     public function testIsUniqueSaveMany(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $rules = new RuleSet($Items);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name']));
 
@@ -380,7 +379,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'name' => [
-                    'invalid',
+                    'The name must be unique.',
                 ],
             ],
             $items[1]->getErrors()
@@ -389,12 +388,14 @@ final class RulesTest extends TestCase
 
     public function testIsUniqueSaveManyNull(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $rules = new RuleSet($Items);
+        $validator = $this->container->build(Validator::class);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name']));
 
+        $Items->setValidator($validator);
         $Items->setRules($rules);
 
         $items = $Items->newEntities([
@@ -413,7 +414,7 @@ final class RulesTest extends TestCase
         $this->assertSame(
             [
                 'name' => [
-                    'invalid',
+                    'The name must be unique.',
                 ],
             ],
             $items[1]->getErrors()
@@ -422,9 +423,9 @@ final class RulesTest extends TestCase
 
     public function testIsUniqueUpdate(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $rules = new RuleSet($Items);
+        $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
         $rules->add($rules->isUnique(['name']));
 

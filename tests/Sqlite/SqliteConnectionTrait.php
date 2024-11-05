@@ -3,39 +3,71 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite;
 
+use Fyre\Config\Config;
+use Fyre\Container\Container;
+use Fyre\DB\Connection;
 use Fyre\DB\ConnectionManager;
 use Fyre\DB\Handlers\Sqlite\SqliteConnection;
+use Fyre\DB\TypeParser;
 use Fyre\Entity\EntityLocator;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\ModelRegistry;
+use Fyre\Schema\SchemaRegistry;
+use Fyre\Utility\Inflector;
 
 trait SqliteConnectionTrait
 {
-    public static function setUpBeforeClass(): void
-    {
-        ConnectionManager::clear();
+    protected BehaviorRegistry $behaviorRegistry;
 
-        ConnectionManager::setConfig([
+    protected Container $container;
+
+    protected Connection $db;
+
+    protected ModelRegistry $modelRegistry;
+
+    protected SchemaRegistry $schemaRegistry;
+
+    protected function setUp(): void
+    {
+        $this->container = new Container();
+        $this->container->singleton(TypeParser::class);
+        $this->container->singleton(Config::class);
+        $this->container->singleton(Inflector::class);
+        $this->container->singleton(ConnectionManager::class);
+        $this->container->singleton(SchemaRegistry::class);
+        $this->container->singleton(ModelRegistry::class);
+        $this->container->singleton(BehaviorRegistry::class);
+        $this->container->singleton(EntityLocator::class);
+        $this->container->use(Config::class)->set('Database', [
             'default' => [
                 'className' => SqliteConnection::class,
                 'persist' => false,
             ],
         ]);
 
-        $connection = ConnectionManager::use();
+        $this->schemaRegistry = $this->container->use(SchemaRegistry::class);
+        $this->modelRegistry = $this->container->use(ModelRegistry::class);
+        $this->behaviorRegistry = $this->container->use(BehaviorRegistry::class);
 
-        $connection->query('DROP TABLE IF EXISTS contains');
-        $connection->query('DROP TABLE IF EXISTS items');
-        $connection->query('DROP TABLE IF EXISTS others');
-        $connection->query('DROP TABLE IF EXISTS timestamps');
-        $connection->query('DROP TABLE IF EXISTS users');
-        $connection->query('DROP TABLE IF EXISTS addresses');
-        $connection->query('DROP TABLE IF EXISTS posts');
-        $connection->query('DROP TABLE IF EXISTS comments');
-        $connection->query('DROP TABLE IF EXISTS tags');
-        $connection->query('DROP TABLE IF EXISTS posts_tags');
+        $this->modelRegistry->addNamespace('Tests\Mock\Model');
+        $this->behaviorRegistry->addNamespace('Tests\Mock\Behaviors');
 
-        $connection->query(<<<'EOT'
+        $this->container->use(EntityLocator::class)->addNamespace('Tests\Mock\Entity');
+
+        $this->db = $this->container->use(ConnectionManager::class)->use();
+
+        $this->db->query('DROP TABLE IF EXISTS contains');
+        $this->db->query('DROP TABLE IF EXISTS items');
+        $this->db->query('DROP TABLE IF EXISTS others');
+        $this->db->query('DROP TABLE IF EXISTS timestamps');
+        $this->db->query('DROP TABLE IF EXISTS users');
+        $this->db->query('DROP TABLE IF EXISTS addresses');
+        $this->db->query('DROP TABLE IF EXISTS posts');
+        $this->db->query('DROP TABLE IF EXISTS comments');
+        $this->db->query('DROP TABLE IF EXISTS tags');
+        $this->db->query('DROP TABLE IF EXISTS posts_tags');
+
+        $this->db->query(<<<'EOT'
             CREATE TABLE items (
                 id INTEGER NOT NULL,
                 name VARCHAR(255) NULL DEFAULT NULL,
@@ -43,7 +75,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE contains (
                 id INTEGER NOT NULL,
                 item_id INTEGER NOT NULL,
@@ -52,7 +84,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE others (
                 id INTEGER NOT NULL,
                 value INTEGER NOT NULL,
@@ -60,7 +92,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE timestamps (
                 id INTEGER NOT NULL,
                 created DATETIME NOT NULL,
@@ -69,7 +101,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE users (
                 id INTEGER NOT NULL,
                 name VARCHAR(255) NULL DEFAULT NULL,
@@ -77,7 +109,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE addresses (
                 id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
@@ -89,7 +121,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE posts (
                 id INTEGER NOT NULL,
                 user_id INTEGER NULL DEFAULT NULL,
@@ -99,7 +131,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE comments (
                 id INTEGER NOT NULL,
                 user_id INTEGER NULL DEFAULT NULL,
@@ -109,7 +141,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE tags (
                 id INTEGER NOT NULL,
                 tag VARCHAR(255) NULL DEFAULT NULL,
@@ -117,7 +149,7 @@ trait SqliteConnectionTrait
             )
         EOT);
 
-        $connection->query(<<<'EOT'
+        $this->db->query(<<<'EOT'
             CREATE TABLE posts_tags (
                 id INTEGER NOT NULL,
                 post_id INTEGER NOT NULL,
@@ -127,44 +159,19 @@ trait SqliteConnectionTrait
         EOT);
     }
 
-    public static function tearDownAfterClass(): void
-    {
-        $connection = ConnectionManager::use();
-        $connection->query('DROP TABLE IF EXISTS contains');
-        $connection->query('DROP TABLE IF EXISTS items');
-        $connection->query('DROP TABLE IF EXISTS others');
-        $connection->query('DROP TABLE IF EXISTS timestamps');
-        $connection->query('DROP TABLE IF EXISTS users');
-        $connection->query('DROP TABLE IF EXISTS addresses');
-        $connection->query('DROP TABLE IF EXISTS posts');
-        $connection->query('DROP TABLE IF EXISTS comments');
-        $connection->query('DROP TABLE IF EXISTS tags');
-        $connection->query('DROP TABLE IF EXISTS posts_tags');
-    }
-
-    protected function setUp(): void
-    {
-        BehaviorRegistry::clear();
-        BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
-
-        EntityLocator::clear();
-        EntityLocator::addNamespace('Tests\Mock\Entity');
-
-        ModelRegistry::clear();
-        ModelRegistry::addNamespace('Tests\Mock\Model');
-    }
-
     protected function tearDown(): void
     {
-        $connection = ConnectionManager::use();
-        $connection->query('DELETE FROM items');
-        $connection->query('DELETE FROM others');
-        $connection->query('DELETE FROM timestamps');
-        $connection->query('DELETE FROM users');
-        $connection->query('DELETE FROM addresses');
-        $connection->query('DELETE FROM posts');
-        $connection->query('DELETE FROM comments');
-        $connection->query('DELETE FROM tags');
-        $connection->query('DELETE FROM posts_tags');
+        $this->db->query('DROP TABLE IF EXISTS contains');
+        $this->db->query('DROP TABLE IF EXISTS items');
+        $this->db->query('DROP TABLE IF EXISTS others');
+        $this->db->query('DROP TABLE IF EXISTS timestamps');
+        $this->db->query('DROP TABLE IF EXISTS users');
+        $this->db->query('DROP TABLE IF EXISTS addresses');
+        $this->db->query('DROP TABLE IF EXISTS posts');
+        $this->db->query('DROP TABLE IF EXISTS comments');
+        $this->db->query('DROP TABLE IF EXISTS tags');
+        $this->db->query('DROP TABLE IF EXISTS posts_tags');
+
+        $this->db->disconnect();
     }
 }

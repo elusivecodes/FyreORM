@@ -11,17 +11,6 @@ use Fyre\Validation\Validator;
 
 class PostsModel extends Model
 {
-    public function __construct()
-    {
-        $this->addBehavior('Test', [
-            'testField' => 'title',
-        ]);
-
-        $this->belongsTo('Users');
-        $this->hasMany('Comments');
-        $this->manyToMany('Tags');
-    }
-
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(Entity $entity) {
@@ -38,5 +27,16 @@ class PostsModel extends Model
         $validator->add('title', Rule::required(), ['on' => 'create']);
 
         return $validator;
+    }
+
+    public function initialize(): void
+    {
+        $this->addBehavior('Test', [
+            'testField' => 'title',
+        ]);
+
+        $this->belongsTo('Users');
+        $this->hasMany('Comments');
+        $this->manyToMany('Tags');
     }
 }

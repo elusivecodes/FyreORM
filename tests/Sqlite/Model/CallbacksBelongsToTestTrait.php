@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 
 trait CallbacksBelongsToTestTrait
 {
     public function testAfterDeleteBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failAfterDelete',
@@ -35,13 +33,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             1,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testAfterDeleteManyBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -73,13 +71,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             2,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testAfterRulesBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failAfterRules',
@@ -111,13 +109,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testAfterRulesManyBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -169,13 +167,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testAfterSaveBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failAfterSave',
@@ -207,13 +205,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testAfterSaveManyBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -265,13 +263,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBeforeDeleteBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failBeforeDelete',
@@ -295,13 +293,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             1,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBeforeDeleteManyBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -333,13 +331,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             2,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBeforeRulesBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failBeforeRules',
@@ -371,13 +369,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBeforeRulesManyBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -429,13 +427,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBeforeSaveBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failBeforeSave',
@@ -467,13 +465,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBeforeSaveManyBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -525,13 +523,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testRulesBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failRules',
@@ -563,13 +561,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testRulesNoCheckRulesBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'failRules',
@@ -591,13 +589,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             1,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testValidationBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => '',
@@ -629,13 +627,13 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testValidationNoCheckRulesBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => '',
@@ -669,7 +667,7 @@ trait CallbacksBelongsToTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Tests\Mysql;
 
 use Fyre\Entity\Entity;
-use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
 use PHPUnit\Framework\TestCase;
 use Tests\Mock\Entity\Item;
@@ -15,7 +14,7 @@ final class QueryTest extends TestCase
 
     public function testBuffering(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -51,7 +50,7 @@ final class QueryTest extends TestCase
 
     public function testBufferingDisabled(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -81,7 +80,7 @@ final class QueryTest extends TestCase
 
     public function testCount(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -105,7 +104,7 @@ final class QueryTest extends TestCase
 
     public function testCountWithLimit(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -130,7 +129,7 @@ final class QueryTest extends TestCase
 
     public function testDirty(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $items = $Items->newEntities([
             [
@@ -190,7 +189,7 @@ final class QueryTest extends TestCase
     {
         $this->assertInstanceOf(
             SelectQuery::class,
-            ModelRegistry::use('Items')->find()
+            $this->modelRegistry->use('Items')->find()
         );
     }
 }

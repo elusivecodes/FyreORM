@@ -11,19 +11,6 @@ use Fyre\Validation\Validator;
 
 class UsersModel extends Model
 {
-    public function __construct()
-    {
-        $this->addBehavior('Test', [
-            'testField' => 'name',
-        ]);
-
-        $this->hasOne('Addresses');
-        $this->hasMany('Comments');
-        $this->hasMany('Posts', [
-            'dependent' => true,
-        ]);
-    }
-
     public function buildRules(RuleSet $rules): RuleSet
     {
         $rules->add(function(Entity $entity) {
@@ -40,5 +27,18 @@ class UsersModel extends Model
         $validator->add('name', Rule::required(), ['on' => 'create']);
 
         return $validator;
+    }
+
+    public function initialize(): void
+    {
+        $this->addBehavior('Test', [
+            'testField' => 'name',
+        ]);
+
+        $this->hasOne('Addresses');
+        $this->hasMany('Comments');
+        $this->hasMany('Posts', [
+            'dependent' => true,
+        ]);
     }
 }

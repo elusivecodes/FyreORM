@@ -3,30 +3,60 @@ declare(strict_types=1);
 
 namespace Tests\Postgres\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 trait RelationshipTestTrait
 {
-    public function testRelationshipClassName(): void
+    public function testRelationshipAliasModel(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        $relationship = $Items->hasOne('Alias', [
-            'className' => 'Items',
+        $Items->manyToMany('ChildItems', [
+            'classAlias' => 'Items',
+            'through' => 'Contains',
+            'foreignKey' => 'item_id',
+            'targetForeignKey' => 'contained_item_id',
         ]);
 
         $this->assertSame(
-            $Items,
-            $relationship->getTarget()
+            $Items->getRelationship('ChildItems'),
+            $Items->ChildItems
+        );
+
+        $Items->ChildItems->manyToMany('ParentItems', [
+            'classAlias' => 'Items',
+            'through' => 'Contains',
+            'foreignKey' => 'contained_item_id',
+            'targetForeignKey' => 'item_id',
+        ]);
+
+        $this->assertSame(
+            'SELECT ChildItems.id AS "ChildItems__id" FROM items AS ChildItems INNER JOIN contains AS Contains ON Contains.contained_item_id = ChildItems.id INNER JOIN items AS ParentItems ON ParentItems.id = Contains.item_id',
+            $Items->ChildItems->find()
+                ->innerJoinWith('ParentItems')
+                ->disableAutoFields()
+                ->sql()
+        );
+    }
+
+    public function testRelationshipClassAlias(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $relationship = $Items->hasOne('Alias', [
+            'classAlias' => 'Items',
+        ]);
+
+        $this->assertSame(
+            'Items',
+            $relationship->getTarget()->getClassAlias()
         );
     }
 
     public function testRelationshipConditions(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->hasOne('Alias', [
-            'className' => 'Items',
+            'classAlias' => 'Items',
             'conditions' => [
                 'Alias.name' => 'Test',
             ],
@@ -43,10 +73,10 @@ trait RelationshipTestTrait
 
     public function testRelationshipKeys(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->hasOne('Alias', [
-            'className' => 'Items',
+            'classAlias' => 'Items',
             'foreignKey' => 'name',
             'bindingKey' => 'name',
         ]);
@@ -62,10 +92,10 @@ trait RelationshipTestTrait
 
     public function testRelationshipPropertyName(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $relationship = $Items->hasOne('Alias', [
-            'className' => 'Items',
+            'classAlias' => 'Items',
             'propertyName' => 'alias',
         ]);
 
@@ -77,11 +107,11 @@ trait RelationshipTestTrait
 
     public function testRelationshipThrough(): void
     {
-        $Items = ModelRegistry::use('Items');
-        $ItemsAlias = ModelRegistry::use('ItemsAlias');
+        $Items = $this->modelRegistry->use('Items');
+        $ItemsAlias = $this->modelRegistry->use('ItemsAlias');
 
         $relationship = $Items->manyToMany('Alias', [
-            'className' => 'Items',
+            'classAlias' => 'Items',
             'through' => 'ItemsAlias',
         ]);
 

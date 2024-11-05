@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Tests\Sqlite\Model;
 
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\ModelRegistry;
 
 use function array_map;
 
@@ -12,7 +11,7 @@ trait ContainTestTrait
 {
     public function testContainAutoFields(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -119,7 +118,7 @@ trait ContainTestTrait
 
     public function testContainFind(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -249,7 +248,7 @@ trait ContainTestTrait
 
     public function testContainFindOptions(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -292,7 +291,7 @@ trait ContainTestTrait
     {
         $this->assertSame(
             'SELECT Posts.id AS Posts__id, Users.id AS Users__id, Addresses.id AS Addresses__id FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
-            ModelRegistry::use('Posts')
+            $this->modelRegistry->use('Posts')
                 ->find([
                     'contain' => [
                         'Users' => [
@@ -307,7 +306,7 @@ trait ContainTestTrait
 
     public function testContainInsert(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -391,7 +390,7 @@ trait ContainTestTrait
     {
         $this->expectException(OrmException::class);
 
-        ModelRegistry::use('Users')->find([
+        $this->modelRegistry->use('Users')->find([
             'contain' => [
                 'Invalid',
             ],
@@ -400,8 +399,8 @@ trait ContainTestTrait
 
     public function testContainMerge(): void
     {
-        $Posts = ModelRegistry::use('Posts');
-        $Users = ModelRegistry::use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -472,8 +471,8 @@ trait ContainTestTrait
 
     public function testContainOverwrite(): void
     {
-        $Posts = ModelRegistry::use('Posts');
-        $Users = ModelRegistry::use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',

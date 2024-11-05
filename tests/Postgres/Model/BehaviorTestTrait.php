@@ -5,13 +5,12 @@ namespace Tests\Postgres\Model;
 
 use Fyre\ORM\Behavior;
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\ModelRegistry;
 
 trait BehaviorTestTrait
 {
     public function testAddBehavior(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Mock');
 
@@ -24,7 +23,7 @@ trait BehaviorTestTrait
     {
         $this->expectException(OrmException::class);
 
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Mock');
         $Items->addBehavior('Mock');
@@ -34,14 +33,14 @@ trait BehaviorTestTrait
     {
         $this->expectException(OrmException::class);
 
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Invalid');
     }
 
     public function testGetBehavior(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Mock');
 
@@ -53,7 +52,7 @@ trait BehaviorTestTrait
 
     public function testGetBehaviorInvalid(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertNull(
             $Items->getBehavior('Invalid')
@@ -62,7 +61,7 @@ trait BehaviorTestTrait
 
     public function testHasBehaviorInvalid(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertFalse(
             $Items->hasBehavior('Invalid')
@@ -71,7 +70,7 @@ trait BehaviorTestTrait
 
     public function testRemoveBehavior(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Mock');
         $Items->removeBehavior('Mock');
@@ -85,7 +84,7 @@ trait BehaviorTestTrait
     {
         $this->expectException(OrmException::class);
 
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->removeBehavior('Invalid');
     }

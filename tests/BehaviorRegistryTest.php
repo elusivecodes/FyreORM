@@ -3,26 +3,37 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Fyre\Config\Config;
+use Fyre\Container\Container;
+use Fyre\DB\ConnectionManager;
+use Fyre\DB\TypeParser;
+use Fyre\Entity\EntityLocator;
 use Fyre\ORM\Behavior;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\ModelRegistry;
+use Fyre\Schema\SchemaRegistry;
+use Fyre\Utility\Inflector;
 use PHPUnit\Framework\TestCase;
 
 final class BehaviorRegistryTest extends TestCase
 {
+    protected BehaviorRegistry $behaviorRegistry;
+
+    protected ModelRegistry $modelRegistry;
+
     public function testFind(): void
     {
         $this->assertSame(
-            '\Tests\Mock\Behaviors\TestBehavior',
-            BehaviorRegistry::find('Test')
+            'Tests\Mock\Behaviors\TestBehavior',
+            $this->behaviorRegistry->find('Test')
         );
     }
 
     public function testFindInvalid(): void
     {
         $this->assertNull(
-            BehaviorRegistry::find('Invalid')
+            $this->behaviorRegistry->find('Invalid')
         );
     }
 
@@ -30,33 +41,33 @@ final class BehaviorRegistryTest extends TestCase
     {
         $this->assertSame(
             [
-                '\Tests\Mock\Behaviors\\',
+                'Tests\Mock\Behaviors\\',
             ],
-            BehaviorRegistry::getNamespaces()
+            $this->behaviorRegistry->getNamespaces()
         );
     }
 
     public function testHasNamespace(): void
     {
         $this->assertTrue(
-            BehaviorRegistry::hasNamespace('Tests\Mock\Behaviors')
+            $this->behaviorRegistry->hasNamespace('Tests\Mock\Behaviors')
         );
     }
 
     public function testHasNamespaceInvalid(): void
     {
         $this->assertFalse(
-            BehaviorRegistry::hasNamespace('Tests\Invalid\Behaviors')
+            $this->behaviorRegistry->hasNamespace('Tests\Invalid\Behaviors')
         );
     }
 
     public function testLoad(): void
     {
-        $Item = ModelRegistry::use('Item');
+        $Item = $this->modelRegistry->use('Item');
 
         $this->assertInstanceOf(
             Behavior::class,
-            BehaviorRegistry::load('Test', $Item)
+            $this->behaviorRegistry->build('Test', $Item)
         );
     }
 
@@ -64,58 +75,71 @@ final class BehaviorRegistryTest extends TestCase
     {
         $this->expectException(OrmException::class);
 
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
-        BehaviorRegistry::load('Invalid', $Items);
+        $this->behaviorRegistry->build('Invalid', $Items);
     }
 
     public function testNamespaceNoLeadingSlash(): void
     {
-        BehaviorRegistry::clear();
-        BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
+        $this->behaviorRegistry->clear();
+        $this->behaviorRegistry->addNamespace('Tests\Mock\Behaviors');
 
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertInstanceOf(
             Behavior::class,
-            BehaviorRegistry::load('Test', $Items)
+            $this->behaviorRegistry->build('Test', $Items)
         );
     }
 
     public function testNamespaceTrailingSlash(): void
     {
-        BehaviorRegistry::clear();
-        BehaviorRegistry::addNamespace('\Tests\Mock\Behaviors\\');
+        $this->behaviorRegistry->clear();
+        $this->behaviorRegistry->addNamespace('Tests\Mock\Behaviors\\');
 
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertInstanceOf(
             Behavior::class,
-            BehaviorRegistry::load('Test', $Items)
+            $this->behaviorRegistry->build('Test', $Items)
         );
     }
 
     public function testRemoveNamespace(): void
     {
         $this->assertTrue(
-            BehaviorRegistry::removeNamespace('Tests\Mock\Behaviors')
+            $this->behaviorRegistry->removeNamespace('Tests\Mock\Behaviors')
         );
 
         $this->assertFalse(
-            BehaviorRegistry::hasNamespace('Tests\Mock\Behaviors')
+            $this->behaviorRegistry->hasNamespace('Tests\Mock\Behaviors')
         );
     }
 
     public function testRemoveNamespaceInvalid(): void
     {
         $this->assertFalse(
-            BehaviorRegistry::removeNamespace('Tests\Invalid\Behaviors')
+            $this->behaviorRegistry->removeNamespace('Tests\Invalid\Behaviors')
         );
     }
 
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
-        BehaviorRegistry::clear();
-        BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
+        $container = new Container();
+        $container->singleton(TypeParser::class);
+        $container->singleton(Config::class);
+        $container->singleton(Inflector::class);
+        $container->singleton(ConnectionManager::class);
+        $container->singleton(SchemaRegistry::class);
+        $container->singleton(ModelRegistry::class);
+        $container->singleton(BehaviorRegistry::class);
+        $container->singleton(EntityLocator::class);
+
+        $this->modelRegistry = $container->use(ModelRegistry::class);
+        $this->behaviorRegistry = $container->use(BehaviorRegistry::class);
+
+        $this->behaviorRegistry->addNamespace('Tests\Mock\Behaviors');
+        $this->modelRegistry->addNamespace('Tests\Mock\Model');
     }
 }

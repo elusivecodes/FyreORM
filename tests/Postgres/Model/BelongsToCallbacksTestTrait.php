@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Postgres\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 
 trait BelongsToCallbacksTestTrait
 {
     public function testBelongsToAfterParse(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -28,7 +26,7 @@ trait BelongsToCallbacksTestTrait
 
     public function testBelongsToAfterParseMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -53,7 +51,7 @@ trait BelongsToCallbacksTestTrait
 
     public function testBelongsToAfterRules(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -85,13 +83,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToAfterRulesMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -143,13 +141,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToAfterSave(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -181,13 +179,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToAfterSaveMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -239,13 +237,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToBeforeParse(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -262,7 +260,7 @@ trait BelongsToCallbacksTestTrait
 
     public function testBelongsToBeforeParseMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -292,7 +290,7 @@ trait BelongsToCallbacksTestTrait
 
     public function testBelongsToBeforeRules(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -324,13 +322,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToBeforeRulesMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -382,13 +380,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToBeforeSave(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -420,13 +418,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToBeforeSaveMany(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $addresses = $Addresses->newEntities([
             [
@@ -478,13 +476,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToRules(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -516,13 +514,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToRulesNoCheckRules(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -544,13 +542,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             1,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToValidation(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -582,13 +580,13 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 
     public function testBelongsToValidationNoCheckRules(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -622,7 +620,7 @@ trait BelongsToCallbacksTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Users')->find()->count()
+            $this->modelRegistry->use('Users')->find()->count()
         );
     }
 }

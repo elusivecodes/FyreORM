@@ -3,15 +3,26 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Fyre\Config\Config;
+use Fyre\Container\Container;
+use Fyre\DB\ConnectionManager;
+use Fyre\DB\TypeParser;
+use Fyre\Entity\EntityLocator;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\ModelRegistry;
+use Fyre\Schema\SchemaRegistry;
+use Fyre\Utility\Inflector;
 use PHPUnit\Framework\TestCase;
 
 final class BehaviorTest extends TestCase
 {
+    protected BehaviorRegistry $behaviorRegistry;
+
+    protected ModelRegistry $modelRegistry;
+
     public function testGetConfig(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Mock', [
             'value' => 1,
@@ -27,7 +38,7 @@ final class BehaviorTest extends TestCase
 
     public function testGetModel(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $Items->addBehavior('Mock');
 
@@ -39,10 +50,20 @@ final class BehaviorTest extends TestCase
 
     protected function setUp(): void
     {
-        BehaviorRegistry::clear();
-        BehaviorRegistry::addNamespace('Tests\Mock\Behaviors');
+        $container = new Container();
+        $container->singleton(TypeParser::class);
+        $container->singleton(Config::class);
+        $container->singleton(Inflector::class);
+        $container->singleton(ConnectionManager::class);
+        $container->singleton(SchemaRegistry::class);
+        $container->singleton(ModelRegistry::class);
+        $container->singleton(BehaviorRegistry::class);
+        $container->singleton(EntityLocator::class);
 
-        ModelRegistry::clear();
-        ModelRegistry::addNamespace('Tests\Mock\Model');
+        $this->modelRegistry = $container->use(ModelRegistry::class);
+        $this->behaviorRegistry = $container->use(BehaviorRegistry::class);
+
+        $this->behaviorRegistry->addNamespace('Tests\Mock\Behaviors');
+        $this->modelRegistry->addNamespace('Tests\Mock\Model');
     }
 }

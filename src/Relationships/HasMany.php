@@ -41,6 +41,8 @@ class HasMany extends Relationship
         $bindingValue = $entity->get($bindingKey);
 
         foreach ($children as $child) {
+            $child->saveState();
+
             $child->set($foreignKey, null);
             $child->set($foreignKey, $bindingValue);
         }
@@ -50,6 +52,8 @@ class HasMany extends Relationship
         if (!$this->unlinkAll([$entity], $options + ['conditions' => $preserveConditions])) {
             return false;
         }
+
+        $options['saveState'] = false;
 
         if (!$this->getTarget()->saveMany($children, $options)) {
             return false;
@@ -79,7 +83,7 @@ class HasMany extends Relationship
         }
 
         $targetKeys = array_map(
-            fn(string $foreignKey): string => $target->aliasField($foreignKey, $this->name),
+            fn(string $foreignKey): string => $target->aliasField($foreignKey),
             $targetKeys
         );
 

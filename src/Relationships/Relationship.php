@@ -24,13 +24,17 @@ abstract class Relationship
 {
     protected string $bindingKey;
 
-    protected string $className;
+    protected string $classAlias;
 
     protected array $conditions = [];
 
     protected bool $dependent = false;
 
     protected string $foreignKey;
+
+    protected Inflector $inflector;
+
+    protected ModelRegistry $modelRegistry;
 
     protected string $name;
 
@@ -47,18 +51,23 @@ abstract class Relationship
     /**
      * New relationship constructor.
      *
+     * @param ModelRegistry $modelRegistry The ModelRegistry.
+     * @param Inflector $inflector The Inflector.
      * @param string $name The relationship name.
      * @param array $options The relationship options.
      *
      * @throws OrmException if the strategy is not valid.
      */
-    public function __construct(string $name, array $options = [])
+    public function __construct(ModelRegistry $modelRegistry, Inflector $inflector, string $name, array $options = [])
     {
+        $this->modelRegistry = $modelRegistry;
+        $this->inflector = $inflector;
+
         $this->name = $name;
 
         $defaults = [
             'source',
-            'className',
+            'classAlias',
             'propertyName',
             'foreignKey',
             'bindingKey',
@@ -79,7 +88,30 @@ abstract class Relationship
             throw OrmException::forInvalidStrategy($this->strategy);
         }
 
-        $this->className ??= $this->name;
+        $this->classAlias ??= $this->name;
+    }
+
+    /**
+     * Call a method on the target model.
+     *
+     * @param string $name The method name.
+     * @param array $arguments The method arguments.
+     * @return mixed The result.
+     */
+    public function __call(string $name, array $arguments): mixed
+    {
+        return $this->getTarget()->$name(...$arguments);
+    }
+
+    /**
+     * Get a Relationship from the target model.
+     *
+     * @param string $name The property name.
+     * @return Relationship The Relationship.
+     */
+    public function __get(string $name): Relationship
+    {
+        return $this->getTarget()->$name;
     }
 
     /**
@@ -93,7 +125,7 @@ abstract class Relationship
         $source = $this->getSource();
         $target = $this->getTarget();
 
-        $options['alias'] ??= $this->name;
+        $options['alias'] ??= $target->getAlias();
         $options['sourceAlias'] ??= $source->getAlias();
         $options['type'] ??= 'LEFT';
         $options['conditions'] ??= [];
@@ -158,10 +190,10 @@ abstract class Relationship
 
         if (array_key_exists('fields', $data) || (array_key_exists('autoFields', $data) && !$data['autoFields'])) {
             $data['fields'] ??= [];
-            $data['fields'][] = $target->aliasField($targetKey, $this->name);
+            $data['fields'][] = $target->aliasField($targetKey);
         }
 
-        $data['alias'] = $this->name;
+        $data['alias'] = $target->getAlias();
 
         $data = array_merge($query->getOptions(), $data);
 
@@ -171,6 +203,10 @@ abstract class Relationship
             $this->findRelatedSubquery($newQuery, $query);
         } else {
             $this->findRelatedConditions($newQuery, $sourceValues);
+        }
+
+        if (array_key_exists('callback', $data) && $data['callback']) {
+            $newQuery = $data['callback']($newQuery);
         }
 
         $allChildren = $newQuery->toArray();
@@ -230,8 +266,8 @@ abstract class Relationship
      */
     public function getForeignKey(): string
     {
-        return $this->foreignKey ??= static::modelKey(
-            $this->source->getAlias()
+        return $this->foreignKey ??= $this->modelKey(
+            $this->source->getClassAlias()
         );
     }
 
@@ -252,7 +288,7 @@ abstract class Relationship
      */
     public function getProperty(): string
     {
-        return $this->propertyName ??= static::propertyName($this->name, $this->hasMultiple());
+        return $this->propertyName ??= $this->propertyName($this->name, $this->hasMultiple());
     }
 
     /**
@@ -279,10 +315,12 @@ abstract class Relationship
      * Get the target Model.
      *
      * @return Model The target Model.
+     *
+     * @throws OrmException if the relationship alias is used by another class.
      */
     public function getTarget(): Model
     {
-        return $this->target ??= ModelRegistry::use($this->className);
+        return $this->target ??= $this->modelRegistry->use($this->name, $this->classAlias);
     }
 
     /**
@@ -344,7 +382,6 @@ abstract class Relationship
         $target = $this->getTarget();
 
         $query = $target->find([
-            'alias' => $this->name,
             'conditions' => $conditions,
         ]);
 
@@ -392,7 +429,7 @@ abstract class Relationship
         }
 
         $target = $this->getTarget();
-        $targetKey = $target->aliasField($targetKey, $this->name);
+        $targetKey = $target->aliasField($targetKey);
 
         if (count($sourceValues) > 1) {
             $containConditions = [$targetKey.' IN' => $sourceValues];
@@ -420,7 +457,7 @@ abstract class Relationship
         }
 
         $target = $this->getTarget();
-        $targetKey = $target->aliasField($targetKey, $this->name);
+        $targetKey = $target->aliasField($targetKey);
 
         $alias = $query->getAlias();
         $sourceKey = $this->source->aliasField($sourceKey, $alias);
@@ -456,9 +493,8 @@ abstract class Relationship
             ->offset($offset)
             ->epilog('');
 
-        Closure::bind(function(): void {
-            $this->autoAlias = false;
-        }, $query, $query)->__invoke();
+        // disable auto alias
+        Closure::bind(function(): void { $this->autoAlias = false; }, $query, $query)();
 
         $newQuery->join([
             [
@@ -505,12 +541,12 @@ abstract class Relationship
      * @param string $alias The model alias.
      * @return string The foreign key.
      */
-    protected static function modelKey(string $alias): string
+    protected function modelKey(string $alias): string
     {
-        $alias = Inflector::singularize($alias);
+        $alias = $this->inflector->singularize($alias);
         $alias .= 'Id';
 
-        return Model::tableize($alias);
+        return $this->inflector->underscore($alias);
     }
 
     /**
@@ -520,12 +556,12 @@ abstract class Relationship
      * @param bool $plural Whether to use a plural name.
      * @return string The property name.
      */
-    protected static function propertyName(string $alias, bool $plural = false): string
+    protected function propertyName(string $alias, bool $plural = false): string
     {
         if (!$plural) {
-            $alias = Inflector::singularize($alias);
+            $alias = $this->inflector->singularize($alias);
         }
 
-        return Model::tableize($alias);
+        return $this->inflector->underscore($alias);
     }
 }

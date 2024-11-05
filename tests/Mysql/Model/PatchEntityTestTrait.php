@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
-use Fyre\ORM\ModelRegistry;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\Post;
 use Tests\Mock\Entity\Tag;
@@ -12,7 +11,7 @@ trait PatchEntityTestTrait
 {
     public function testPatchEntity(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $item = $Items->newEmptyEntity();
 
@@ -32,7 +31,7 @@ trait PatchEntityTestTrait
 
     public function testPatchEntityAssociated(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -99,7 +98,7 @@ trait PatchEntityTestTrait
 
     public function testPatchEntityBelongsTo(): void
     {
-        $Addresses = ModelRegistry::use('Addresses');
+        $Addresses = $this->modelRegistry->use('Addresses');
 
         $address = $Addresses->newEntity([
             'suburb' => 'Test',
@@ -128,7 +127,7 @@ trait PatchEntityTestTrait
 
     public function testPatchEntityContain(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -204,7 +203,7 @@ trait PatchEntityTestTrait
 
     public function testPatchEntityHasMany(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -250,7 +249,7 @@ trait PatchEntityTestTrait
 
     public function testPatchEntityHasOne(): void
     {
-        $Users = ModelRegistry::use('Users');
+        $Users = $this->modelRegistry->use('Users');
 
         $user = $Users->newEntity([
             'name' => 'Test',
@@ -279,7 +278,7 @@ trait PatchEntityTestTrait
 
     public function testPatchEntityManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,

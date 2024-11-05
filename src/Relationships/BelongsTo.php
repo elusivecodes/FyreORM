@@ -31,9 +31,7 @@ class BelongsTo extends Relationship
      */
     public function getForeignKey(): string
     {
-        return $this->foreignKey ??= static::modelKey(
-            $this->getTarget()->getAlias()
-        );
+        return $this->foreignKey ??= $this->modelKey($this->name);
     }
 
     /**
@@ -71,6 +69,10 @@ class BelongsTo extends Relationship
         if (!$parent || !$parent instanceof Entity) {
             return true;
         }
+
+        $parent->saveState();
+
+        $options['saveState'] = false;
 
         if (!$this->getTarget()->save($parent, $options)) {
             return false;

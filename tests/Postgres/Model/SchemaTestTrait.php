@@ -3,16 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Postgres\Model;
 
-use Fyre\ORM\ModelRegistry;
-use Fyre\Schema\SchemaRegistry;
-
 trait SchemaTestTrait
 {
     public function testAliasField(): void
     {
         $this->assertSame(
             'Items.name',
-            ModelRegistry::use('Items')->aliasField('name')
+            $this->modelRegistry->use('Items')->aliasField('name')
         );
     }
 
@@ -20,7 +17,7 @@ trait SchemaTestTrait
     {
         $this->assertSame(
             'TestItems',
-            ModelRegistry::use('TestItems')->getAlias()
+            $this->modelRegistry->use('TestItems')->getAlias()
         );
     }
 
@@ -28,7 +25,7 @@ trait SchemaTestTrait
     {
         $this->assertSame(
             'name',
-            ModelRegistry::use('Items')->getDisplayName()
+            $this->modelRegistry->use('Items')->getDisplayName()
         );
     }
 
@@ -36,16 +33,16 @@ trait SchemaTestTrait
     {
         $this->assertSame(
             ['id'],
-            ModelRegistry::use('Items')->getPrimaryKey()
+            $this->modelRegistry->use('Items')->getPrimaryKey()
         );
     }
 
     public function testGetSchema(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertSame(
-            SchemaRegistry::getSchema($Items->getConnection())->describe('items'),
+            $this->schemaRegistry->use($Items->getConnection())->describe('items'),
             $Items->getSchema()
         );
     }
@@ -54,13 +51,13 @@ trait SchemaTestTrait
     {
         $this->assertSame(
             'test_items',
-            ModelRegistry::use('TestItems')->getTable()
+            $this->modelRegistry->use('TestItems')->getTable()
         );
     }
 
     public function testSetAlias(): void
     {
-        $TestItems = ModelRegistry::use('TestItems');
+        $TestItems = $this->modelRegistry->use('TestItems');
 
         $this->assertSame(
             $TestItems,
@@ -75,7 +72,7 @@ trait SchemaTestTrait
 
     public function testSetDisplayName(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertSame(
             $Items,
@@ -90,7 +87,7 @@ trait SchemaTestTrait
 
     public function testSetTable(): void
     {
-        $Items = ModelRegistry::use('Items');
+        $Items = $this->modelRegistry->use('Items');
 
         $this->assertSame(
             $Items,

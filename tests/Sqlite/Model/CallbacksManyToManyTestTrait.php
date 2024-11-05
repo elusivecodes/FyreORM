@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests\Sqlite\Model;
 
-use Fyre\ORM\ModelRegistry;
-
 use function array_map;
 
 trait CallbacksManyToManyTestTrait
 {
     public function testAfterParseManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -35,7 +33,7 @@ trait CallbacksManyToManyTestTrait
 
     public function testAfterParseManyToManyMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $posts = $Posts->newEntities([
             [
@@ -74,7 +72,7 @@ trait CallbacksManyToManyTestTrait
 
     public function testAfterRulesManyManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $posts = $Posts->newEntities([
             [
@@ -138,18 +136,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testAfterRulesManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -188,18 +186,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testAfterSaveManyManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $posts = $Posts->newEntities([
             [
@@ -263,18 +261,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testAfterSaveManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -313,18 +311,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testBeforeParseManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -353,7 +351,7 @@ trait CallbacksManyToManyTestTrait
 
     public function testBeforeParseManyToManyMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $posts = $Posts->newEntities([
             [
@@ -407,7 +405,7 @@ trait CallbacksManyToManyTestTrait
 
     public function testBeforeRulesManyManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $posts = $Posts->newEntities([
             [
@@ -471,18 +469,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testBeforeRulesManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -521,18 +519,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testBeforeSaveManyManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $posts = $Posts->newEntities([
             [
@@ -596,18 +594,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testBeforeSaveManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -646,18 +644,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testRulesManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -696,18 +694,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testRulesNoCheckRulesManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -736,18 +734,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             2,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             2,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testValidationManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -786,18 +784,18 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 
     public function testValidationNoCheckRulesManyToMany(): void
     {
-        $Posts = ModelRegistry::use('Posts');
+        $Posts = $this->modelRegistry->use('Posts');
 
         $post = $Posts->newEntity([
             'user_id' => 1,
@@ -838,12 +836,12 @@ trait CallbacksManyToManyTestTrait
 
         $this->assertSame(
             0,
-            ModelRegistry::use('Tags')->find()->count()
+            $this->modelRegistry->use('Tags')->find()->count()
         );
 
         $this->assertSame(
             0,
-            ModelRegistry::use('PostsTags')->find()->count()
+            $this->modelRegistry->use('PostsTags')->find()->count()
         );
     }
 }
