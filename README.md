@@ -134,7 +134,7 @@ $namespaces = $modelRegistry->getNamespaces();
 
 **Has Namespace**
 
-Check if a namespace exists.
+Determine whether a namespace exists.
 
 - `$namespace` is a string representing the namespace.
 
@@ -144,7 +144,7 @@ $hasNamespace = $modelRegistry->hasNamespace($namespace);
 
 **Is Loaded**
 
-Check if a model is loaded.
+Determine whether a model is loaded.
 
 - `$alias` is a string representing the model alias.
 
@@ -577,7 +577,7 @@ $result = $model->deleteMany($entities, $options);
 
 **Exists**
 
-Determine if matching rows exist.
+Determine whether matching rows exist.
 
 - `$conditions` is an array or string representing the where conditions.
 
@@ -706,7 +706,7 @@ $relationships = $model->getRelationships();
 
 **Has Relationship**
 
-Determine if a [*Relationship*](#relationships) exists.
+Determine whether a [*Relationship*](#relationships) exists.
 
 - `$name` is a string representing the relationship name.
 
@@ -750,7 +750,7 @@ $behavior = $model->getBehavior($name);
 
 **Has Behavior**
 
-Determine if the *Model* has a [*Behavior*](#behaviors).
+Determine whether the *Model* has a [*Behavior*](#behaviors).
 
 - `$name` is a string representing the behavior name.
 
@@ -1370,7 +1370,7 @@ $namespaces = $behaviorRegistry->getNamespaces();
 
 **Has Namespace**
 
-Check if a namespace exists.
+Determine whether a namespace exists.
 
 - `$namespace` is a string representing the namespace.
 

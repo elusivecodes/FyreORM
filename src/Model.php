@@ -533,7 +533,7 @@ class Model
     }
 
     /**
-     * Determine if matching rows exist.
+     * Determine whether matching rows exist.
      *
      * @param array $conditions The conditions.
      * @return bool TRUE if matching rows exist, otherwise FALSE.
@@ -766,7 +766,7 @@ class Model
     }
 
     /**
-     * Determine if the Model has a Behavior.
+     * Determine whether the Model has a Behavior.
      *
      * @param string $name The behavior name.
      * @return bool TRUE if the Model has the Behavior, otherwise FALSE.
@@ -813,7 +813,7 @@ class Model
     }
 
     /**
-     * Determine if a Relationship exists.
+     * Determine whether a Relationship exists.
      *
      * @param string $name The relationship name.
      * @return bool TRUE if the Relationship exists, otherwise FALSE.
@@ -1435,7 +1435,7 @@ class Model
     }
 
     /**
-     * Check if entities already exist, and mark them not new.
+     * Determine whether entities already exist, and mark them not new.
      *
      * @param array $entities The entities.
      */

@@ -35,7 +35,7 @@ class BelongsTo extends Relationship
     }
 
     /**
-     * Determine if the relationship has multiple related items.
+     * Determine whether the relationship has multiple related items.
      *
      * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */
@@ -45,7 +45,7 @@ class BelongsTo extends Relationship
     }
 
     /**
-     * Determine if the source is the owning side of the relationship.
+     * Determine whether the source is the owning side of the relationship.
      *
      * @return bool TRUE if the source is the owning side of the relationship, otherwise FALSE.
      */

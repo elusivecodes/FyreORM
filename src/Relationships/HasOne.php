@@ -15,7 +15,7 @@ class HasOne extends Relationship
     protected array $validStrategies = ['join', 'select'];
 
     /**
-     * Determine if the relationship has multiple related items.
+     * Determine whether the relationship has multiple related items.
      *
      * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */

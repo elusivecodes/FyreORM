@@ -111,7 +111,7 @@ class ModelRegistry
     }
 
     /**
-     * Determine if a namespace exists.
+     * Determine whether a namespace exists.
      *
      * @param string $namespace The namespace.
      * @return bool TRUE if the namespace exists, otherwise FALSE.
@@ -124,7 +124,7 @@ class ModelRegistry
     }
 
     /**
-     * Determine if a model is loaded.
+     * Determine whether a model is loaded.
      *
      * @param string $alias The model alias.
      * @return bool TRUE if the model is loaded, otherwise FALSE.

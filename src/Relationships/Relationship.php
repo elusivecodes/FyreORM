@@ -324,7 +324,7 @@ abstract class Relationship
     }
 
     /**
-     * Determine if the relationship has multiple related items.
+     * Determine whether the relationship has multiple related items.
      *
      * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
      */
@@ -334,7 +334,7 @@ abstract class Relationship
     }
 
     /**
-     * Determine if the relationship is dependent.
+     * Determine whether the relationship is dependent.
      *
      * @return bool TRUE if the relationship is dependent, otherwise FALSE.
      */
@@ -344,7 +344,7 @@ abstract class Relationship
     }
 
     /**
-     * Determine if the source is the owning side of the relationship.
+     * Determine whether the source is the owning side of the relationship.
      *
      * @return bool TRUE if the source is the owning side of the relationship, otherwise FALSE.
      */
