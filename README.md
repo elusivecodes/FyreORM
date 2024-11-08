@@ -52,7 +52,7 @@ use Fyre\ORM\ModelRegistry;
 
 ## Basic Usage
 
-- `$container` is a  [*Container*](https://github.com/elusivecodes/FyreContainer).
+- `$container` is a [*Container*](https://github.com/elusivecodes/FyreContainer).
 - `$namespaces` is an array containing the namespaces.
 
 ```php
@@ -1298,7 +1298,7 @@ When loading results, the join table data will be accessible via the `_joinData`
 use Fyre\ORM\BehaviorRegistry;
 ```
 
-- `$container` is a  [*Container*](https://github.com/elusivecodes/FyreContainer).
+- `$container` is a [*Container*](https://github.com/elusivecodes/FyreContainer).
 - `$namespaces` is an array containing the namespaces.
 
 ```php
