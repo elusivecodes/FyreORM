@@ -53,10 +53,9 @@ use Fyre\ORM\ModelRegistry;
 ## Basic Usage
 
 - `$container` is a [*Container*](https://github.com/elusivecodes/FyreContainer).
-- `$namespaces` is an array containing the namespaces.
 
 ```php
-$modelRegistry = new ModelRegistry($container, $namespaces);
+$modelRegistry = new ModelRegistry($container);
 ```
 
 **Autoloading**
@@ -1299,10 +1298,9 @@ use Fyre\ORM\BehaviorRegistry;
 ```
 
 - `$container` is a [*Container*](https://github.com/elusivecodes/FyreContainer).
-- `$namespaces` is an array containing the namespaces.
 
 ```php
-$behaviorRegistry = new BehaviorRegistry($container, $namespaces);
+$behaviorRegistry = new BehaviorRegistry($container);
 ```
 
 **Autoloading**
@@ -1319,6 +1317,7 @@ Any dependencies will be injected automatically when loading from the [*Containe
 $behaviorRegistry = $container->use(BehaviorRegistry::class);
 ```
 
+### Behavior Registry Methods
 
 **Add Namespace**
 

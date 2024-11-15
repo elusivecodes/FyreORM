@@ -27,13 +27,9 @@ class BehaviorRegistry
      *
      * @param Container $container The Container.
      */
-    public function __construct(Container $container, array $namespaces = [])
+    public function __construct(Container $container)
     {
         $this->container = $container;
-
-        foreach ($namespaces as $namespace) {
-            $this->addNamespace($namespace);
-        }
     }
 
     /**
