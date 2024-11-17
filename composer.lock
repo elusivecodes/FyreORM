@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "70630b0b8b119db54583de86110c1cab",
+    "content-hash": "36926c376def6472ef2c568de95e9cb5",
     "packages": [
         {
             "name": "fyre/array",
@@ -451,20 +451,21 @@
         },
         {
             "name": "fyre/lang",
-            "version": "v4.1.0",
+            "version": "v5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreLang.git",
-                "reference": "4672e04c6e26b2b6f4245eafaf5f202ac37b3906"
+                "reference": "cbea8b6814b1c1280d4014672d552a2debdc5713"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreLang/zipball/4672e04c6e26b2b6f4245eafaf5f202ac37b3906",
-                "reference": "4672e04c6e26b2b6f4245eafaf5f202ac37b3906",
+                "url": "https://api.github.com/repos/elusivecodes/FyreLang/zipball/cbea8b6814b1c1280d4014672d552a2debdc5713",
+                "reference": "cbea8b6814b1c1280d4014672d552a2debdc5713",
                 "shasum": ""
             },
             "require": {
                 "fyre/array": "^2.0",
+                "fyre/config": "^4.1",
                 "fyre/path": "^2.0"
             },
             "require-dev": {
@@ -491,9 +492,9 @@
             "description": "A language utility library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreLang/issues",
-                "source": "https://github.com/elusivecodes/FyreLang/tree/v4.1.0"
+                "source": "https://github.com/elusivecodes/FyreLang/tree/v5.0"
             },
-            "time": "2024-11-15T10:12:17+00:00"
+            "time": "2024-11-16T05:56:35+00:00"
         },
         {
             "name": "fyre/path",
@@ -633,21 +634,21 @@
         },
         {
             "name": "fyre/validation",
-            "version": "v5.0.2",
+            "version": "v6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreValidation.git",
-                "reference": "284c66c14559be94f2c918e39a9017512feef768"
+                "reference": "1340cf2667076895c416dbcd52a3b8e37d9665e5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreValidation/zipball/284c66c14559be94f2c918e39a9017512feef768",
-                "reference": "284c66c14559be94f2c918e39a9017512feef768",
+                "url": "https://api.github.com/repos/elusivecodes/FyreValidation/zipball/1340cf2667076895c416dbcd52a3b8e37d9665e5",
+                "reference": "1340cf2667076895c416dbcd52a3b8e37d9665e5",
                 "shasum": ""
             },
             "require": {
                 "fyre/container": "^1.0",
-                "fyre/lang": "^4.0",
+                "fyre/lang": "^5.0",
                 "fyre/typeparser": "^5.0"
             },
             "require-dev": {
@@ -674,9 +675,9 @@
             "description": "A validation library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreValidation/issues",
-                "source": "https://github.com/elusivecodes/FyreValidation/tree/v5.0.2"
+                "source": "https://github.com/elusivecodes/FyreValidation/tree/v6.0"
             },
-            "time": "2024-11-15T10:24:15+00:00"
+            "time": "2024-11-17T00:25:40+00:00"
         }
     ],
     "packages-dev": [

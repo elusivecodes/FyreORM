@@ -136,6 +136,8 @@ final class BehaviorRegistryTest extends TestCase
         $container->singleton(BehaviorRegistry::class);
         $container->singleton(EntityLocator::class);
 
+        $container->use(Config::class)->set('App.locale', 'en');
+
         $this->modelRegistry = $container->use(ModelRegistry::class);
         $this->behaviorRegistry = $container->use(BehaviorRegistry::class);
 

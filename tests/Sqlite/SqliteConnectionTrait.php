@@ -38,12 +38,14 @@ trait SqliteConnectionTrait
         $this->container->singleton(ModelRegistry::class);
         $this->container->singleton(BehaviorRegistry::class);
         $this->container->singleton(EntityLocator::class);
-        $this->container->use(Config::class)->set('Database', [
-            'default' => [
-                'className' => SqliteConnection::class,
-                'persist' => false,
-            ],
-        ]);
+        $this->container->use(Config::class)
+            ->set('App.locale', 'en')
+            ->set('Database', [
+                'default' => [
+                    'className' => SqliteConnection::class,
+                    'persist' => false,
+                ],
+            ]);
 
         $this->schemaRegistry = $this->container->use(SchemaRegistry::class);
         $this->modelRegistry = $this->container->use(ModelRegistry::class);

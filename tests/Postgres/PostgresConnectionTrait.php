@@ -40,18 +40,20 @@ trait PostgresConnectionTrait
         $this->container->singleton(ModelRegistry::class);
         $this->container->singleton(BehaviorRegistry::class);
         $this->container->singleton(EntityLocator::class);
-        $this->container->use(Config::class)->set('Database', [
-            'default' => [
-                'className' => PostgresConnection::class,
-                'host' => getenv('POSTGRES_HOST'),
-                'username' => getenv('POSTGRES_USERNAME'),
-                'password' => getenv('POSTGRES_PASSWORD'),
-                'database' => getenv('POSTGRES_DATABASE'),
-                'port' => getenv('POSTGRES_PORT'),
-                'charset' => 'utf8',
-                'persist' => false,
-            ],
-        ]);
+        $this->container->use(Config::class)
+            ->set('App.locale', 'en')
+            ->set('Database', [
+                'default' => [
+                    'className' => PostgresConnection::class,
+                    'host' => getenv('POSTGRES_HOST'),
+                    'username' => getenv('POSTGRES_USERNAME'),
+                    'password' => getenv('POSTGRES_PASSWORD'),
+                    'database' => getenv('POSTGRES_DATABASE'),
+                    'port' => getenv('POSTGRES_PORT'),
+                    'charset' => 'utf8',
+                    'persist' => false,
+                ],
+            ]);
 
         $this->schemaRegistry = $this->container->use(SchemaRegistry::class);
         $this->modelRegistry = $this->container->use(ModelRegistry::class);

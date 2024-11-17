@@ -40,20 +40,22 @@ trait MysqlConnectionTrait
         $this->container->singleton(ModelRegistry::class);
         $this->container->singleton(BehaviorRegistry::class);
         $this->container->singleton(EntityLocator::class);
-        $this->container->use(Config::class)->set('Database', [
-            'default' => [
-                'className' => MysqlConnection::class,
-                'host' => getenv('MYSQL_HOST'),
-                'username' => getenv('MYSQL_USERNAME'),
-                'password' => getenv('MYSQL_PASSWORD'),
-                'database' => getenv('MYSQL_DATABASE'),
-                'port' => getenv('MYSQL_PORT'),
-                'collation' => 'utf8mb4_unicode_ci',
-                'charset' => 'utf8mb4',
-                'compress' => true,
-                'persist' => false,
-            ],
-        ]);
+        $this->container->use(Config::class)
+            ->set('App.locale', 'en')
+            ->set('Database', [
+                'default' => [
+                    'className' => MysqlConnection::class,
+                    'host' => getenv('MYSQL_HOST'),
+                    'username' => getenv('MYSQL_USERNAME'),
+                    'password' => getenv('MYSQL_PASSWORD'),
+                    'database' => getenv('MYSQL_DATABASE'),
+                    'port' => getenv('MYSQL_PORT'),
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'charset' => 'utf8mb4',
+                    'compress' => true,
+                    'persist' => false,
+                ],
+            ]);
 
         $this->schemaRegistry = $this->container->use(SchemaRegistry::class);
         $this->modelRegistry = $this->container->use(ModelRegistry::class);
