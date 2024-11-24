@@ -37,6 +37,14 @@ trait SchemaTestTrait
         );
     }
 
+    public function testGetRouteKey(): void
+    {
+        $this->assertSame(
+            'id',
+            $this->modelRegistry->use('Items')->getRouteKey()
+        );
+    }
+
     public function testGetSchema(): void
     {
         $Items = $this->modelRegistry->use('Items');

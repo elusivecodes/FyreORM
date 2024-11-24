@@ -316,6 +316,107 @@ trait QueryTestTrait
         );
     }
 
+    public function testResolveRouteBinding(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $items = $Items->newEntities([
+            [
+                'name' => 'Test 1',
+            ],
+            [
+                'name' => 'Test 2',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Items->saveMany($items)
+        );
+
+        $item = $Items->resolveRouteBinding(2, 'id');
+
+        $this->assertSame(
+            2,
+            $item->id
+        );
+    }
+
+    public function testResolveRouteBindingInvalid(): void
+    {
+        $this->assertNull(
+            $this->modelRegistry->use('Items')->resolveRouteBinding(1, 'id')
+        );
+    }
+
+    public function testResolveRouteBindingParent(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->resolveRouteBinding(1, 'id');
+        $item = $Posts->resolveRouteBinding(2, 'id', $user);
+
+        $this->assertSame(
+            2,
+            $item->id
+        );
+    }
+
+    public function testResolveRouteBindingParentInvalid(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+        $Posts = $this->modelRegistry->use('Posts');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->newEntity([
+            'name' => 'Test 2',
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->resolveRouteBinding(2, 'id');
+        $item = $Posts->resolveRouteBinding(2, 'id', $user);
+
+        $this->assertNull($item);
+    }
+
     public function testUpdate(): void
     {
         $Items = $this->modelRegistry->use('Items');

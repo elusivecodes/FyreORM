@@ -90,6 +90,8 @@ class Model
 
     protected array $relationships = [];
 
+    protected string|null $routeKey = null;
+
     protected RuleSet $rules;
 
     protected SchemaRegistry $schemaRegistry;
@@ -114,10 +116,6 @@ class Model
                 continue;
             }
 
-            if ($data === null) {
-                var_dump($newContain);
-                exit;
-            }
             foreach ($data as $key => $value) {
                 if ($key === 'contain') {
                     $contain[$name][$key] = static::mergeContain($contain[$name][$key], $value);
@@ -703,6 +701,24 @@ class Model
     }
 
     /**
+     * Get the display name.
+     *
+     * @return string The display name.
+     */
+    public function getRouteKey(): string
+    {
+        if (!$this->routeKey) {
+            $testColumns = array_merge(['slug'], $this->getPrimaryKey());
+            $columns = $this->getSchema()->columnNames();
+            $matching = array_intersect($testColumns, $columns);
+
+            $this->routeKey = array_shift($matching);
+        }
+
+        return $this->routeKey;
+    }
+
+    /**
      * Get the model RuleSet.
      *
      * @return RuleSet The RuleSet.
@@ -1018,9 +1034,48 @@ class Model
      *
      * @return ReplaceQuery The ReplaceQuery.
      */
-    public function ReplaceQuery(): ReplaceQuery
+    public function replaceQuery(): ReplaceQuery
     {
         return new ReplaceQuery($this);
+    }
+
+    /**
+     * Resolve an entity from a route.
+     *
+     * @param int|string $value The value.
+     * @param string $field The field.
+     * @param Entity|null $parent The parent Entity.
+     * @return Entity|null The Entity.
+     */
+    public function resolveRouteBinding(int|string $value, string $field, Entity|null $parent = null): Entity|null
+    {
+        $query = $this->find()
+            ->where([
+                $this->aliasField($field) => $value,
+            ]);
+
+        if ($parent) {
+            $source = $parent->getSource();
+            $relationship = $this->getRelationship($source);
+
+            if ($relationship) {
+                $Target = $relationship->getTarget();
+
+                $primaryKeys = $Target->getPrimaryKey();
+
+                $targetFields = array_map(
+                    fn(string $targetField): string => $Target->aliasField($targetField),
+                    $primaryKeys
+                );
+
+                $primaryValues = $parent->extract($primaryKeys);
+                $conditions = QueryGenerator::combineConditions($targetFields, $primaryValues);
+
+                $query->innerJoinWith($source, $conditions);
+            }
+        }
+
+        return $query->first();
     }
 
     /**

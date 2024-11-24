@@ -371,6 +371,14 @@ Get the primary key(s).
 $primaryKeys = $model->getPrimaryKey();
 ```
 
+**Get Route Key**
+
+Get the route key.
+
+```php
+$routeKey = $model->getRouteKey();
+```
+
 **Get Schema**
 
 Get the [*TableSchema*](https://github.com/elusivecodes/FyreSchema#table-schemas).
@@ -623,6 +631,18 @@ Retrieve a single entity.
 
 ```php
 $entity = $model->get($primaryValues, $data);
+```
+
+**Resolve Route Binding**
+
+Resolve an entity from a route.
+
+- `$value` is a string or integer containing the route key value.
+- `$field` is a string representing the route key.
+- `$parent` is an *Entity* representing the parent entity, and will default to *null*.
+
+```php
+$entity = $model->resolveRouteBinding($value, $field, $parent);
 ```
 
 **Save**
