@@ -747,7 +747,7 @@ class Model
      */
     public function getTable(): string
     {
-        return $this->table ??= $this->inflector->tableize($this->getClassAlias());
+        return $this->table ??= $this->inflector->underscore($this->getClassAlias());
     }
 
     /**

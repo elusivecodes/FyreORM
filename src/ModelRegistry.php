@@ -26,6 +26,11 @@ class ModelRegistry
 
     protected array $namespaces = [];
 
+    /**
+     * New ModelRegistry constructor.
+     *
+     * @param Container $container The Container.
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
