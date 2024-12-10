@@ -36,14 +36,17 @@ class BehaviorRegistry
      * Add a namespace for loading behaviors.
      *
      * @param string $namespace The namespace.
+     * @return static The BehaviorRegistry.
      */
-    public function addNamespace(string $namespace): void
+    public function addNamespace(string $namespace): static
     {
         $namespace = static::normalizeNamespace($namespace);
 
         if (!in_array($namespace, $this->namespaces)) {
             $this->namespaces[] = $namespace;
         }
+
+        return $this;
     }
 
     /**
