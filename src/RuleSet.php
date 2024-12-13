@@ -12,7 +12,6 @@ use Fyre\Lang\Lang;
 use function array_intersect;
 use function array_map;
 use function implode;
-use function in_array;
 
 /**
  * RuleSet
@@ -68,7 +67,7 @@ class RuleSet
     {
         $options['targetFields'] ??= null;
         $options['callback'] ??= null;
-        $options['allowNullableNulls'] ??= false;
+        $options['allowNullableNulls'] ??= true;
 
         return function(Entity $entity) use ($fields, $name, $options): bool {
             if ($fields === []) {
@@ -77,8 +76,14 @@ class RuleSet
 
             $values = $entity->extract($fields);
 
-            if ($options['allowNullableNulls'] && in_array(null, $values, true)) {
-                return true;
+            if ($options['allowNullableNulls']) {
+                $schema = $this->model->getSchema();
+
+                foreach ($values as $field => $value) {
+                    if ($value === null && $schema->isNullable($field)) {
+                        return true;
+                    }
+                }
             }
 
             $relationship = $this->model->getRelationship($name);
@@ -162,7 +167,7 @@ class RuleSet
     public function isUnique(array $fields, array $options = []): Closure
     {
         $options['callback'] ??= null;
-        $options['allowMultipleNulls'] ??= false;
+        $options['allowMultipleNulls'] ??= true;
 
         return function(Entity $entity) use ($fields, $options): bool {
             if ($fields === []) {
@@ -171,8 +176,14 @@ class RuleSet
 
             $values = $entity->extract($fields);
 
-            if ($options['allowMultipleNulls'] && in_array(null, $values, true)) {
-                return true;
+            if ($options['allowMultipleNulls']) {
+                $schema = $this->model->getSchema();
+
+                foreach ($values as $field => $value) {
+                    if ($value === null && $schema->isNullable($field)) {
+                        return true;
+                    }
+                }
             }
 
             $aliasedFields = array_map(

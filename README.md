@@ -1466,7 +1466,7 @@ Create an "exists in" rule.
 - `$options` is an array containing the rule options.
     - `targetFields` is an array containing fields to match in the target table, and will default to the primary key(s).
     - `callback` is a *Closure*, that accepts the [*SelectQuery*](#select) as an argument.
-    - `allowNullableNulls` is a boolean indicating whether to allow nullable nulls, and will default to *false*.
+    - `allowNullableNulls` is a boolean indicating whether to allow nullable nulls, and will default to *true*.
     - `message` is a string representing the error message, and will default to the [*Lang*](https://github.com/elusivecodes/FyreLang) value for "*RuleSet.existsIn*".
 
 ```php
@@ -1492,7 +1492,7 @@ Create an "is unique" rule.
 - `$fields` is an array containing the fields.
 - `$options` is an array containing the rule options.
     - `callback` is a *Closure*, that accepts the [*SelectQuery*](#select) as an argument.
-    - `allowMultipleNulls` is a boolean indicating whether to allow multiple nulls, and will default to *false*.
+    - `allowMultipleNulls` is a boolean indicating whether to allow multiple nulls, and will default to *true*.
     - `message` is a string representing the error message, and will default to the [*Lang*](https://github.com/elusivecodes/FyreLang) value for "*RuleSet.isUnique*".
 
 ```php

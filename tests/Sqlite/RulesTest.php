@@ -110,7 +110,7 @@ final class RulesTest extends TestCase
 
         $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
-        $rules->add($rules->existsIn(['user_id'], 'Users'));
+        $rules->add($rules->existsIn(['user_id'], 'Users', ['allowNullableNulls' => false]));
 
         $Posts->setRules($rules);
 
@@ -140,7 +140,7 @@ final class RulesTest extends TestCase
 
         $rules = $this->container->build(RuleSet::class, ['model' => $Posts]);
 
-        $rules->add($rules->existsIn(['user_id'], 'Users', ['allowNullableNulls' => true]));
+        $rules->add($rules->existsIn(['user_id'], 'Users'));
 
         $Posts->setRules($rules);
 
@@ -293,7 +293,7 @@ final class RulesTest extends TestCase
         $validator = $this->container->build(Validator::class);
         $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
-        $rules->add($rules->isUnique(['name']));
+        $rules->add($rules->isUnique(['name'], ['allowMultipleNulls' => false]));
 
         $Items->setValidator($validator);
         $Items->setRules($rules);
@@ -331,7 +331,7 @@ final class RulesTest extends TestCase
         $validator = $this->container->build(Validator::class);
         $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
-        $rules->add($rules->isUnique(['name'], ['allowMultipleNulls' => true]));
+        $rules->add($rules->isUnique(['name']));
 
         $Items->setValidator($validator);
         $Items->setRules($rules);
@@ -393,7 +393,7 @@ final class RulesTest extends TestCase
         $validator = $this->container->build(Validator::class);
         $rules = $this->container->build(RuleSet::class, ['model' => $Items]);
 
-        $rules->add($rules->isUnique(['name']));
+        $rules->add($rules->isUnique(['name'], ['allowMultipleNulls' => false]));
 
         $Items->setValidator($validator);
         $Items->setRules($rules);
