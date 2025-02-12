@@ -25,7 +25,7 @@ class HasOne extends Relationship
     }
 
     /**
-     * Save related data from an entity.
+     * Save related data for an entity.
      *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.

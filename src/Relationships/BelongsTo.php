@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Fyre\ORM\Relationships;
 
 use Fyre\Entity\Entity;
+use Traversable;
 
 /**
  * BelongsTo
@@ -55,7 +56,7 @@ class BelongsTo extends Relationship
     }
 
     /**
-     * Save related data from an entity.
+     * Save related data for an entity.
      *
      * @param Entity $entity The entity.
      * @param array $options The options for saving.
@@ -91,11 +92,11 @@ class BelongsTo extends Relationship
     /**
      * Remove related data from entities.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the unlink was successful, otherwise FALSE.
      */
-    public function unlinkAll(array $entities, array $options = []): bool
+    public function unlinkAll(array|Traversable $entities, array $options = []): bool
     {
         return true;
     }

@@ -527,7 +527,7 @@ $model->patchEntity($entity, $data, $options);
 
 Update multiple entities using user data.
 
-- `$entities` is an array containing the entities.
+- `$entities` is an array or *Traversable* containing the entities.
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
@@ -573,7 +573,7 @@ This method will not use callbacks or cascade to related data.
 
 Delete multiple entities.
 
-- `$entities` is an array containing the entities.
+- `$entities` is an array or *Traversable* containing the entities.
 - `$options` is an array containing delete options.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
@@ -666,7 +666,7 @@ $result = $model->save($entity, $options);
 
 Save multiple entities.
 
-- `$entities` is an array containing the entities.
+- `$entities` is an array or *Traversable* containing the entities.
 - `$options` is an array containing save options.
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
@@ -841,11 +841,12 @@ Execute a callback after entities are deleted.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function afterDelete(Entity $entity, array $options) {}
+public function afterDelete(Event $event, Entity $entity, array $options) {}
 ```
 
-If this method returns *false* the delete will not be performed and the transaction will be rolled back.
+If the `$event` is stopped, the delete will not be performed and the transaction will be rolled back.
 
 **After Delete Commit**
 
@@ -853,8 +854,9 @@ Execute a callback after entities are deleted and transaction is committed.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function afterDeleteCommit(Entity $entity, array $options) {}
+public function afterDeleteCommit(Event $event, Entity $entity, array $options) {}
 ```
 
 **After Find**
@@ -863,8 +865,9 @@ Execute a callback after performing a find query.
 
 ```php
 use Fyre\ORM\Result;
+use Fyre\Event\Event;
 
-public function afterFind(Result $result, array $options): Result {}
+public function afterFind(Event $event, Result $result, array $options): Result {}
 ```
 
 **After Rules**
@@ -873,11 +876,12 @@ Execute a callback after model rules are processed.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function afterRules(Entity $entity, array $options) {}
+public function afterRules(Event $event, Entity $entity, array $options) {}
 ```
 
-If this method returns *false* the save will not be performed.
+If the `$event` is stopped, the save will not be performed.
 
 **After Parse**
 
@@ -885,8 +889,9 @@ Execute a callback after parsing user data into an entity.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function afterParse(Entity $entity, array $options) {}
+public function afterParse(Event $event, Entity $entity, array $options) {}
 ```
 
 **After Save**
@@ -895,11 +900,12 @@ Execute a callback after entities are saved to the database.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function afterSave(Entity $entity, array $options) {}
+public function afterSave(Event $event, Entity $entity, array $options) {}
 ```
 
-If this method returns *false* the save will not be performed and the transaction will be rolled back.
+If the `$event` is stopped, the save will not be performed and the transaction will be rolled back.
 
 **After Save Commit**
 
@@ -907,8 +913,9 @@ Execute a callback after entities are saved to the database and transaction is c
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function afterSaveCommit(Entity $entity, array $options) {}
+public function afterSaveCommit(Event $event, Entity $entity, array $options) {}
 ```
 
 **Before Delete**
@@ -917,20 +924,22 @@ Execute a callback before entities are deleted.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function beforeDelete(Entity $entity, array $options) {}
+public function beforeDelete(Event $event, Entity $entity, array $options) {}
 ```
 
-If this method returns *false* the delete will not be performed.
+If the `$event` is stopped, the delete will not be performed.
 
 **Before Find**
 
 Execute a callback before performing a find query.
 
 ```php
+use Fyre\Event\Event;
 use Fyre\ORM\Query;
 
-public function beforeFind(Query $query, array $options): Query {}
+public function beforeFind(Event $event, Query $query, array $options): Query {}
 ```
 
 **Before Parse**
@@ -939,8 +948,9 @@ Execute a callback before parsing user data into an entity.
 
 ```php
 use ArrayObject;
+use Fyre\Event\Event;
 
-public function beforeParse(ArrayObject $data, array $options) {}
+public function beforeParse(Event $event, ArrayObject $data, array $options) {}
 ```
 
 **Before Rules**
@@ -949,11 +959,12 @@ Before rules callback.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function beforeRules(Entity $entity, array $options) {}
+public function beforeRules(Event $event, Entity $entity, array $options) {}
 ```
 
-If this method returns *false* the save will not be performed.
+If the `$event` is stopped, the save will not be performed.
 
 **Before Save**
 
@@ -961,11 +972,12 @@ Execute a callback before entities are saved to the database.
 
 ```php
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 
-public function beforeSave(Entity $entity, array $options) {}
+public function beforeSave(Event $event, Entity $entity, array $options) {}
 ```
 
-If this method returns *false* the save will not be performed and the transaction will be rolled back.
+If the `$event` is stopped, the save will not be performed and the transaction will be rolled back.
 
 **Initialize**
 
@@ -1242,7 +1254,247 @@ The `\Fyre\ORM\Result` class wraps the [*ResultSet*](https://github.com/elusivec
 
 ## Relationships
 
-Relationships can be accessed directly as a property on the model, using the relationship name.
+Relationships can be accessed directly as a property on the model, using the relationship name. Target model methods and properties can also be accessed directly from the relationship.
+
+**Build Joins**
+
+Build join data.
+
+- `$options` is an array containing the join options, and will default to *[]*.
+
+```php
+$joins = $relationship->buildJoins($options);
+```
+
+**Find Related**
+
+Find related data for entities.
+
+- `$entities` is an array or *Traversable* containing the entities.
+- `$data` is an array containing the query data.
+
+```php
+$related = $relationship->findRelated($entities, $data);
+```
+
+**Get Binding Key**
+
+Get the binding key.
+
+```php
+$bindingKey = $relationship->getBindingKey();
+```
+
+**Get Conditions**
+
+Get the conditions.
+
+```php
+$conditions = $relationship->getConditions();
+```
+
+**Get Foreign Key**
+
+Get the foreign key.
+
+```php
+$foreignKey = $relationship->getForeignKey();
+```
+
+**Get Join Type**
+
+Get the join type.
+
+```php
+$joinType = $relationship->getJoinType();
+```
+
+**Get Name**
+
+Get the relationship name.
+
+```php
+$name = $relationship->getName();
+```
+
+**Get Property**
+
+Get the relationship property name.
+
+```php
+$propertyName = $relationship->getProperty();
+```
+
+**Get Source**
+
+Get the source [*Model*](#models).
+
+```php
+$source = $relationship->getSource();
+```
+
+**Get Strategy**
+
+Get the select strategy.
+
+```php
+$strategy = $relationship->getStrategy();
+```
+
+**Get Target**
+
+Get the target [*Model*](#models).
+
+```php
+$target = $relationship->getTarget();
+```
+
+**Has Multiple**
+
+Determine whether the relationship has multiple related items.
+
+```php
+$hasMultiple = $relationship->hasMultiple();
+```
+
+**Is Dependent**
+
+Determine whether the target is dependent.
+
+```php
+$isDependent = $relationship->isDependent();
+```
+
+**Is Owning Side**
+
+Determine whether the source is the owning side of the relationship.
+
+```php
+$isOwningSide = $relationship->isOwningSide();
+```
+
+**Load Related**
+
+Load related data for entities.
+
+- `$entities` is an array or *Traversable* containing the entities.
+- `$data` is an array containing the query data.
+- `$query` is a [*SelectQuery*](#select) (that produced the entities), and will default to *null*.
+
+```php
+$relationship->loadRelated($entities, $data);
+```
+
+**Save Related**
+
+Save related data for an entity.
+
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
+
+```php
+$result = $relationship->saveRelated($entity);
+```
+
+**Set Binding Key**
+
+Set the binding key.
+
+- `$bindingKey` is a string representing the binding key.
+
+```php
+$relationship->setBindingKey($bindingKey);
+```
+
+**Set Conditions**
+
+Set the conditions.
+
+- `$conditions` is an array containing additional conditions.
+
+```php
+$relationship->setConditions($conditions);
+```
+
+**Set Dependent**
+
+Set whether the target is dependent.
+
+- `$dependent` is a boolean indicating whether to recursively delete related data.
+
+```php
+$relationship->setDependent($dependent);
+```
+
+**Set Foreign Key**
+
+Set the foreign key.
+
+- `$foreignKey` is a string representing the foreign key key.
+
+```php
+$relationship->setForeignKey($foreignKey);
+```
+
+**Set Join Type**
+
+Set the join type.
+
+- `$joinType` is a string representing the type of join.
+
+```php
+$relationship->setJoinType($joinType);
+```
+
+**Set Property**
+
+Set the property name.
+
+- `$propertyName` is a string representing the entity property name.
+
+```php
+$relationship->setProperty($propertyName);
+```
+
+**Set Source**
+
+Set the source [*Model*](#models).
+
+- `$source` is a [*Model*](#models).
+
+```php
+$relationship->setSource($source);
+```
+
+**Set Strategy**
+
+Set the select strategy.
+
+- `$strategy` is a string representing the select strategy.
+
+```php
+$relationship->setStrategy($strategy);
+```
+
+**Set Target**
+
+Set the target [*Model*](#models).
+
+- `$target` is a [*Model*](#models).
+
+```php
+$relationship->setTarget($target);
+```
+
+**Unlink All**
+
+Remove related data from entities.
+
+- `$entities` is an array or *Traversable* containing the entities.
+- `$options` is an array containing delete options.
+
+```php
+$result = $relationship->unlinkAll($entities, $options);
+```
 
 ### Belongs To
 
@@ -1252,8 +1504,9 @@ Relationships can be accessed directly as a property on the model, using the rel
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the singular relationship name.
     - `foreignKey` is a string representing the foreign key column in the current table, and will default to the snake case singular name of the target alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the target table, and will default to the primary key.
-    - `strategy` is a string representing the select strategy, and will default to "*join*".
+    - `strategy` must be either "*join*" or "*select*", and will default to "*join*".
     - `conditions` is an array containing additional conditions.
+    - `joinType` is a string representing the type of join, and will default to "*LEFT*".
 
 ```php
 $model->belongsTo($name, $data);
@@ -1267,12 +1520,50 @@ $model->belongsTo($name, $data);
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the relationship name.
     - `foreignKey` is a string representing the foreign key column in the target table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
-    - `strategy` is a string representing the select strategy, and will default to "*select*".
+    - `strategy` must be either "*select*" or "*subquery*", and will default to "*select*".
+    - `saveStrategy` must be either "*append*" or "*replace*", and will default to "*append*".
     - `conditions` is an array containing additional conditions.
+    - `sort` is an array or string representing the fields to order by, and will default to *null*.
     - `dependent` is a boolean indicating whether to recursively delete related data, and will default to *false*.
 
 ```php
 $model->hasMany($name, $data);
+```
+
+**Get Save Strategy**
+
+Get the save strategy.
+
+```php
+$saveStrategy = $relationship->getSaveStrategy();
+```
+
+**Get Sort**
+
+Get the sort order.
+
+```php
+$sort = $relationship->getSort();
+```
+
+**Set Save Strategy**
+
+Set the save strategy.
+
+- `$saveStrategy` is a string representing the save strategy.
+
+```php
+$relationship->setSaveStrategy($saveStrategy);
+```
+
+**Set Sort**
+
+Set the sort order.
+
+- `$sort` is an array or string representing the fields to order by.
+
+```php
+$relationship->setSort($sort);
 ```
 
 ### Has One
@@ -1283,8 +1574,9 @@ $model->hasMany($name, $data);
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the singular relationship name.
     - `foreignKey` is a string representing the foreign key column in the target table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
-    - `strategy` is a string representing the select strategy, and will default to "*join*".
+    - `strategy` must be either "*join*" or "*select*", and will default to "*join*".
     - `conditions` is an array containing additional conditions.
+    - `joinType` is a string representing the type of join, and will default to "*LEFT*".
     - `dependent` is a boolean indicating whether to recursively delete related data, and will default to *false*.
 
 ```php
@@ -1293,22 +1585,112 @@ $model->hasOne($name, $data);
 
 ### Many To Many
 
+When loading results, the join table data will be accessible via the `_joinData` property.
+
 - `$name` is a string representing the relationship name.
 - `$data` is an array containing relationship data.
     - `classAlias` is a string representing the target class alias, and will default to the relationship name.
     - `through` is a string representing the join alias, and will default to the concatenated form of the current alias and relationship name (sorted alphabetically).
     - `propertyName` is a string representing the entity property name, and will default to the snake case form of the relationship name.
     - `foreignKey` is a string representing the foreign key column in the join table, and will default to the snake case singular name of the current alias (suffixed with *"_id"*).
-    - `foreignKey` is a string representing the target foreign key column in the join table, and will default to the snake case singular name of the relationship name (suffixed with *"_id"*).
+    - `targetForeignKey` is a string representing the target foreign key column in the join table, and will default to the snake case singular name of the relationship name (suffixed with *"_id"*).
     - `bindingKey` is a string representing the matching column in the current table, and will default to the primary key.
-    - `strategy` is a string representing the select strategy, and will default to "*select*".
+    - `strategy` must be either "*select*" or "*subquery*", and will default to "*select*".
+    - `saveStrategy` must be either "*append*" or "*replace*", and will default to "*replace*".
+    - `sort` is an array or string representing the fields to order by, and will default to *null*.
     - `conditions` is an array containing additional conditions.
 
 ```php
 $model->manyToMany($name, $data);
 ```
 
-When loading results, the join table data will be accessible via the `_joinData` property.
+**Get Junction**
+
+Get the junction [*Model*](#models).
+
+```php
+$junction = $relationship->getJunction();
+```
+
+**Get Save Strategy**
+
+Get the save strategy.
+
+```php
+$saveStrategy = $relationship->getSaveStrategy();
+```
+
+**Get Sort**
+
+Get the sort order.
+
+```php
+$sort = $relationship->getSort();
+```
+
+**Get Source Relationship**
+
+Get the source relationship.
+
+```php
+$sourceRelationship = $relationship->getSourceRelationship();
+```
+
+**Get Target Foreign Key**
+
+Get the target foreign key.
+
+```php
+$targetForeignKey = $relationship->getTargetForeignKey();
+```
+
+**Get Target Relationship**
+
+Get the target relationship.
+
+```php
+$targetRelationship = $relationship->getTargetRelationship();
+```
+
+**Set Junction**
+
+Set the junction [*Model*](#models).
+
+- `$junction` is a [*Model*](#models).
+
+```php
+$relationship->setJunction($junction);
+```
+
+**Set Save Strategy**
+
+Set the save strategy.
+
+- `$saveStrategy` is a string representing the save strategy.
+
+```php
+$relationship->setSaveStrategy($saveStrategy);
+```
+
+**Set Sort**
+
+Set the sort order.
+
+- `$sort` is an array or string representing the fields to order by.
+
+```php
+$relationship->setSort($sort);
+```
+
+**Set Target Foreign Key**
+
+Set the target foreign key.
+
+- `$targetForeignKey` is a string representing the target foreign key column in the join table.
+
+```php
+$relationship->setTargetForeignKey($targetForeignKey);
+```
 
 
 ## Behavior Registry
@@ -1354,7 +1736,7 @@ $behaviorRegistry->addNamespace($namespace);
 Build a behavior.
 
 - `$name` is a string representing the behavior name.
-- `$model` is a *Model*.
+- `$model` is a [*Model*](#models).
 - `$options` is an array containing the behavior options, and will default to *[]*.
 
 ```php

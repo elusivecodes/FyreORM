@@ -4,18 +4,21 @@ declare(strict_types=1);
 namespace Fyre\ORM\Relationships;
 
 use Closure;
+use Fyre\Collection\Collection;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
 use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
 use Fyre\Utility\Inflector;
+use Traversable;
 
 use function array_key_exists;
 use function array_merge;
 use function count;
 use function in_array;
 use function is_numeric;
+use function property_exists;
 
 /**
  * Relationship
@@ -33,6 +36,8 @@ abstract class Relationship
     protected string $foreignKey;
 
     protected Inflector $inflector;
+
+    protected string $joinType = 'LEFT';
 
     protected ModelRegistry $modelRegistry;
 
@@ -71,10 +76,12 @@ abstract class Relationship
             'propertyName',
             'foreignKey',
             'bindingKey',
-            'strategy',
+            'joinType',
             'conditions',
             'dependent',
         ];
+
+        $options['classAlias'] ??= $this->name;
 
         foreach ($defaults as $property) {
             if (!array_key_exists($property, $options)) {
@@ -84,11 +91,9 @@ abstract class Relationship
             $this->$property = $options[$property];
         }
 
-        if (!in_array($this->strategy, $this->validStrategies)) {
-            throw OrmException::forInvalidStrategy($this->strategy);
+        if (array_key_exists('strategy', $options)) {
+            $this->setStrategy($options['strategy']);
         }
-
-        $this->classAlias ??= $this->name;
     }
 
     /**
@@ -127,7 +132,7 @@ abstract class Relationship
 
         $options['alias'] ??= $target->getAlias();
         $options['sourceAlias'] ??= $source->getAlias();
-        $options['type'] ??= 'LEFT';
+        $options['type'] ??= $this->joinType;
         $options['conditions'] ??= [];
 
         if ($this->isOwningSide()) {
@@ -152,11 +157,163 @@ abstract class Relationship
     /**
      * Find related data for entities.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @param array $data The find data.
-     * @param SelectQuery $query The SelectQuery.
+     * @return Collection The related entities.
      */
-    public function findRelated(array $entities, array $data, SelectQuery $query): void
+    public function findRelated(array|Traversable $entities, array $data = []): Collection
+    {
+        $sourceValues = $this->getRelatedKeyValues($entities);
+
+        if ($sourceValues === []) {
+            return [];
+        }
+
+        if (property_exists($this, 'sort') && $this->sort !== null) {
+            $data['orderBy'] ??= $this->sort;
+        }
+
+        $target = $this->getTarget();
+
+        $query = $target->find($data);
+
+        $this->findRelatedConditions($query, $sourceValues);
+
+        return $query->getResult()->collect();
+    }
+
+    /**
+     * Get the binding key.
+     *
+     * @return string The binding key.
+     */
+    public function getBindingKey(): string
+    {
+        return $this->bindingKey ??= $this->source->getPrimaryKey()[0] ?? '';
+    }
+
+    /**
+     * Get the conditions.
+     *
+     * @return array $conditions The conditions.
+     */
+    public function getConditions(): array
+    {
+        return $this->conditions;
+    }
+
+    /**
+     * Get the foreign key.
+     *
+     * @return string The foreign key.
+     */
+    public function getForeignKey(): string
+    {
+        return $this->foreignKey ??= $this->modelKey(
+            $this->source->getClassAlias()
+        );
+    }
+
+    /**
+     * Get the join type.
+     *
+     * @return string The join type.
+     */
+    public function getJoinType(): string
+    {
+        return $this->joinType;
+    }
+
+    /**
+     * Get the relationship name.
+     *
+     * @return string The relationship name.
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Get the relationship property name.
+     *
+     * @return string The relationship property name.
+     */
+    public function getProperty(): string
+    {
+        return $this->propertyName ??= $this->propertyName($this->name, $this->hasMultiple());
+    }
+
+    /**
+     * Get the source Model.
+     *
+     * @return Model The source Model.
+     */
+    public function getSource(): Model
+    {
+        return $this->source;
+    }
+
+    /**
+     * Get the select strategy.
+     *
+     * @return string The strategy.
+     */
+    public function getStrategy(): string
+    {
+        return $this->strategy;
+    }
+
+    /**
+     * Get the target Model.
+     *
+     * @return Model The target Model.
+     *
+     * @throws OrmException if the relationship alias is used by another class.
+     */
+    public function getTarget(): Model
+    {
+        return $this->target ??= $this->modelRegistry->use($this->name, $this->classAlias);
+    }
+
+    /**
+     * Determine whether the relationship has multiple related items.
+     *
+     * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
+     */
+    public function hasMultiple(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Determine whether the target is dependent.
+     *
+     * @return bool TRUE if the target is dependent, otherwise FALSE.
+     */
+    public function isDependent(): bool
+    {
+        return $this->dependent;
+    }
+
+    /**
+     * Determine whether the source is the owning side of the relationship.
+     *
+     * @return bool TRUE if the source is the owning side of the relationship, otherwise FALSE.
+     */
+    public function isOwningSide(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Load related data for entities.
+     *
+     * @param array|Traversable $entities The entities.
+     * @param array $data The find data.
+     * @param SelectQuery|null $query The SelectQuery.
+     */
+    public function loadRelated(array|Traversable $entities, array $data = [], SelectQuery|null $query = null): void
     {
         $sourceValues = $this->getRelatedKeyValues($entities);
         $property = $this->getProperty();
@@ -193,13 +350,19 @@ abstract class Relationship
             $data['fields'][] = $target->aliasField($targetKey);
         }
 
+        if (property_exists($this, 'sort') && $this->sort !== null) {
+            $data['orderBy'] ??= $this->sort;
+        }
+
         $data['alias'] = $target->getAlias();
 
-        $data = array_merge($query->getOptions(), $data);
+        if ($query) {
+            $data = array_merge($query->getOptions(), $data);
+        }
 
         $newQuery = $target->find($data);
 
-        if ($data['strategy'] === 'subquery') {
+        if ($data['strategy'] === 'subquery' && $query) {
             $this->findRelatedSubquery($newQuery, $query);
         } else {
             $this->findRelatedConditions($newQuery, $sourceValues);
@@ -240,121 +403,7 @@ abstract class Relationship
     }
 
     /**
-     * Get the binding key.
-     *
-     * @return string The binding key.
-     */
-    public function getBindingKey(): string
-    {
-        return $this->bindingKey ??= $this->source->getPrimaryKey()[0] ?? '';
-    }
-
-    /**
-     * Get the conditions.
-     *
-     * @return array $conditions The conditions.
-     */
-    public function getConditions(): array
-    {
-        return $this->conditions;
-    }
-
-    /**
-     * Get the foreign key.
-     *
-     * @return string The foreign key.
-     */
-    public function getForeignKey(): string
-    {
-        return $this->foreignKey ??= $this->modelKey(
-            $this->source->getClassAlias()
-        );
-    }
-
-    /**
-     * Get the relationship name.
-     *
-     * @return string The relationship name.
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * Get the relationship property name.
-     *
-     * @return string The relationship property name.
-     */
-    public function getProperty(): string
-    {
-        return $this->propertyName ??= $this->propertyName($this->name, $this->hasMultiple());
-    }
-
-    /**
-     * Get the source Model.
-     *
-     * @return Model The source Model.
-     */
-    public function getSource(): Model
-    {
-        return $this->source;
-    }
-
-    /**
-     * Get the strategy.
-     *
-     * @return string The strategy.
-     */
-    public function getStrategy(): string
-    {
-        return $this->strategy;
-    }
-
-    /**
-     * Get the target Model.
-     *
-     * @return Model The target Model.
-     *
-     * @throws OrmException if the relationship alias is used by another class.
-     */
-    public function getTarget(): Model
-    {
-        return $this->target ??= $this->modelRegistry->use($this->name, $this->classAlias);
-    }
-
-    /**
-     * Determine whether the relationship has multiple related items.
-     *
-     * @return bool TRUE if the relationship has multiple related items, otherwise FALSE.
-     */
-    public function hasMultiple(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Determine whether the relationship is dependent.
-     *
-     * @return bool TRUE if the relationship is dependent, otherwise FALSE.
-     */
-    public function isDependent(): bool
-    {
-        return $this->dependent;
-    }
-
-    /**
-     * Determine whether the source is the owning side of the relationship.
-     *
-     * @return bool TRUE if the source is the owning side of the relationship, otherwise FALSE.
-     */
-    public function isOwningSide(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Save related data from an entity.
+     * Save related data for an entity.
      *
      * @param Entity $entity The entity.
      * @return bool TRUE if the save was successful, otherwise FALSE.
@@ -362,36 +411,145 @@ abstract class Relationship
     abstract public function saveRelated(Entity $entity): bool;
 
     /**
+     * Set the binding key.
+     *
+     * @param string $bindingKey The binding key.
+     * @return static The Relationship.
+     */
+    public function setBindingKey(string $bindingKey): static
+    {
+        $this->bindingKey = $bindingKey;
+
+        return $this;
+    }
+
+    /**
+     * Set the conditions.
+     *
+     * @param array $conditions The conditions.
+     * @return static The Relationship.
+     */
+    public function setConditions(array $conditions): static
+    {
+        $this->conditions = $conditions;
+
+        return $this;
+    }
+
+    /**
+     * Set whether the target is dependent.
+     *
+     * @param bool $dependent Whether the target is dependent.
+     * @return static The Relationship.
+     */
+    public function setDependent(bool $dependent): static
+    {
+        $this->dependent = $dependent;
+
+        return $this;
+    }
+
+    /**
+     * Set the foreign key.
+     *
+     * @param string $foreignKey The foreign key.
+     * @return static The Relationship.
+     */
+    public function setForeignKey(string $foreignKey): static
+    {
+        $this->foreignKey = $foreignKey;
+
+        return $this;
+    }
+
+    /**
+     * Set the join type.
+     *
+     * @return string The join type.
+     */
+    public function setJoinType(string $joinType): static
+    {
+        $this->joinType = $joinType;
+
+        return $this;
+    }
+
+    /**
+     * Set the property name.
+     *
+     * @param string $propertyName The property name.
+     * @return static The Relationship.
+     */
+    public function setProperty(string $propertyName): static
+    {
+        $this->propertyName = $propertyName;
+
+        return $this;
+    }
+
+    /**
+     * Set the source Model.
+     *
+     * @param Model $source The source Model.
+     * @return static The Relationship.
+     */
+    public function setSource(Model $source): static
+    {
+        $this->source = $source;
+
+        return $this;
+    }
+
+    /**
+     * Set the select strategy.
+     *
+     * @param string $strategy The select strategy.
+     * @return static The Relationship.
+     *
+     * @throws OrmException if the strategy is not valid.
+     */
+    public function setStrategy(string $strategy): static
+    {
+        if (!in_array($strategy, $this->validStrategies)) {
+            throw OrmException::forInvalidStrategy($strategy);
+        }
+
+        $this->strategy = $strategy;
+
+        return $this;
+    }
+
+    /**
+     * Set the target Model.
+     *
+     * @param Model $target The target Model.
+     * @return static The Relationship.
+     */
+    public function setTarget(Model $target): static
+    {
+        $this->target = $target;
+
+        return $this;
+    }
+
+    /**
      * Remove related data from entities.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @param array $options The options for deleting.
      * @return bool TRUE if the unlink was successful, otherwise FALSE.
      */
-    public function unlinkAll(array $entities, array $options = []): bool
+    public function unlinkAll(array|Traversable $entities, array $options = []): bool
     {
-        $sourceValues = $this->getRelatedKeyValues($entities);
-
-        if ($sourceValues === []) {
-            return true;
-        }
-
-        $conditions = $options['conditions'] ?? [];
-        unset($options['conditions']);
-
-        $target = $this->getTarget();
-
-        $query = $target->find([
-            'conditions' => $conditions,
+        $relations = $this->findRelated($entities, [
+            'conditions' => $options['conditions'] ?? [],
         ]);
 
-        $this->findRelatedConditions($query, $sourceValues);
-
-        $relations = $query->toArray();
-
-        if ($relations === []) {
+        if ($relations->isEmpty()) {
             return true;
         }
+
+        $target = $this->getTarget();
 
         $foreignKey = $this->getForeignKey();
 
@@ -511,10 +669,10 @@ abstract class Relationship
     /**
      * Get the related key values.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @return array The related key values.
      */
-    protected function getRelatedKeyValues(array $entities): array
+    protected function getRelatedKeyValues(array|Traversable $entities): array
     {
         if ($this->isOwningSide()) {
             $sourceKey = $this->getBindingKey();

@@ -8,6 +8,7 @@ use Fyre\Container\Container;
 use Fyre\DB\ConnectionManager;
 use Fyre\DB\TypeParser;
 use Fyre\Entity\EntityLocator;
+use Fyre\Event\EventManager;
 use Fyre\ORM\Behavior;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\Exceptions\OrmException;
@@ -135,6 +136,7 @@ final class BehaviorRegistryTest extends TestCase
         $container->singleton(ModelRegistry::class);
         $container->singleton(BehaviorRegistry::class);
         $container->singleton(EntityLocator::class);
+        $container->singleton(EventManager::class);
 
         $container->use(Config::class)->set('App.locale', 'en');
 

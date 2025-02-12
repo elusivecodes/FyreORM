@@ -10,6 +10,7 @@ use Fyre\DB\ConnectionManager;
 use Fyre\DB\Handlers\Sqlite\SqliteConnection;
 use Fyre\DB\TypeParser;
 use Fyre\Entity\EntityLocator;
+use Fyre\Event\EventManager;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\ModelRegistry;
 use Fyre\Schema\SchemaRegistry;
@@ -38,6 +39,7 @@ trait SqliteConnectionTrait
         $this->container->singleton(ModelRegistry::class);
         $this->container->singleton(BehaviorRegistry::class);
         $this->container->singleton(EntityLocator::class);
+        $this->container->singleton(EventManager::class);
         $this->container->use(Config::class)
             ->set('App.locale', 'en')
             ->set('Database', [
@@ -156,6 +158,7 @@ trait SqliteConnectionTrait
                 id INTEGER NOT NULL,
                 post_id INTEGER NOT NULL,
                 tag_id INTEGER NOT NULL,
+                value INTEGER NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             )
         EOT);

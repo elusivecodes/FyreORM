@@ -363,7 +363,7 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
 
             if ($data['strategy'] !== 'join' || in_array($path, $eagerLoadPaths)) {
                 $data['connectionType'] ??= $query->getConnectionType();
-                $relationship->findRelated($entities, $data, $query);
+                $relationship->loadRelated($entities, $data, $query);
 
                 continue;
             }

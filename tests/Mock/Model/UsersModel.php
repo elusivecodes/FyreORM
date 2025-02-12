@@ -36,8 +36,11 @@ class UsersModel extends Model
         ]);
 
         $this->hasOne('Addresses');
-        $this->hasMany('Comments');
+        $this->hasMany('Comments', [
+            'saveStrategy' => 'replace',
+        ]);
         $this->hasMany('Posts', [
+            'saveStrategy' => 'replace',
             'dependent' => true,
         ]);
     }

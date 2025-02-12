@@ -5,6 +5,7 @@ namespace Tests\Mock\Behaviors;
 
 use ArrayObject;
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 use Fyre\ORM\Behavior;
 
 use function is_string;
@@ -16,7 +17,7 @@ class TestBehavior extends Behavior
         'testField' => 'name',
     ];
 
-    public function afterDelete(Entity $entity): bool
+    public function afterDelete(Event $event, Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failAfterDelete') {
             return false;
@@ -25,14 +26,14 @@ class TestBehavior extends Behavior
         return true;
     }
 
-    public function afterParse(Entity $entity): void
+    public function afterParse(Event $event, Entity $entity): void
     {
         if ($entity->get($this->config['testField']) === 'afterParse') {
             $entity->test = 1;
         }
     }
 
-    public function afterRules(Entity $entity): bool
+    public function afterRules(Event $event, Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failAfterRules') {
             return false;
@@ -41,7 +42,7 @@ class TestBehavior extends Behavior
         return true;
     }
 
-    public function afterSave(Entity $entity): bool
+    public function afterSave(Event $event, Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failAfterSave') {
             return false;
@@ -50,7 +51,7 @@ class TestBehavior extends Behavior
         return true;
     }
 
-    public function beforeDelete(Entity $entity): bool
+    public function beforeDelete(Event $event, Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failBeforeDelete') {
             return false;
@@ -59,7 +60,7 @@ class TestBehavior extends Behavior
         return true;
     }
 
-    public function beforeParse(ArrayObject $data): void
+    public function beforeParse(Event $event, ArrayObject $data): void
     {
         $testField = $this->config['testField'];
 
@@ -68,7 +69,7 @@ class TestBehavior extends Behavior
         }
     }
 
-    public function beforeRules(Entity $entity): bool
+    public function beforeRules(Event $event, Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failBeforeRules') {
             return false;
@@ -77,7 +78,7 @@ class TestBehavior extends Behavior
         return true;
     }
 
-    public function beforeSave(Entity $entity): bool
+    public function beforeSave(Event $event, Entity $entity): bool
     {
         if ($entity->get($this->config['testField']) === 'failBeforeSave') {
             return false;

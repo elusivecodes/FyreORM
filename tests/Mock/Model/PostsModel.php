@@ -36,7 +36,9 @@ class PostsModel extends Model
         ]);
 
         $this->belongsTo('Users');
-        $this->hasMany('Comments');
+        $this->hasMany('Comments', [
+            'saveStrategy' => 'replace',
+        ]);
         $this->manyToMany('Tags');
     }
 }

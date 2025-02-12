@@ -5,6 +5,7 @@ namespace Fyre\ORM\Behaviors;
 
 use Fyre\DateTime\DateTime;
 use Fyre\Entity\Entity;
+use Fyre\Event\Event;
 use Fyre\ORM\Behavior;
 
 /**
@@ -20,10 +21,11 @@ class TimestampBehavior extends Behavior
     /**
      * Before save callback.
      *
+     * @param Event $event The Event.
      * @param Entity $entity The entity.
      * @return bool TRUE if the callback ran successfully.
      */
-    public function beforeSave(Entity $entity): bool
+    public function beforeSave(Event $event, Entity $entity): bool
     {
         $createdField = $this->config['createdField'];
         $modifiedField = $this->config['modifiedField'];

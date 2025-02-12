@@ -57,10 +57,21 @@ trait RelationshipTestTrait
 
         $Items->hasOne('Alias', [
             'classAlias' => 'Items',
-            'conditions' => [
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setConditions([
+                'Alias.name' => 'Test',
+            ])
+        );
+
+        $this->assertSame(
+            [
                 'Alias.name' => 'Test',
             ],
-        ]);
+            $Items->Alias->getConditions()
+        );
 
         $this->assertSame(
             'SELECT Items.id AS Items__id FROM items AS Items LEFT JOIN items AS Alias ON item_id = Items.id AND Alias.name = \'Test\'',
@@ -71,15 +82,49 @@ trait RelationshipTestTrait
         );
     }
 
+    public function testRelationshipJoinType(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $Items->hasOne('Alias', [
+            'classAlias' => 'Items',
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setJoinType('inner')
+        );
+
+        $this->assertSame('inner', $Items->Alias->getJoinType());
+    }
+
     public function testRelationshipKeys(): void
     {
         $Items = $this->modelRegistry->use('Items');
 
         $Items->hasOne('Alias', [
             'classAlias' => 'Items',
-            'foreignKey' => 'name',
-            'bindingKey' => 'name',
         ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setBindingKey('name')
+        );
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setForeignKey('name')
+        );
+
+        $this->assertSame(
+            'name',
+            $Items->Alias->getBindingKey()
+        );
+
+        $this->assertSame(
+            'name',
+            $Items->Alias->getForeignKey()
+        );
 
         $this->assertSame(
             'SELECT Items.id AS Items__id FROM items AS Items LEFT JOIN items AS Alias ON Alias.name = Items.name',
@@ -96,12 +141,94 @@ trait RelationshipTestTrait
 
         $relationship = $Items->hasOne('Alias', [
             'classAlias' => 'Items',
-            'propertyName' => 'alias',
         ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setProperty('alias')
+        );
 
         $this->assertSame(
             'alias',
             $relationship->getProperty()
+        );
+    }
+
+    public function testRelationshipSort(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $Items->hasMany('Alias', [
+            'classAlias' => 'Items',
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setSort('Alias.sort')
+        );
+
+        $this->assertSame(
+            'Alias.sort',
+            $Items->Alias->getSort()
+        );
+    }
+
+    public function testRelationshipSource(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+        $Others = $this->modelRegistry->use('Others');
+
+        $Items->hasMany('Alias', [
+            'className' => 'Items',
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setSource($Others)
+        );
+
+        $this->assertSame(
+            $Others,
+            $Items->Alias->getSource()
+        );
+    }
+
+    public function testRelationshipStrategy(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $Items->hasMany('Alias', [
+            'classAlias' => 'Items',
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setStrategy('subquery')
+        );
+
+        $this->assertSame(
+            'subquery',
+            $Items->Alias->getStrategy()
+        );
+    }
+
+    public function testRelationshipTarget(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+        $Others = $this->modelRegistry->use('Others');
+
+        $Items->hasMany('Alias', [
+            'className' => 'Items',
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setTarget($Others)
+        );
+
+        $this->assertSame(
+            $Others,
+            $Items->Alias->getTarget()
         );
     }
 
@@ -119,7 +246,23 @@ trait RelationshipTestTrait
 
         $this->assertSame(
             $ItemsAlias,
-            $relationship->getJoinModel()
+            $relationship->getJunction()
         );
+    }
+
+    public function testSetRelationshipDependent(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $Items->hasOne('Alias', [
+            'classAlias' => 'Items',
+        ]);
+
+        $this->assertSame(
+            $Items->Alias,
+            $Items->Alias->setDependent(true)
+        );
+
+        $this->assertTrue($Items->Alias->isDependent());
     }
 }

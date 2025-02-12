@@ -11,6 +11,9 @@ use Fyre\DB\ConnectionManager;
 use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\Entity\EntityLocator;
+use Fyre\Event\EventDispatcherTrait;
+use Fyre\Event\EventListenerInterface;
+use Fyre\Event\EventManager;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Queries\DeleteQuery;
 use Fyre\ORM\Queries\InsertQuery;
@@ -54,8 +57,10 @@ use function preg_replace;
 /**
  * Model
  */
-class Model
+class Model implements EventListenerInterface
 {
+    use EventDispatcherTrait;
+
     public const READ = 'read';
 
     public const WRITE = 'write';
@@ -140,12 +145,13 @@ class Model
      *
      * @param array|string $contain The contain data.
      * @param Model $model The Model.
+     * @param bool $relationsOnly Whether only relationships should be included.
      * @param int $depth The contain depth.
      * @return array The normalized contain data.
      *
      * @throws OrmException if a relationship is not valid.
      */
-    public static function normalizeContain(array|string $contain, Model $model, int $depth = 0): array
+    public static function normalizeContain(array|string $contain, Model $model, bool $relationsOnly = false, int $depth = 0): array
     {
         $normalized = [
             'contain' => [],
@@ -173,7 +179,7 @@ class Model
 
         foreach ($contain as $key => $value) {
             if (is_numeric($key) || $key === 'contain') {
-                $newContain = static::normalizeContain($value, $model, $depth);
+                $newContain = static::normalizeContain($value, $model, $relationsOnly, $depth);
                 $normalized = static::mergeContain($normalized, $newContain);
 
                 continue;
@@ -183,6 +189,7 @@ class Model
 
             if (!$relationship) {
                 if (
+                    !$relationsOnly &&
                     $depth > 0 &&
                     (
                         array_key_exists($key, SelectQuery::QUERY_METHODS) ||
@@ -200,7 +207,7 @@ class Model
             }
 
             $normalized['contain'][$key] ??= [];
-            $newContain = static::normalizeContain($value, $relationship->getTarget(), $depth + 1);
+            $newContain = static::normalizeContain($value, $relationship->getTarget(), $relationsOnly, $depth + 1);
             $normalized['contain'][$key] = static::mergeContain($normalized['contain'][$key], $newContain);
         }
 
@@ -216,8 +223,9 @@ class Model
      * @param BehaviorRegistry $behaviorRegistry The BehaviorRegistry.
      * @param EntityLocator $entityLocator The EntityLocator.
      * @param Inflector $inflector The Inflector.
+     * @param EventManager $eventManager The EventManager.
      */
-    public function __construct(Container $container, ConnectionManager $connectionManager, SchemaRegistry $schemaRegistry, BehaviorRegistry $behaviorRegistry, EntityLocator $entityLocator, Inflector $inflector)
+    public function __construct(Container $container, ConnectionManager $connectionManager, SchemaRegistry $schemaRegistry, BehaviorRegistry $behaviorRegistry, EntityLocator $entityLocator, Inflector $inflector, EventManager $eventManager)
     {
         $this->container = $container;
         $this->connectionManager = $connectionManager;
@@ -225,8 +233,13 @@ class Model
         $this->behaviorRegistry = $behaviorRegistry;
         $this->entityLocator = $entityLocator;
         $this->inflector = $inflector;
+        $this->eventManager = new EventManager($eventManager);
 
-        $this->handleEvent('initialize');
+        $this->eventManager->addListener($this);
+
+        if (method_exists($this, 'initialize')) {
+            $this->initialize();
+        }
     }
 
     /**
@@ -277,7 +290,9 @@ class Model
             throw OrmException::forBehaviorExists($name);
         }
 
-        $this->behaviors[$name] ??= $this->behaviorRegistry->build($name, $this, $options);
+        $this->behaviors[$name] = $this->behaviorRegistry->build($name, $this, $options);
+
+        $this->eventManager->addListener($this->behaviors[$name]);
 
         return $this;
     }
@@ -383,37 +398,15 @@ class Model
 
         $connection->begin();
 
-        if ($options['events'] && !$this->handleEvent('beforeDelete', [$entity, $options])) {
-            $connection->rollback();
-
-            return false;
-        }
-
-        $primaryKeys = $this->getPrimaryKey();
-        $primaryValues = $entity->extract($primaryKeys);
-        $conditions = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
-
-        if (!$this->deleteAll($conditions)) {
-            $connection->rollback();
-
-            return false;
-        }
-
-        if ($options['cascade'] && !$this->deleteChildren([$entity], $options)) {
+        if (!$this->_delete($entity, $options)) {
             $connection->rollback();
 
             return false;
         }
 
         if ($options['events']) {
-            if (!$this->handleEvent('afterDelete', [$entity, $options])) {
-                $connection->rollback();
-
-                return false;
-            }
-
             $connection->afterCommit(function() use ($entity, $options): void {
-                $this->handleEvent('afterDeleteCommit', [$entity, $options]);
+                $this->dispatchEvent('Orm.afterDeleteCommit', ['entity' => $entity, 'options' => $options], false);
             }, 100);
         }
 
@@ -467,49 +460,18 @@ class Model
 
         $connection->begin();
 
-        $primaryKeys = $this->getPrimaryKey();
-
-        if ($options['events']) {
-            foreach ($entities as $entity) {
-                if (!$this->handleEvent('beforeDelete', [$entity, $options])) {
-                    $connection->rollback();
-
-                    return false;
-                }
-            }
-        }
-
-        if ($options['cascade'] && !$this->deleteChildren($entities, $options)) {
-            $connection->rollback();
-
-            return false;
-        }
-
-        $rowValues = [];
         foreach ($entities as $entity) {
-            $rowValues[] = $entity->extract($primaryKeys);
-        }
+            if (!$this->_delete($entity, $options)) {
+                $connection->rollback();
 
-        $conditions = QueryGenerator::normalizeConditions($primaryKeys, $rowValues);
-
-        if (!$this->deleteAll($conditions)) {
-            $connection->rollback();
-
-            return false;
+                return false;
+            }
         }
 
         if ($options['events']) {
-            foreach ($entities as $entity) {
-                if (!$this->handleEvent('afterDelete', [$entity, $options])) {
-                    $connection->rollback();
-
-                    return false;
-                }
-            }
-
             $connection->afterCommit(function() use ($entities, $options): void {
                 foreach ($entities as $entity) {
-                    $this->handleEvent('afterDeleteCommit', [$entity, $options]);
+                    $this->dispatchEvent('Orm.afterDeleteCommit', ['entity' => $entity, 'options' => $options], false);
                 }
             }, 100);
         }
@@ -761,27 +723,6 @@ class Model
     }
 
     /**
-     * Handle an event callbacks.
-     *
-     * @param string $event The event name.
-     * @return bool TRUE if the callbacks processed successfully, otherwise FALSE.
-     */
-    public function handleEvent(string $event, array $arguments = []): bool
-    {
-        if (method_exists($this, $event) && $this->$event(...$arguments) === false) {
-            return false;
-        }
-
-        foreach ($this->behaviors as $behavior) {
-            if (method_exists($behavior, $event) && $behavior->$event(...$arguments) === false) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Determine whether the Model has a Behavior.
      *
      * @param string $name The behavior name.
@@ -837,6 +778,29 @@ class Model
     public function hasRelationship(string $name): bool
     {
         return array_key_exists($name, $this->relationships);
+    }
+
+    /**
+     * Get the implemented events.
+     *
+     * @return array The implemented events.
+     */
+    public function implementedEvents(): array
+    {
+        return array_filter([
+            'Orm.afterDelete' => 'afterDelete',
+            'Orm.afterDeleteCommit' => 'afterDeleteCommit',
+            'Orm.afterFind' => 'afterFind',
+            'Orm.afterParse' => 'afterParse',
+            'Orm.afterRules' => 'afterRules',
+            'Orm.afterSave' => 'afterSave',
+            'Orm.afterSaveCommit' => 'afterSaveCommit',
+            'Orm.beforeDelete' => 'beforeDelete',
+            'Orm.beforeFind' => 'beforeFind',
+            'Orm.beforeParse' => 'beforeParse',
+            'Orm.beforeRules' => 'beforeRules',
+            'Orm.beforeSave' => 'beforeSave',
+        ], fn(string $method): bool => method_exists($this, $method));
     }
 
     /**
@@ -970,18 +934,18 @@ class Model
     /**
      * Update multiple entities using data.
      *
-     * @param array $entities The entities.
+     * @param array|Traversable $entities The entities.
      * @param array $data The data.
      * @param array $options The Entity options.
      */
-    public function patchEntities(array $entities, array $data, array $options = []): void
+    public function patchEntities(array|Traversable $entities, array $data, array $options = []): void
     {
-        foreach ($data as $i => $values) {
-            if (!array_key_exists($i, $entities)) {
+        foreach ($entities as $i => $entity) {
+            if (!array_key_exists($i, $data)) {
                 continue;
             }
 
-            $this->patchEntity($entities[$i], $values, $options);
+            $this->patchEntity($entity, $data[$i], $options);
         }
     }
 
@@ -1010,6 +974,8 @@ class Model
         if (!$this->hasBehavior($name)) {
             throw OrmException::forMissingBehavior($name);
         }
+
+        $this->eventManager->removeListener($this->behaviors[$name]);
 
         unset($this->behaviors[$name]);
 
@@ -1125,7 +1091,7 @@ class Model
 
         if ($options['events']) {
             $connection->afterCommit(function() use ($entity, $options): void {
-                $this->handleEvent('afterSaveCommit', [$entity, $options]);
+                $this->dispatchEvent('Orm.afterSaveCommit', ['entity' => $entity, 'options' => $options], false);
             }, 100);
         }
 
@@ -1215,7 +1181,7 @@ class Model
         if ($options['events']) {
             $connection->afterCommit(function() use ($entities, $options): void {
                 foreach ($entities as $entity) {
-                    $this->handleEvent('afterSaveCommit', [$entity, $options]);
+                    $this->dispatchEvent('Orm.afterSaveCommit', ['entity' => $entity, 'options' => $options], false);
                 }
             }, 100);
         }
@@ -1404,6 +1370,46 @@ class Model
     }
 
     /**
+     * Delete a single Entity.
+     *
+     * @param Entity $entity The Entity.
+     * @param array $options The options for saving.
+     * @return bool TRUE if the save was successful, otherwise FALSE.
+     */
+    protected function _delete(Entity $entity, array $options): bool
+    {
+        if ($options['events']) {
+            $event = $this->dispatchEvent('Orm.beforeDelete', ['entity' => $entity, 'options' => $options]);
+
+            if ($event->isStopped()) {
+                return (bool) $event->getResult();
+            }
+        }
+
+        $primaryKeys = $this->getPrimaryKey();
+        $primaryValues = $entity->extract($primaryKeys);
+        $conditions = QueryGenerator::combineConditions($primaryKeys, $primaryValues);
+
+        if (!$this->deleteAll($conditions)) {
+            return false;
+        }
+
+        if ($options['cascade'] && !$this->deleteChildren([$entity], $options)) {
+            return false;
+        }
+
+        if ($options['events']) {
+            $event = $this->dispatchEvent('Orm.afterDelete', ['entity' => $entity, 'options' => $options]);
+
+            if ($event->isStopped()) {
+                return (bool) $event->getResult();
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Save a single Entity.
      *
      * @param Entity $entity The Entity.
@@ -1413,16 +1419,24 @@ class Model
     protected function _save(Entity $entity, array $options): bool
     {
         if ($options['checkRules']) {
-            if ($options['events'] && !$this->handleEvent('beforeRules', [$entity, $options])) {
-                return false;
+            if ($options['events']) {
+                $event = $this->dispatchEvent('Orm.beforeRules', ['entity' => $entity, 'options' => $options]);
+
+                if ($event->isStopped()) {
+                    return (bool) $event->getResult();
+                }
             }
 
             if (!$this->getRules()->validate($entity)) {
                 return false;
             }
 
-            if ($options['events'] && !$this->handleEvent('afterRules', [$entity, $options])) {
-                return false;
+            if ($options['events']) {
+                $event = $this->dispatchEvent('Orm.afterRules', ['entity' => $entity, 'options' => $options]);
+
+                if ($event->isStopped()) {
+                    return (bool) $event->getResult();
+                }
             }
         }
 
@@ -1430,8 +1444,12 @@ class Model
             $entity->saveState();
         }
 
-        if ($options['events'] && !$this->handleEvent('beforeSave', [$entity, $options])) {
-            return false;
+        if ($options['events']) {
+            $event = $this->dispatchEvent('Orm.beforeSave', ['entity' => $entity, 'options' => $options]);
+
+            if ($event->isStopped()) {
+                return (bool) $event->getResult();
+            }
         }
 
         if ($options['saveRelated'] && !$this->saveParents($entity, $options)) {
@@ -1482,8 +1500,12 @@ class Model
             return false;
         }
 
-        if ($options['events'] && !$this->handleEvent('afterSave', [$entity, $options])) {
-            return false;
+        if ($options['events']) {
+            $event = $this->dispatchEvent('Orm.afterSave', ['entity' => $entity, 'options' => $options]);
+
+            if ($event->isStopped()) {
+                return (bool) $event->getResult();
+            }
         }
 
         return true;
@@ -1502,7 +1524,7 @@ class Model
 
         $entities = array_filter(
             $entities,
-            fn(Entity $entity): bool => $entity->isNew() || $entity->extractDirty($primaryKeys) !== []
+            fn(Entity $entity): bool => $entity->isNew() && $entity->extractDirty($primaryKeys) !== []
         );
 
         if ($entities === []) {
@@ -1610,7 +1632,7 @@ class Model
         if ($options['parse']) {
             if ($options['events']) {
                 $data = new ArrayObject($data);
-                $this->handleEvent('beforeParse', [$data, $options]);
+                $this->dispatchEvent('Orm.beforeParse', ['data' => $data, 'options' => $options], false);
                 $data = $data->getArrayCopy();
             }
 
@@ -1629,7 +1651,7 @@ class Model
 
         $associated = null;
         if ($options['associated'] !== null) {
-            $associated = static::normalizeContain($options['associated'], $this);
+            $associated = static::normalizeContain($options['associated'], $this, true);
             $associated = $associated['contain'];
         }
 
@@ -1689,8 +1711,22 @@ class Model
                                 continue;
                             }
 
-                            $relation = $currentRelations[$i] ?? $target->newEmptyEntity();
-                            $target->patchEntity($relation, $val, $options);
+                            if (
+                                array_key_exists('_joinData', $val) &&
+                                is_array($val['_joinData']) &&
+                                $relationship instanceof ManyToMany
+                            ) {
+                                $val['_joinData'] = $relationship->getJunction()->newEntity($val['_joinData'], $options + ['associated' => []]);
+                            }
+
+                            if (array_key_exists($i, $currentRelations)) {
+                                $relation = $currentRelations[$i];
+
+                                $target->patchEntity($relation, $val, $options);
+
+                            } else {
+                                $relation = $target->newEntity($val, $options);
+                            }
 
                             if (!$relation->isNew() && $relation->isEmpty()) {
                                 continue;
@@ -1732,7 +1768,7 @@ class Model
         }
 
         if ($options['events'] && $options['parse']) {
-            $this->handleEvent('afterParse', [$entity, $options]);
+            $this->dispatchEvent('Orm.afterParse', ['entity' => $entity, 'options' => $options], false);
         }
     }
 

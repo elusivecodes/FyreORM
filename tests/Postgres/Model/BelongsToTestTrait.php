@@ -10,7 +10,45 @@ use Tests\Mock\Entity\User;
 
 trait BelongsToTestTrait
 {
-    public function testBelongsContainTypeJoinSql(): void
+    public function testBelongsToContainConditionsSql(): void
+    {
+        $Addresses = $this->modelRegistry->use('Addresses');
+
+        $Addresses->Users->setConditions([
+            'Users.name' => 'test',
+        ]);
+
+        $this->assertSame(
+            'SELECT Addresses.id AS "Addresses__id", Users.id AS "Users__id" FROM addresses AS Addresses LEFT JOIN users AS Users ON Users.id = Addresses.user_id AND Users.name = \'test\'',
+            $Addresses->find([
+                'contain' => [
+                    'Users',
+                ],
+            ])
+                ->disableAutoFields()
+                ->sql()
+        );
+    }
+
+    public function testBelongsToContainJoinTypeSql(): void
+    {
+        $Addresses = $this->modelRegistry->use('Addresses');
+
+        $Addresses->Users->setJoinType('inner');
+
+        $this->assertSame(
+            'SELECT Addresses.id AS "Addresses__id", Users.id AS "Users__id" FROM addresses AS Addresses INNER JOIN users AS Users ON Users.id = Addresses.user_id',
+            $Addresses->find([
+                'contain' => [
+                    'Users',
+                ],
+            ])
+                ->disableAutoFields()
+                ->sql()
+        );
+    }
+
+    public function testBelongsToContainTypeJoinSql(): void
     {
         $this->assertSame(
             'SELECT Addresses.id AS "Addresses__id", Users.id AS "Users__id" FROM addresses AS Addresses INNER JOIN users AS Users ON Users.id = Addresses.user_id',
@@ -169,6 +207,36 @@ trait BelongsToTestTrait
                 ],
             ],
         ]);
+    }
+
+    public function testBelongsToFindRelated(): void
+    {
+        $Addresses = $this->modelRegistry->use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Addresses->save($address)
+        );
+
+        $address = $Addresses->get(1);
+
+        $user = $Addresses->Users->findRelated([$address])->first();
+
+        $this->assertSame(
+            1,
+            $user->id
+        );
+
+        $this->assertInstanceOf(
+            User::class,
+            $user
+        );
     }
 
     public function testBelongsToFindSql(): void

@@ -9,6 +9,7 @@ use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
+use Fyre\ORM\Relationships\Relationship;
 use Fyre\ORM\Result;
 
 use function array_key_exists;
@@ -167,7 +168,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             $query = clone $this;
 
             if ($this->options['events'] && !$this->beforeFindTriggered) {
-                $this->model->handleEvent('beforeFind', [$query, $this->options]);
+                $this->model->dispatchEvent('Orm.beforeFind', ['query' => $query, 'options' => $this->options]);
             }
 
             $this->count = $query->getConnection()
@@ -323,7 +324,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     {
         if ($this->result === null) {
             if ($this->options['events'] && !$this->beforeFindTriggered) {
-                $this->model->handleEvent('beforeFind', [$this, $this->options]);
+                $this->model->dispatchEvent('Orm.beforeFind', ['query' => $this, 'options' => $this->options]);
                 $this->beforeFindTriggered = true;
             }
 
@@ -332,7 +333,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             $this->result = new Result($result, $this, $this->buffering);
 
             if ($this->options['events']) {
-                $this->model->handleEvent('afterFind', [$this->result, $this->options]);
+                $this->model->dispatchEvent('Orm.afterFind', ['result' => $this->result, 'options' => $this->options]);
             }
         }
 
@@ -589,12 +590,18 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      * @param array $contain The contain relationships.
      * @param Model $model The Model.
      * @param string $alias The table alias.
+     * @param Relationship $prevRelationship The previous Relationship.
      * @param string $pathPrefix The path prefix.
      */
-    protected function containAll(array $contain, Model $model, string $alias, string $pathPrefix = ''): void
+    protected function containAll(array $contain, Model $model, string $alias, Relationship|null $prevRelationship = null, string $pathPrefix = ''): void
     {
         foreach ($contain as $name => $data) {
-            $relationship = $model->getRelationship($name);
+            if ($name === '_joinData') {
+                $target = $prevRelationship->getJunction();
+            } else {
+                $relationship = $model->getRelationship($name);
+                $target = $relationship->getTarget();
+            }
 
             $data['strategy'] ??= $relationship->getStrategy();
 
@@ -610,14 +617,12 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 throw OrmException::forInvalidStrategyContainCallback($data['strategy']);
             }
 
-            $target = $relationship->getTarget();
-
             $data['autoFields'] ??= $this->autoFields;
 
             $joins = $relationship->buildJoins([
                 'alias' => $name,
                 'sourceAlias' => $alias,
-                'type' => $data['type'] ?? null,
+                'type' => $data['type'] ?? $relationship->getJoinType(),
                 'conditions' => $data['conditions'] ?? [],
             ]);
 
@@ -659,7 +664,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $this->addFields($target->getPrimaryKey(), $target, $name);
             }
 
-            $this->containAll($data['contain'], $target, $name, $path);
+            $this->containAll($data['contain'], $target, $name, $relationship, $path);
         }
     }
 

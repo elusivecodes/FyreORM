@@ -10,6 +10,7 @@ use Fyre\DB\ConnectionManager;
 use Fyre\DB\Handlers\Mysql\MysqlConnection;
 use Fyre\DB\TypeParser;
 use Fyre\Entity\EntityLocator;
+use Fyre\Event\EventManager;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\ModelRegistry;
 use Fyre\Schema\SchemaRegistry;
@@ -40,6 +41,7 @@ trait MysqlConnectionTrait
         $this->container->singleton(ModelRegistry::class);
         $this->container->singleton(BehaviorRegistry::class);
         $this->container->singleton(EntityLocator::class);
+        $this->container->singleton(EventManager::class);
         $this->container->use(Config::class)
             ->set('App.locale', 'en')
             ->set('Database', [
@@ -166,6 +168,7 @@ trait MysqlConnectionTrait
                 id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 post_id INT(10) UNSIGNED NOT NULL,
                 tag_id INT(10) UNSIGNED NOT NULL,
+                value INT(10) UNSIGNED NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);

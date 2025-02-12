@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
+use Fyre\Entity\Entity;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\Item;
 use Tests\Mock\Entity\Post;
@@ -438,12 +439,26 @@ trait NewEntityTestTrait
             'tags' => [
                 [
                     'tag' => 'test1',
+                    '_joinData' => [
+                        'value' => 11,
+                    ],
                 ],
                 [
                     'tag' => 'test2',
+                    '_joinData' => [
+                        'value' => 22,
+                    ],
                 ],
             ],
         ]);
+
+        $this->assertSame(
+            [11, 22],
+            array_map(
+                fn($tag) => $tag->_joinData->value,
+                $post->tags
+            )
+        );
 
         $this->assertInstanceOf(
             Post::class,
@@ -458,6 +473,16 @@ trait NewEntityTestTrait
         $this->assertInstanceOf(
             Tag::class,
             $post->tags[1]
+        );
+
+        $this->assertInstanceOf(
+            Entity::class,
+            $post->tags[0]->_joinData
+        );
+
+        $this->assertInstanceOf(
+            Entity::class,
+            $post->tags[1]->_joinData
         );
 
         $this->assertSame(

@@ -24,6 +24,7 @@
         "fyre/container": "^1.0",
         "fyre/db": "6.0",
         "fyre/entity": "^5.0",
+        "fyre/event": "^4.1",
         "fyre/inflector": "^3.0",
         "fyre/lang": "^5.0",
         "fyre/schema": "^6.0",

@@ -10,6 +10,44 @@ use Tests\Mock\Entity\User;
 
 trait HasOneTestTrait
 {
+    public function testHasOneContainConditionsSql(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $Users->Addresses->setConditions([
+            'Addresses.address_1' => 'test',
+        ]);
+
+        $this->assertSame(
+            'SELECT Users.id AS "Users__id", Addresses.id AS "Addresses__id" FROM users AS Users LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id AND Addresses.address_1 = \'test\'',
+            $Users->find([
+                'contain' => [
+                    'Addresses',
+                ],
+            ])
+                ->disableAutoFields()
+                ->sql()
+        );
+    }
+
+    public function testHasOneContainJoinTypeSql(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $Users->Addresses->setJoinType('inner');
+
+        $this->assertSame(
+            'SELECT Users.id AS "Users__id", Addresses.id AS "Addresses__id" FROM users AS Users INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
+            $Users->find([
+                'contain' => [
+                    'Addresses',
+                ],
+            ])
+                ->disableAutoFields()
+                ->sql()
+        );
+    }
+
     public function testHasOneContainTypeJoinSql(): void
     {
         $this->assertSame(
@@ -169,6 +207,36 @@ trait HasOneTestTrait
                 ],
             ],
         ]);
+    }
+
+    public function testHasOneFindRelated(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $user = $Users->get(1);
+
+        $address = $Users->Addresses->findRelated([$user])->first();
+
+        $this->assertSame(
+            1,
+            $address->id
+        );
+
+        $this->assertInstanceOf(
+            Address::class,
+            $address
+        );
     }
 
     public function testHasOneFindSql(): void

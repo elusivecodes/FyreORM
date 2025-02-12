@@ -35,6 +35,11 @@ class OrmException extends RunTimeException
         return new static('Model relationship does not exist: '.$name);
     }
 
+    public static function forInvalidSaveStrategy(string $saveStrategy): static
+    {
+        return new static('Invalid relationship save strategy: '.$saveStrategy);
+    }
+
     public static function forInvalidStrategy(string $strategy): static
     {
         return new static('Invalid relationship strategy: '.$strategy);
