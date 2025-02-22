@@ -596,7 +596,7 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     protected function containAll(array $contain, Model $model, string $alias, Relationship|null $prevRelationship = null, string $pathPrefix = ''): void
     {
         foreach ($contain as $name => $data) {
-            if ($name === '_joinData') {
+            if ($name === '_joinData' && $prevRelationship) {
                 $target = $prevRelationship->getJunction();
             } else {
                 $relationship = $model->getRelationship($name);
@@ -606,8 +606,14 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             $data['strategy'] ??= $relationship->getStrategy();
 
             if ($data['strategy'] !== 'join') {
-                $bindingKey = $relationship->getBindingKey();
-                $this->addFields([$bindingKey], $model, $alias);
+                if ($relationship->isOwningSide()) {
+                    $bindingKey = $relationship->getBindingKey();
+                    $this->addFields([$bindingKey], $model, $alias);
+                } else {
+                    $foreignKey = $relationship->getForeignKey();
+                    $this->addFields([$foreignKey], $model, $alias);
+                }
+
                 $this->eagerLoadPaths[] = $pathPrefix.'.'.$name;
 
                 continue;
@@ -643,8 +649,14 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
             }
 
             if ($usedAlias) {
-                $bindingKey = $relationship->getBindingKey();
-                $this->addFields([$bindingKey], $model, $alias);
+                if ($relationship->isOwningSide()) {
+                    $bindingKey = $relationship->getBindingKey();
+                    $this->addFields([$bindingKey], $model, $alias);
+                } else {
+                    $foreignKey = $relationship->getForeignKey();
+                    $this->addFields([$foreignKey], $model, $alias);
+                }
+
                 $this->eagerLoadPaths[] = $pathPrefix.'.'.$name;
 
                 continue;

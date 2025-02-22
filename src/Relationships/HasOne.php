@@ -47,8 +47,10 @@ class HasOne extends Relationship
 
         $child->saveState();
 
-        $child->set($foreignKey, null);
-        $child->set($foreignKey, $bindingValue);
+        if ($child->get($foreignKey) !== $bindingValue) {
+            $child->set($foreignKey, null);
+            $child->set($foreignKey, $bindingValue);
+        }
 
         $options['saveState'] = false;
 

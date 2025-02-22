@@ -503,7 +503,7 @@ trait BelongsToTestTrait
     public function testBelongsToStrategyFindSql(): void
     {
         $this->assertSame(
-            'SELECT Addresses.id AS "Addresses__id" FROM addresses AS Addresses',
+            'SELECT Addresses.id AS "Addresses__id", Addresses.user_id AS "Addresses__user_id" FROM addresses AS Addresses',
             $this->modelRegistry->use('Addresses')
                 ->find([
                     'contain' => [

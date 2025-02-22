@@ -83,8 +83,11 @@ class BelongsTo extends Relationship
         $bindingKey = $this->getBindingKey();
 
         $bindingValue = $parent->get($bindingKey);
-        $entity->set($foreignKey, null);
-        $entity->set($foreignKey, $bindingValue);
+
+        if ($entity->get($foreignKey) !== $bindingValue) {
+            $entity->set($foreignKey, null);
+            $entity->set($foreignKey, $bindingValue);
+        }
 
         return true;
     }

@@ -29,6 +29,32 @@ trait PatchEntityTestTrait
         );
     }
 
+    public function testPatchEntityAccessible(): void
+    {
+        $Items = $this->modelRegistry->use('Items');
+
+        $item = $Items->newEmptyEntity();
+
+        $Items->patchEntity($item, [
+            'name' => 'Test',
+        ], [
+            'accessible' => [
+                'name' => false,
+            ],
+        ]);
+
+        $this->assertNull(
+            $item->get('name')
+        );
+
+        $this->assertSame(
+            [
+                '*' => true,
+            ],
+            $item->getAccessible(),
+        );
+    }
+
     public function testPatchEntityAssociated(): void
     {
         $Users = $this->modelRegistry->use('Users');
@@ -122,6 +148,40 @@ trait PatchEntityTestTrait
 
         $this->assertTrue(
             $address->user->isDirty()
+        );
+    }
+
+    public function testPatchEntityBelongsToAccessible(): void
+    {
+        $Addresses = $this->modelRegistry->use('Addresses');
+
+        $address = $Addresses->newEntity([
+            'suburb' => 'Test',
+            'user' => [
+                'name' => 'Test 1',
+            ],
+        ]);
+
+        $address->clean();
+        $address->user->clean();
+
+        $Addresses->patchEntity($address, [
+            'user' => [
+                'name' => 'Test 2',
+            ],
+        ], [
+            'associated' => [
+                'Users' => [
+                    'accessible' => [
+                        'name' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $address->user->name
         );
     }
 
@@ -247,6 +307,58 @@ trait PatchEntityTestTrait
         );
     }
 
+    public function testPatchEntityHasManyAccessible(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                ],
+            ],
+        ]);
+
+        $user->clean();
+        $user->posts[0]->clean();
+        $user->posts[1]->clean();
+
+        $Users->patchEntity($user, [
+            'posts' => [
+                [
+                    'title' => 'Test 3',
+                ],
+                [
+                    'title' => 'Test 4',
+                ],
+            ],
+        ], [
+            'associated' => [
+                'Posts' => [
+                    'accessible' => [
+                        'title' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $user->posts[0]->title
+        );
+
+        $this->assertSame(
+            'Test 2',
+            $user->posts[1]->title
+        );
+    }
+
     public function testPatchEntityHasOne(): void
     {
         $Users = $this->modelRegistry->use('Users');
@@ -276,6 +388,40 @@ trait PatchEntityTestTrait
         );
     }
 
+    public function testPatchEntityHasOneAccessible(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'address' => [
+                'suburb' => 'Test 1',
+            ],
+        ]);
+
+        $user->clean();
+        $user->address->clean();
+
+        $Users->patchEntity($user, [
+            'address' => [
+                'suburb' => 'Test 2',
+            ],
+        ], [
+            'associated' => [
+                'Addresses' => [
+                    'accessible' => [
+                        'suburb' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            'Test 1',
+            $user->address->suburb
+        );
+    }
+
     public function testPatchEntityManyToMany(): void
     {
         $Posts = $this->modelRegistry->use('Posts');
@@ -285,7 +431,9 @@ trait PatchEntityTestTrait
             'title' => 'Test',
             'content' => 'This is the content.',
             'tags' => [
-                'tag' => 'test1',
+                [
+                    'tag' => 'test1',
+                ],
             ],
         ]);
 
@@ -301,6 +449,45 @@ trait PatchEntityTestTrait
 
         $this->assertTrue(
             $post->isDirty()
+        );
+    }
+
+    public function testPatchEntityManyToManyAccessible(): void
+    {
+        $Posts = $this->modelRegistry->use('Posts');
+
+        $post = $Posts->newEntity([
+            'user_id' => 1,
+            'title' => 'Test',
+            'content' => 'This is the content.',
+            'tags' => [
+                [
+                    'tag' => 'test1',
+                ],
+            ],
+        ]);
+
+        $post->clean();
+
+        $Posts->patchEntity($post, [
+            'tags' => [
+                [
+                    'tag' => 'test2',
+                ],
+            ],
+        ], [
+            'associated' => [
+                'Tags' => [
+                    'accessible' => [
+                        'tag' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(
+            'test1',
+            $post->tags[0]->tag
         );
     }
 }

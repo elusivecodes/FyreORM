@@ -145,16 +145,16 @@ class Model implements EventListenerInterface
      *
      * @param array|string $contain The contain data.
      * @param Model $model The Model.
-     * @param bool $relationsOnly Whether only relationships should be included.
+     * @param string $containKey The key for the contains.
      * @param int $depth The contain depth.
      * @return array The normalized contain data.
      *
      * @throws OrmException if a relationship is not valid.
      */
-    public static function normalizeContain(array|string $contain, Model $model, bool $relationsOnly = false, int $depth = 0): array
+    public static function normalizeContain(array|string $contain, Model $model, string $containKey = 'contain', int $depth = 0): array
     {
         $normalized = [
-            'contain' => [],
+            $containKey => [],
         ];
 
         if ($contain === '' || $contain === []) {
@@ -178,8 +178,8 @@ class Model implements EventListenerInterface
         }
 
         foreach ($contain as $key => $value) {
-            if (is_numeric($key) || $key === 'contain') {
-                $newContain = static::normalizeContain($value, $model, $relationsOnly, $depth);
+            if (is_numeric($key) || $key === $containKey) {
+                $newContain = static::normalizeContain($value, $model, $containKey, $depth);
                 $normalized = static::mergeContain($normalized, $newContain);
 
                 continue;
@@ -187,28 +187,34 @@ class Model implements EventListenerInterface
 
             $relationship = $model->getRelationship($key);
 
-            if (!$relationship) {
-                if (
-                    !$relationsOnly &&
-                    $depth > 0 &&
-                    (
-                        array_key_exists($key, SelectQuery::QUERY_METHODS) ||
-                        in_array($key, ['autoFields', 'callback', 'strategy', 'type'])
-                    )
-                ) {
-                    $normalized[$key] = $key === 'callback' && $value ?
-                        fn(SelectQuery $query): SelectQuery => $value($query) :
-                        $value;
+            if ($relationship) {
+                $normalized[$containKey][$key] ??= [];
+                $newContain = static::normalizeContain($value, $relationship->getTarget(), $containKey, $depth + 1);
+                $normalized[$containKey][$key] = static::mergeContain($normalized[$containKey][$key], $newContain);
 
-                    continue;
-                }
-
-                throw OrmException::forInvalidRelationship($key);
+                continue;
             }
 
-            $normalized['contain'][$key] ??= [];
-            $newContain = static::normalizeContain($value, $relationship->getTarget(), $relationsOnly, $depth + 1);
-            $normalized['contain'][$key] = static::mergeContain($normalized['contain'][$key], $newContain);
+            $validKeys = [];
+
+            if ($depth > 0) {
+                if ($containKey === 'associated') {
+                    $validKeys = ['accessible', 'clean', 'events', 'guard', 'mutate', 'new', 'parse', 'validate'];
+                } else {
+                    $validKeys = ['autoFields', 'callback', 'strategy', 'type'];
+                    $validKeys = array_merge($validKeys, SelectQuery::QUERY_METHODS);
+                }
+            }
+
+            if (in_array($key, $validKeys)) {
+                $normalized[$key] = $key === 'callback' && $value ?
+                    fn(SelectQuery $query): SelectQuery => $value($query) :
+                    $value;
+
+                continue;
+            }
+
+            throw OrmException::forInvalidRelationship($key);
         }
 
         return $normalized;
@@ -818,9 +824,9 @@ class Model implements EventListenerInterface
      *
      * @param Entity $entity The entity.
      * @param array $contain The relationships to contain.
-     * @return Entity The entity.
+     * @return Entity|null The entity.
      */
-    public function loadInto(Entity $entity, array $contain): Entity
+    public function loadInto(Entity $entity, array $contain): Entity|null
     {
         $primaryKeys = $this->getPrimaryKey();
         $primaryValues = $entity->extract($primaryKeys);
@@ -887,7 +893,7 @@ class Model implements EventListenerInterface
     public function newEntities(array $data, array $options = []): array
     {
         return array_map(
-            fn(array $values): Entity => $this->newEntity($values, $data),
+            fn(array $values): Entity => $this->newEntity($values, $data, $options),
             $data
         );
     }
@@ -1620,6 +1626,8 @@ class Model implements EventListenerInterface
     protected function injectInto(Entity $entity, array $data, array $options): void
     {
         $options['associated'] ??= null;
+        $options['accessible'] ??= null;
+        $options['guard'] ??= true;
         $options['mutate'] ??= true;
         $options['parse'] ??= true;
         $options['events'] ??= true;
@@ -1651,8 +1659,16 @@ class Model implements EventListenerInterface
 
         $associated = null;
         if ($options['associated'] !== null) {
-            $associated = static::normalizeContain($options['associated'], $this, true);
-            $associated = $associated['contain'];
+            $associated = static::normalizeContain($options['associated'], $this, 'associated');
+            $associated = $associated['associated'];
+        }
+
+        $accessible = null;
+        if ($options['accessible']) {
+            $accessible = $entity->getAccessible();
+            foreach ($options['accessible'] as $field => $access) {
+                $entity->setAccess($field, $access);
+            }
         }
 
         $relationships = [];
@@ -1685,15 +1701,17 @@ class Model implements EventListenerInterface
                     $alias = $relationships[$field];
                     $relationship = $this->getRelationship($alias);
 
-                    if ($associated !== null) {
-                        $options['associated'] = $associated[$alias]['contain'];
+                    if ($associated === null) {
+                        $relationOptions = $options;
+                    } else {
+                        $relationOptions = array_merge($options, $associated[$alias]);
                     }
 
                     $target = $relationship->getTarget();
 
                     if (!$relationship->hasMultiple()) {
                         $relation = $entity->get($field) ?? $target->newEmptyEntity();
-                        $target->patchEntity($relation, $value, $options);
+                        $target->patchEntity($relation, $value, $relationOptions);
 
                         if (!$relation->isNew() && $relation->isEmpty()) {
                             $relation = null;
@@ -1716,16 +1734,16 @@ class Model implements EventListenerInterface
                                 is_array($val['_joinData']) &&
                                 $relationship instanceof ManyToMany
                             ) {
-                                $val['_joinData'] = $relationship->getJunction()->newEntity($val['_joinData'], $options + ['associated' => []]);
+                                $val['_joinData'] = $relationship->getJunction()->newEntity($val['_joinData'], $relationOptions + ['associated' => []]);
                             }
 
                             if (array_key_exists($i, $currentRelations)) {
                                 $relation = $currentRelations[$i];
 
-                                $target->patchEntity($relation, $val, $options);
+                                $target->patchEntity($relation, $val, $relationOptions);
 
                             } else {
-                                $relation = $target->newEntity($val, $options);
+                                $relation = $target->newEntity($val, $relationOptions);
                             }
 
                             if (!$relation->isNew() && $relation->isEmpty()) {
@@ -1752,10 +1770,17 @@ class Model implements EventListenerInterface
 
             $entity->set($field, $value, [
                 'mutate' => $options['mutate'],
+                'guard' => $options['guard'],
             ]);
 
             if ($setDirty) {
                 $entity->setDirty($field, true);
+            }
+        }
+
+        if ($accessible !== null) {
+            foreach ($accessible as $field => $access) {
+                $entity->setAccess($field, $access);
             }
         }
 

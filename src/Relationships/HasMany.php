@@ -92,8 +92,10 @@ class HasMany extends Relationship
         foreach ($children as $child) {
             $child->saveState();
 
-            $child->set($foreignKey, null);
-            $child->set($foreignKey, $bindingValue);
+            if ($child->get($foreignKey) !== $bindingValue) {
+                $child->set($foreignKey, null);
+                $child->set($foreignKey, $bindingValue);
+            }
         }
 
         if ($this->saveStrategy === 'replace') {

@@ -27,8 +27,9 @@ use function in_array;
 class Result implements Countable, IteratorAggregate, JsonSerializable
 {
     protected const ENTITY_OPTIONS = [
-        'parse' => false,
+        'guard' => false,
         'mutate' => false,
+        'parse' => false,
         'validate' => false,
         'clean' => true,
         'new' => false,

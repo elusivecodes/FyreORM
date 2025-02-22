@@ -478,6 +478,9 @@ Build a new [*Entity*](https://github.com/elusivecodes/FyreEntity) using data.
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
+    - `accessible` is an array containing accessible fields, and will default to *null*.
+    - `guard` is a boolean indicating whether to check whether the field is accessible, and will default to *true*.
+    - `mutate` is a boolean indicating whether to mutate the value, and will default to *true*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
@@ -495,6 +498,9 @@ Build multiple new entities using user data.
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
+    - `accessible` is an array containing accessible fields, and will default to *null*.
+    - `guard` is a boolean indicating whether to check whether the field is accessible, and will default to *true*.
+    - `mutate` is a boolean indicating whether to mutate the value, and will default to *true*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
@@ -513,6 +519,9 @@ Update an Entity using user data.
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
+    - `accessible` is an array containing accessible fields, and will default to *null*.
+    - `guard` is a boolean indicating whether to check whether the field is accessible, and will default to *true*.
+    - `mutate` is a boolean indicating whether to mutate the value, and will default to *true*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
@@ -531,6 +540,9 @@ Update multiple entities using user data.
 - `$data` is an array containing the data.
 - `$options` is an array containing entity options.
     - `associated` is an array containing the relationships to parse, and will default to *null*.
+    - `accessible` is an array containing accessible fields, and will default to *null*.
+    - `guard` is a boolean indicating whether to check whether the field is accessible, and will default to *true*.
+    - `mutate` is a boolean indicating whether to mutate the value, and will default to *true*.
     - `parse` is a boolean indicating whether to parse user data, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `validate` is a boolean indicating whether to validate user data, and will default to *true*.
