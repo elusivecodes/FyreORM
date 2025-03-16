@@ -169,6 +169,8 @@ abstract class Relationship
             return [];
         }
 
+        $data['conditions'] = array_merge($data['conditions'] ?? [], $this->conditions);
+
         if (property_exists($this, 'sort') && $this->sort !== null) {
             $data['orderBy'] ??= $this->sort;
         }
@@ -349,6 +351,8 @@ abstract class Relationship
             $data['fields'] ??= [];
             $data['fields'][] = $target->aliasField($targetKey);
         }
+
+        $data['conditions'] = array_merge($data['conditions'] ?? [], $this->conditions);
 
         if (property_exists($this, 'sort') && $this->sort !== null) {
             $data['orderBy'] ??= $this->sort;

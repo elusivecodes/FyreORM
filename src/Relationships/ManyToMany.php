@@ -120,6 +120,8 @@ class ManyToMany extends Relationship
         $contain = $options['contain'] ?? [];
         $options['contain'] = [$targetName => $contain];
 
+        $data['conditions'] = array_merge($data['conditions'] ?? [], $this->conditions);
+
         if ($this->sort !== null) {
             $options['orderBy'] ??= $this->sort;
         }
@@ -260,6 +262,8 @@ class ManyToMany extends Relationship
 
         $contain = $data['contain'];
         $data['contain'] = [$targetName => $contain];
+
+        $data['conditions'] = array_merge($data['conditions'] ?? [], $this->conditions);
 
         if ($this->sort !== null) {
             $data['orderBy'] ??= $this->sort;

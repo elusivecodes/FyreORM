@@ -1926,7 +1926,6 @@ class Model implements EventListenerInterface
             $property = $relationship->getProperty();
 
             $allChildren = [];
-            $newChildren = [];
             foreach ($entities as $entity) {
                 $children = $entity->get($property);
 
@@ -1934,14 +1933,10 @@ class Model implements EventListenerInterface
                     continue;
                 }
 
-                if (!$relationship->hasMultiple()) {
-                    $children = [$children];
-                }
-
-                $allChildren = array_merge($allChildren, $children);
-
-                if ($entity->isNew()) {
-                    $newChildren = array_merge($newChildren, $children);
+                if ($relationship->hasMultiple()) {
+                    $allChildren = array_merge($allChildren, $children);
+                } else {
+                    $allChildren[] = $children;
                 }
             }
 
@@ -1950,7 +1945,7 @@ class Model implements EventListenerInterface
             }
 
             foreach ($allChildren as $child) {
-                $child->restoreState();
+                $child->restoreState(false);
             }
         }
     }
@@ -1974,8 +1969,6 @@ class Model implements EventListenerInterface
             $property = $relationship->getProperty();
 
             $allParents = [];
-            $newParents = [];
-            $newParentEntities = [];
             foreach ($entities as $entity) {
                 $parent = $entity->get($property);
 
@@ -1984,11 +1977,6 @@ class Model implements EventListenerInterface
                 }
 
                 $allParents[] = $parent;
-
-                if ($parent->isNew()) {
-                    $newParents[] = $parent;
-                    $newParentEntities[] = $entity;
-                }
             }
 
             if ($allParents !== []) {
@@ -1996,7 +1984,7 @@ class Model implements EventListenerInterface
             }
 
             foreach ($allParents as $parent) {
-                $parent->restoreState();
+                $parent->restoreState(false);
             }
         }
     }
