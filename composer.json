@@ -33,11 +33,11 @@
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.59",
         "fyre/php-cs-fixer-config": "^1.0",
-        "phpunit/phpunit": "^11"
+        "phpunit/phpunit": "^12"
     },
     "scripts": {
-        "cs": "php-cs-fixer fix --ansi --verbose --dry-run --diff",
-        "cs-fix": "php-cs-fixer fix --ansi --verbose --diff",
+        "cs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --ansi --verbose --dry-run --diff",
+        "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --ansi --verbose --diff",
         "test": "phpunit tests"
     }
 }
