@@ -270,16 +270,16 @@
         },
         {
             "name": "fyre/db",
-            "version": "v6.2.3",
+            "version": "v6.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreDB.git",
-                "reference": "a48e8bfc1065de5fa1c3e2590922fab74ac7b84c"
+                "reference": "5fc56860afb55e930e5d74498a971aea4ca17a75"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreDB/zipball/a48e8bfc1065de5fa1c3e2590922fab74ac7b84c",
-                "reference": "a48e8bfc1065de5fa1c3e2590922fab74ac7b84c",
+                "url": "https://api.github.com/repos/elusivecodes/FyreDB/zipball/5fc56860afb55e930e5d74498a971aea4ca17a75",
+                "reference": "5fc56860afb55e930e5d74498a971aea4ca17a75",
                 "shasum": ""
             },
             "require": {
@@ -314,9 +314,9 @@
             "description": "A database library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreDB/issues",
-                "source": "https://github.com/elusivecodes/FyreDB/tree/v6.2.3"
+                "source": "https://github.com/elusivecodes/FyreDB/tree/v6.2.4"
             },
-            "time": "2025-04-08T09:32:06+00:00"
+            "time": "2025-04-13T03:39:25+00:00"
         },
         {
             "name": "fyre/entity",
@@ -542,16 +542,16 @@
         },
         {
             "name": "fyre/log",
-            "version": "v6.1.0",
+            "version": "v6.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreLog.git",
-                "reference": "7bd0de7514ea78202d1b106ef9a97c11600ee50e"
+                "reference": "0a38364d4ab9d9ec3812ca13da2fc8b5a4161bbe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreLog/zipball/7bd0de7514ea78202d1b106ef9a97c11600ee50e",
-                "reference": "7bd0de7514ea78202d1b106ef9a97c11600ee50e",
+                "url": "https://api.github.com/repos/elusivecodes/FyreLog/zipball/0a38364d4ab9d9ec3812ca13da2fc8b5a4161bbe",
+                "reference": "0a38364d4ab9d9ec3812ca13da2fc8b5a4161bbe",
                 "shasum": ""
             },
             "require": {
@@ -584,9 +584,9 @@
             "description": "A logging library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreLog/issues",
-                "source": "https://github.com/elusivecodes/FyreLog/tree/v6.1.0"
+                "source": "https://github.com/elusivecodes/FyreLog/tree/v6.1.1"
             },
-            "time": "2025-04-07T11:25:29+00:00"
+            "time": "2025-04-13T03:36:38+00:00"
         },
         {
             "name": "fyre/path",
@@ -632,16 +632,16 @@
         },
         {
             "name": "fyre/schema",
-            "version": "v6.0.7",
+            "version": "v6.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreSchema.git",
-                "reference": "9e7d332a62764188c7d5de3fd5b36bcf838adf02"
+                "reference": "24d19c6c30c55641464378d74255c4989b92c288"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreSchema/zipball/9e7d332a62764188c7d5de3fd5b36bcf838adf02",
-                "reference": "9e7d332a62764188c7d5de3fd5b36bcf838adf02",
+                "url": "https://api.github.com/repos/elusivecodes/FyreSchema/zipball/24d19c6c30c55641464378d74255c4989b92c288",
+                "reference": "24d19c6c30c55641464378d74255c4989b92c288",
                 "shasum": ""
             },
             "require": {
@@ -674,9 +674,9 @@
             "description": "A database schema library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreSchema/issues",
-                "source": "https://github.com/elusivecodes/FyreSchema/tree/v6.0.7"
+                "source": "https://github.com/elusivecodes/FyreSchema/tree/v6.0.8"
             },
-            "time": "2025-04-08T09:34:43+00:00"
+            "time": "2025-04-13T03:41:13+00:00"
         },
         {
             "name": "fyre/typeparser",
