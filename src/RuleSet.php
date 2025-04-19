@@ -9,6 +9,8 @@ use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\Lang\Lang;
 
+use function array_all;
+use function array_any;
 use function array_intersect;
 use function array_map;
 use function implode;
@@ -67,16 +69,20 @@ class RuleSet
     {
         $options['targetFields'] ??= null;
         $options['callback'] ??= null;
-        $options['allowNullableNulls'] ??= true;
+        $options['allowNullableNulls'] ??= null;
 
         return function(Entity $entity) use ($fields, $name, $options): bool {
             if ($fields === []) {
                 return true;
             }
 
+            if (!array_any($fields, fn(string $field): bool => $entity->isDirty($field))) {
+                return true;
+            }
+
             $values = $entity->extract($fields);
 
-            if ($options['allowNullableNulls']) {
+            if ($options['allowNullableNulls'] ?? array_all($values, fn(mixed $value): bool => $value === null)) {
                 $schema = $this->model->getSchema();
 
                 foreach ($values as $field => $value) {
