@@ -1669,7 +1669,7 @@ class Model implements EventListenerInterface
         }
 
         $accessible = null;
-        if ($options['accessible']) {
+        if ($options['accessible'] && $options['guard']) {
             $accessible = $entity->getAccessible();
             foreach ($options['accessible'] as $field => $access) {
                 $entity->setAccess($field, $access);
@@ -1680,11 +1680,13 @@ class Model implements EventListenerInterface
         if ($options['validate']) {
             $type = $entity->isNew() ? 'create' : 'update';
 
-            $validationData = array_filter(
-                $data,
-                fn(string $field): bool => $entity->isAccessible($field),
-                ARRAY_FILTER_USE_KEY
-            );
+            $validationData = $options['guard'] ?
+                array_filter(
+                    $data,
+                    fn(string $field): bool => $entity->isAccessible($field),
+                    ARRAY_FILTER_USE_KEY
+                ) :
+                $data;
 
             $validator = $this->getValidator();
             $errors = $validator->validate($validationData, $type);

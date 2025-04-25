@@ -666,7 +666,6 @@ Save an [*Entity*](https://github.com/elusivecodes/FyreEntity).
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
     - `saveRelated` is a boolean indicating whether to save related data, and will default to *true*.
-    - `saveState` is a boolean indicating whether to save the [*Entity*](https://github.com/elusivecodes/FyreEntity) before saving, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity after saving, and will default to *true*.
 
@@ -683,7 +682,6 @@ Save multiple entities.
     - `checkExists` is a boolean indicating whether to check if new entities exist, and will default to *true*.
     - `checkRules` is a boolean indicating whether to validate the [*RuleSet*](#rules), and will default to *true*.
     - `saveRelated` is a boolean indicating whether to save related data, and will default to *true*.
-    - `saveState` is a boolean indicating whether to save the [*Entity*](https://github.com/elusivecodes/FyreEntity) before saving, and will default to *true*.
     - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
     - `clean` is a boolean indicating whether to clean the entity after saving, and will default to *true*.
 
