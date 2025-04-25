@@ -373,7 +373,7 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
 
             $relations = [];
             foreach ($entities as $entity) {
-                if ($entity->isEmpty($property)) {
+                if (!$entity->hasValue($property)) {
                     continue;
                 }
 

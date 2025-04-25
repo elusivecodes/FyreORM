@@ -54,6 +54,8 @@ use function iterator_to_array;
 use function method_exists;
 use function preg_replace;
 
+use const ARRAY_FILTER_USE_KEY;
+
 /**
  * Model
  */
@@ -407,6 +409,11 @@ class Model implements EventListenerInterface
         if (!$this->_delete($entity, $options)) {
             $connection->rollback();
 
+            static::resetParents([$entity], $this);
+            static::resetChildren([$entity], $this);
+
+            $entity->clearTemporaryFields();
+
             return false;
         }
 
@@ -415,6 +422,10 @@ class Model implements EventListenerInterface
                 $this->dispatchEvent('Orm.afterDeleteCommit', ['entity' => $entity, 'options' => $options], false);
             }, 100);
         }
+
+        $connection->afterCommit(function() use ($entity): void {
+            static::cleanEntities([$entity], $this);
+        }, 200);
 
         $connection->commit();
 
@@ -466,12 +477,25 @@ class Model implements EventListenerInterface
 
         $connection->begin();
 
+        $result = true;
         foreach ($entities as $entity) {
             if (!$this->_delete($entity, $options)) {
-                $connection->rollback();
-
-                return false;
+                $result = false;
+                break;
             }
+        }
+
+        if (!$result) {
+            $connection->rollback();
+
+            static::resetParents($entities, $this);
+            static::resetChildren($entities, $this);
+
+            foreach ($entities as $entity) {
+                $entity->clearTemporaryFields();
+            }
+
+            return false;
         }
 
         if ($options['events']) {
@@ -481,6 +505,10 @@ class Model implements EventListenerInterface
                 }
             }, 100);
         }
+
+        $connection->afterCommit(function() use ($entities): void {
+            static::cleanEntities($entities, $this);
+        }, 200);
 
         $connection->commit();
 
@@ -1070,7 +1098,6 @@ class Model implements EventListenerInterface
         $options['checkExists'] ??= true;
         $options['checkRules'] ??= true;
         $options['saveRelated'] ??= true;
-        $options['saveState'] ??= true;
         $options['events'] ??= true;
         $options['clean'] ??= true;
 
@@ -1085,12 +1112,10 @@ class Model implements EventListenerInterface
         if (!$this->_save($entity, $options)) {
             $connection->rollback();
 
-            if ($options['saveState']) {
-                static::resetParents([$entity], $this);
-                static::resetChildren([$entity], $this);
+            static::resetParents([$entity], $this);
+            static::resetChildren([$entity], $this);
 
-                $entity->restoreState();
-            }
+            $entity->clearTemporaryFields();
 
             return false;
         }
@@ -1149,7 +1174,6 @@ class Model implements EventListenerInterface
         $options['checkExists'] ??= true;
         $options['checkRules'] ??= true;
         $options['saveRelated'] ??= true;
-        $options['saveState'] ??= true;
         $options['events'] ??= true;
         $options['clean'] ??= true;
 
@@ -1172,13 +1196,11 @@ class Model implements EventListenerInterface
         if (!$result) {
             $connection->rollback();
 
-            if ($options['saveState']) {
-                static::resetParents($entities, $this);
-                static::resetChildren($entities, $this);
+            static::resetParents($entities, $this);
+            static::resetChildren($entities, $this);
 
-                foreach ($entities as $entity) {
-                    $entity->restoreState();
-                }
+            foreach ($entities as $entity) {
+                $entity->clearTemporaryFields();
             }
 
             return false;
@@ -1446,10 +1468,6 @@ class Model implements EventListenerInterface
             }
         }
 
-        if ($options['saveState']) {
-            $entity->saveState();
-        }
-
         if ($options['events']) {
             $event = $this->dispatchEvent('Orm.beforeSave', ['entity' => $entity, 'options' => $options]);
 
@@ -1465,36 +1483,33 @@ class Model implements EventListenerInterface
         $schema = $this->getSchema();
         $columns = $schema->columnNames();
         $primaryKeys = $this->getPrimaryKey();
+        $autoIncrementKey = $this->getAutoIncrementKey();
 
         $data = $entity->extractDirty($columns);
         $data = $this->toDatabaseSchema($data);
 
         if ($entity->isNew()) {
-            $result = $this->insertQuery()
+            $newData = $this->insertQuery()
                 ->values([$data])
-                ->execute();
-
-            $newData = $result->fetch() ?? [];
-
-            $autoIncrementKey = $this->getAutoIncrementKey();
+                ->execute()
+                ->fetch() ?? [];
 
             foreach ($primaryKeys as $primaryKey) {
                 if ($entity->hasValue($primaryKey)) {
                     continue;
                 }
 
-                if ($primaryKey === $autoIncrementKey) {
-                    $value = $this->getConnection()->insertId();
-                } else if (array_key_exists($primaryKey, $newData)) {
+                if (array_key_exists($primaryKey, $newData)) {
                     $value = $newData[$primaryKey];
+                } else if ($primaryKey === $autoIncrementKey) {
+                    $value = $this->getConnection()->insertId();
                 } else {
                     continue;
                 }
 
                 $value = $schema->getType($primaryKey)->parse($value);
 
-                $entity->set($primaryKey, null);
-                $entity->set($primaryKey, $value);
+                $entity->set($primaryKey, $value, ['temporary' => true]);
             }
         } else if ($data !== []) {
             $primaryValues = $entity->extract($primaryKeys);
@@ -1647,16 +1662,6 @@ class Model implements EventListenerInterface
             $data = $this->parseSchema($data);
         }
 
-        $errors = [];
-        if ($options['validate']) {
-            $validator = $this->getValidator();
-
-            $type = $entity->isNew() ? 'create' : 'update';
-            $errors = $validator->validate($data, $type);
-
-            $entity->setErrors($errors);
-        }
-
         $associated = null;
         if ($options['associated'] !== null) {
             $associated = static::normalizeContain($options['associated'], $this, 'associated');
@@ -1669,6 +1674,22 @@ class Model implements EventListenerInterface
             foreach ($options['accessible'] as $field => $access) {
                 $entity->setAccess($field, $access);
             }
+        }
+
+        $errors = [];
+        if ($options['validate']) {
+            $type = $entity->isNew() ? 'create' : 'update';
+
+            $validationData = array_filter(
+                $data,
+                fn(string $field): bool => $entity->isAccessible($field),
+                ARRAY_FILTER_USE_KEY
+            );
+
+            $validator = $this->getValidator();
+            $errors = $validator->validate($validationData, $type);
+
+            $entity->setErrors($errors);
         }
 
         $relationships = [];
@@ -1945,7 +1966,11 @@ class Model implements EventListenerInterface
             }
 
             foreach ($allChildren as $child) {
-                $child->restoreState(false);
+                $child->clearTemporaryFields();
+
+                if ($relationship instanceof ManyToMany && $child->hasValue('_joinData')) {
+                    $child->get('_joinData')->clearTemporaryFields();
+                }
             }
         }
     }
@@ -1984,7 +2009,7 @@ class Model implements EventListenerInterface
             }
 
             foreach ($allParents as $parent) {
-                $parent->restoreState(false);
+                $parent->clearTemporaryFields();
             }
         }
     }

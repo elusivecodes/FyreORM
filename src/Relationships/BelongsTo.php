@@ -71,10 +71,6 @@ class BelongsTo extends Relationship
             return true;
         }
 
-        $parent->saveState();
-
-        $options['saveState'] = false;
-
         if (!$this->getTarget()->save($parent, $options)) {
             return false;
         }
@@ -85,8 +81,7 @@ class BelongsTo extends Relationship
         $bindingValue = $parent->get($bindingKey);
 
         if ($entity->get($foreignKey) !== $bindingValue) {
-            $entity->set($foreignKey, null);
-            $entity->set($foreignKey, $bindingValue);
+            $entity->set($foreignKey, $bindingValue, ['temporary' => true]);
         }
 
         return true;

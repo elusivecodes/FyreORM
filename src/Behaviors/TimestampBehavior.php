@@ -33,11 +33,11 @@ class TimestampBehavior extends Behavior
         $schema = $this->model->getSchema();
 
         if ($entity->isNew() && $schema->hasColumn($createdField)) {
-            $entity->set($createdField, DateTime::now());
+            $entity->set($createdField, DateTime::now(), ['temporary' => true]);
         }
 
         if ($schema->hasColumn($modifiedField)) {
-            $entity->set($modifiedField, DateTime::now());
+            $entity->set($modifiedField, DateTime::now(), ['temporary' => true]);
         }
 
         return true;

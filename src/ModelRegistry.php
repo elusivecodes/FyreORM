@@ -56,7 +56,7 @@ class ModelRegistry
     /**
      * Build a Model.
      *
-     * @param string $alias The model class alias.
+     * @param string $classAlias The model class alias.
      * @return Model The Model.
      */
     public function build(string $classAlias): Model
@@ -69,7 +69,7 @@ class ModelRegistry
             }
         }
 
-        return static::createDefaultModel()->setClassAlias($classAlias);
+        return $this->createDefaultModel()->setClassAlias($classAlias);
     }
 
     /**
@@ -196,8 +196,8 @@ class ModelRegistry
     {
         if (!array_key_exists($alias, $this->instances)) {
             $this->instances[$alias] = $classAlias && $classAlias !== $alias ?
-                static::build($classAlias)->setAlias($alias) :
-                static::build($alias);
+                $this->build($classAlias)->setAlias($alias) :
+                $this->build($alias);
         } else if ($classAlias && $this->instances[$alias]->getClassAlias() !== $classAlias) {
             throw OrmException::forAliasNotUnique($alias);
         }

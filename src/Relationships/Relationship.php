@@ -166,7 +166,7 @@ abstract class Relationship
         $sourceValues = $this->getRelatedKeyValues($entities);
 
         if ($sourceValues === []) {
-            return [];
+            return Collection::empty();
         }
 
         $data['conditions'] = array_merge($data['conditions'] ?? [], $this->conditions);
@@ -566,7 +566,7 @@ abstract class Relationship
         }
 
         foreach ($relations as $relation) {
-            $relation->set($foreignKey, null);
+            $relation->set($foreignKey, null, ['temporary' => true]);
         }
 
         if (!$target->saveMany($relations, $options)) {
@@ -687,7 +687,7 @@ abstract class Relationship
         $sourceValues = [];
 
         foreach ($entities as $entity) {
-            if ($entity->isEmpty($sourceKey)) {
+            if (!$entity->hasValue($sourceKey)) {
                 continue;
             }
 

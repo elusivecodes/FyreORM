@@ -348,13 +348,7 @@ class ManyToMany extends Relationship
             return true;
         }
 
-        foreach ($relations as $relation) {
-            $relation->saveState();
-        }
-
         $target = $this->getTarget();
-
-        $options['saveState'] = false;
 
         if (!$target->saveMany($relations, $options)) {
             return false;
@@ -382,8 +376,9 @@ class ManyToMany extends Relationship
 
             $targetBindingValue = $relation->get($targetBindingKey);
 
-            $joinEntity->set($foreignKey, $bindingValue);
-            $joinEntity->set($targetForeignKey, $targetBindingValue);
+            $joinEntity->set($foreignKey, $bindingValue, ['temporary' => true]);
+            $joinEntity->set($targetForeignKey, $targetBindingValue, ['temporary' => true]);
+            $relation->set('_joinData', $joinEntity, ['temporary' => true]);
 
             $joinEntities[] = $joinEntity;
         }

@@ -90,11 +90,8 @@ class HasMany extends Relationship
         $bindingValue = $entity->get($bindingKey);
 
         foreach ($children as $child) {
-            $child->saveState();
-
             if ($child->get($foreignKey) !== $bindingValue) {
-                $child->set($foreignKey, null);
-                $child->set($foreignKey, $bindingValue);
+                $child->set($foreignKey, $bindingValue, ['temporary' => true]);
             }
         }
 
@@ -105,8 +102,6 @@ class HasMany extends Relationship
                 return false;
             }
         }
-
-        $options['saveState'] = false;
 
         if (!$this->getTarget()->saveMany($children, $options)) {
             return false;
