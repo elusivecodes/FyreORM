@@ -76,10 +76,10 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      * @param Model $model The Model.
      * @param array $options The SelectQuery options.
      */
-    public function __construct(Model $model, array $options = [])
-    {
-        $this->model = $model;
-
+    public function __construct(
+        protected Model $model,
+        array $options = []
+    ) {
         $options['alias'] ??= $this->model->getAlias();
         $options['autoFields'] ??= null;
         $options['subquery'] ??= false;

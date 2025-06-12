@@ -18,10 +18,9 @@ class InsertQuery extends \Fyre\DB\Queries\InsertQuery
      *
      * @param Model $model The Model.
      */
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
-
+    public function __construct(
+        protected Model $model
+    ) {
         parent::__construct($this->model->getConnection());
 
         $this->into($this->model->getTable());

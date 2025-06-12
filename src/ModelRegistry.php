@@ -18,8 +18,6 @@ use function trim;
  */
 class ModelRegistry
 {
-    protected Container $container;
-
     protected string $defaultModelClass = Model::class;
 
     protected array $instances = [];
@@ -31,10 +29,9 @@ class ModelRegistry
      *
      * @param Container $container The Container.
      */
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-    }
+    public function __construct(
+        protected Container $container
+    ) {}
 
     /**
      * Add a namespace for loading models.

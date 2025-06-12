@@ -19,10 +19,9 @@ class UpdateBatchQuery extends \Fyre\DB\Queries\UpdateBatchQuery
      * @param Model $model The Model.
      * @param array $options The UpdateBatchQuery options.
      */
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
-
+    public function __construct(
+        protected Model $model
+    ) {
         parent::__construct($this->model->getConnection(), $this->model->getTable());
     }
 }

@@ -35,13 +35,7 @@ abstract class Relationship
 
     protected string $foreignKey;
 
-    protected Inflector $inflector;
-
     protected string $joinType = 'LEFT';
-
-    protected ModelRegistry $modelRegistry;
-
-    protected string $name;
 
     protected string $propertyName;
 
@@ -63,13 +57,12 @@ abstract class Relationship
      *
      * @throws OrmException if the strategy is not valid.
      */
-    public function __construct(ModelRegistry $modelRegistry, Inflector $inflector, string $name, array $options = [])
-    {
-        $this->modelRegistry = $modelRegistry;
-        $this->inflector = $inflector;
-
-        $this->name = $name;
-
+    public function __construct(
+        protected ModelRegistry $modelRegistry,
+        protected Inflector $inflector,
+        protected string $name,
+        array $options = []
+    ) {
         $defaults = [
             'source',
             'classAlias',

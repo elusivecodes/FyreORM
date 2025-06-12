@@ -25,8 +25,6 @@ use function natsort;
  */
 class ManyToMany extends Relationship
 {
-    protected Container $container;
-
     protected Model|null $junction = null;
 
     protected string $saveStrategy = 'replace';
@@ -50,11 +48,14 @@ class ManyToMany extends Relationship
      * @param string $name The relationship name.
      * @param array $options The relationship options.
      */
-    public function __construct(Container $container, ModelRegistry $modelRegistry, Inflector $inflector, string $name, array $options = [])
-    {
+    public function __construct(
+        protected Container $container,
+        ModelRegistry $modelRegistry,
+        Inflector $inflector,
+        string $name,
+        array $options = []
+    ) {
         parent::__construct($modelRegistry, $inflector, $name, $options);
-
-        $this->container = $container;
 
         if (!array_key_exists('through', $options)) {
             $aliases = [

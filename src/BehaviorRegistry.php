@@ -18,8 +18,6 @@ class BehaviorRegistry
 {
     protected array $behaviors = [];
 
-    protected Container $container;
-
     protected array $namespaces = [];
 
     /**
@@ -27,10 +25,9 @@ class BehaviorRegistry
      *
      * @param Container $container The Container.
      */
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-    }
+    public function __construct(
+        protected Container $container
+    ) {}
 
     /**
      * Add a namespace for loading behaviors.

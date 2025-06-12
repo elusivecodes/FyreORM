@@ -18,18 +18,16 @@ abstract class Behavior implements EventListenerInterface
 
     protected array $config;
 
-    protected Model $model;
-
     /**
      * New Behavior constructor.
      *
      * @param Model $model The Model.
      * @param array $options The behavior options.
      */
-    public function __construct(Model $model, array $options = [])
-    {
-        $this->model = $model;
-
+    public function __construct(
+        protected Model $model,
+        array $options = []
+    ) {
         $this->config = array_replace(static::$defaults, $options);
     }
 

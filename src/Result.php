@@ -41,10 +41,6 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
 
     protected bool $freed = false;
 
-    protected SelectQuery $query;
-
-    protected ResultSet $result;
-
     /**
      * New Result constructor.
      *
@@ -53,11 +49,11 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
      * @param bool $buffer Whether to buffer the results.
      * @param array $options The result options.
      */
-    public function __construct(ResultSet $result, SelectQuery $query, bool $buffer = true)
-    {
-        $this->result = $result;
-        $this->query = $query;
-
+    public function __construct(
+        protected ResultSet $result,
+        protected SelectQuery $query,
+        bool $buffer = true
+    ) {
         $eagerLoad = $this->query->getEagerLoadPaths() !== [];
 
         $this->collection = new Collection(function() use ($eagerLoad, $buffer): Generator {

@@ -71,8 +71,6 @@ class Model implements EventListenerInterface
 
     protected string|null $autoIncrementKey = null;
 
-    protected BehaviorRegistry $behaviorRegistry;
-
     protected array $behaviors = [];
 
     protected string $classAlias;
@@ -81,17 +79,9 @@ class Model implements EventListenerInterface
         self::WRITE => 'default',
     ];
 
-    protected ConnectionManager $connectionManager;
-
     protected array $connections = [];
 
-    protected Container $container;
-
     protected string|null $displayName = null;
-
-    protected EntityLocator $entityLocator;
-
-    protected Inflector $inflector;
 
     protected array $primaryKey;
 
@@ -100,8 +90,6 @@ class Model implements EventListenerInterface
     protected string|null $routeKey = null;
 
     protected RuleSet $rules;
-
-    protected SchemaRegistry $schemaRegistry;
 
     protected string $table;
 
@@ -233,14 +221,15 @@ class Model implements EventListenerInterface
      * @param Inflector $inflector The Inflector.
      * @param EventManager $eventManager The EventManager.
      */
-    public function __construct(Container $container, ConnectionManager $connectionManager, SchemaRegistry $schemaRegistry, BehaviorRegistry $behaviorRegistry, EntityLocator $entityLocator, Inflector $inflector, EventManager $eventManager)
-    {
-        $this->container = $container;
-        $this->connectionManager = $connectionManager;
-        $this->schemaRegistry = $schemaRegistry;
-        $this->behaviorRegistry = $behaviorRegistry;
-        $this->entityLocator = $entityLocator;
-        $this->inflector = $inflector;
+    public function __construct(
+        protected Container $container,
+        protected ConnectionManager $connectionManager,
+        protected SchemaRegistry $schemaRegistry,
+        protected BehaviorRegistry $behaviorRegistry,
+        protected EntityLocator $entityLocator,
+        protected Inflector $inflector,
+        EventManager $eventManager
+    ) {
         $this->eventManager = new EventManager($eventManager);
 
         $this->eventManager->addListener($this);

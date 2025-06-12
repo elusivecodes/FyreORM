@@ -20,12 +20,6 @@ use function implode;
  */
 class RuleSet
 {
-    protected Container $container;
-
-    protected Lang $lang;
-
-    protected Model $model;
-
     protected array $rules = [];
 
     /**
@@ -35,12 +29,11 @@ class RuleSet
      * @param Lang $lang The Lang.
      * @param Model $model The Model.
      */
-    public function __construct(Container $container, Lang $lang, Model $model)
-    {
-        $this->container = $container;
-        $this->lang = $lang;
-        $this->model = $model;
-
+    public function __construct(
+        protected Container $container,
+        protected Lang $lang,
+        protected Model $model
+    ) {
         $this->lang->addPath(__DIR__.'/../lang');
     }
 
