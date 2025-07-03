@@ -36,8 +36,8 @@
         "phpunit/phpunit": "^12"
     },
     "scripts": {
-        "cs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --ansi --verbose --dry-run --diff",
-        "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --ansi --verbose --diff",
+        "cs": "php-cs-fixer fix --ansi --verbose --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix --ansi --verbose --diff",
         "test": "phpunit tests"
     }
 }
