@@ -5,9 +5,11 @@ namespace Tests\Mysql;
 
 use Fyre\DB\Types\DateTimeType;
 use Fyre\ORM\Result;
+use Fyre\Utility\Traits\MacroTrait;
 use PHPUnit\Framework\TestCase;
 use Tests\Mock\Entity\Item;
 
+use function class_uses;
 use function json_encode;
 
 final class ResultTest extends TestCase
@@ -228,6 +230,14 @@ final class ResultTest extends TestCase
         $this->assertSame(
             2,
             $item->id
+        );
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(Result::class)
         );
     }
 

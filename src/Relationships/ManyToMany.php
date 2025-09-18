@@ -10,7 +10,9 @@ use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
 use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
+use Fyre\ORM\Relationship;
 use Fyre\Utility\Inflector;
+use Fyre\Utility\Traits\MacroTrait;
 use Traversable;
 
 use function array_key_exists;
@@ -25,6 +27,8 @@ use function natsort;
  */
 class ManyToMany extends Relationship
 {
+    use MacroTrait;
+
     protected Model|null $junction = null;
 
     protected string $saveStrategy = 'replace';
@@ -81,6 +85,22 @@ class ManyToMany extends Relationship
         if (array_key_exists('targetForeignKey', $options)) {
             $this->setTargetForeignKey($options['targetForeignKey']);
         }
+    }
+
+    /**
+     * Call a method on the target model.
+     *
+     * @param string $method The method name.
+     * @param array $arguments The method arguments.
+     * @return mixed The result.
+     */
+    public function __call(string $method, array $arguments): mixed
+    {
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $arguments);
+        }
+
+        return parent::__call($method, $arguments);
     }
 
     /**

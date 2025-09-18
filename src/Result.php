@@ -10,6 +10,7 @@ use Fyre\DB\ResultSet;
 use Fyre\DB\Types\Type;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Queries\SelectQuery;
+use Fyre\Utility\Traits\MacroTrait;
 use Generator;
 use Iterator;
 use IteratorAggregate;
@@ -26,6 +27,10 @@ use function in_array;
  */
 class Result implements Countable, IteratorAggregate, JsonSerializable
 {
+    use MacroTrait {
+        __call as protected macroCall;
+    }
+
     protected const ENTITY_OPTIONS = [
         'guard' => false,
         'mutate' => false,
@@ -114,6 +119,10 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
      */
     public function __call($method, $arguments = []): mixed
     {
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $arguments);
+        }
+
         return $this->collection->$method(...$arguments);
     }
 
@@ -293,7 +302,7 @@ class Result implements Countable, IteratorAggregate, JsonSerializable
             }
 
             if ($schema && $schema->hasColumn($column)) {
-                $type = $schema->getType($column);
+                $type = $schema->column($column)->type();
             } else {
                 $type = $this->getType($column);
             }

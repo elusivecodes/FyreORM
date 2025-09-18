@@ -1,14 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Fyre\ORM\Relationships;
+namespace Fyre\ORM;
 
 use Closure;
 use Fyre\Collection\Collection;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
-use Fyre\ORM\Model;
-use Fyre\ORM\ModelRegistry;
 use Fyre\ORM\Queries\SelectQuery;
 use Fyre\Utility\Inflector;
 use Traversable;
@@ -92,13 +90,13 @@ abstract class Relationship
     /**
      * Call a method on the target model.
      *
-     * @param string $name The method name.
+     * @param string $method The method name.
      * @param array $arguments The method arguments.
      * @return mixed The result.
      */
-    public function __call(string $name, array $arguments): mixed
+    public function __call(string $method, array $arguments): mixed
     {
-        return $this->getTarget()->$name(...$arguments);
+        return $this->getTarget()->$method(...$arguments);
     }
 
     /**
@@ -550,7 +548,7 @@ abstract class Relationship
 
         $foreignKey = $this->getForeignKey();
 
-        if ($this->isDependent() || !$target->getSchema()->isNullable($foreignKey)) {
+        if ($this->isDependent() || !$target->getSchema()->column($foreignKey)->isNullable()) {
             if (!$target->deleteMany($relations, $options)) {
                 return false;
             }

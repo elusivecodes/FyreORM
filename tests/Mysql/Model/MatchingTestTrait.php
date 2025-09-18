@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
+use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Tests\Mock\Entity\Address;
 use Tests\Mock\Entity\Tag;
@@ -183,10 +184,64 @@ trait MatchingTestTrait
         );
     }
 
+    public function testNotMatching(): void
+    {
+        $Users = $this->modelRegistry->use('Users');
+
+        $user = $Users->newEntity([
+            'name' => 'Test',
+            'posts' => [
+                [
+                    'title' => 'Test 1',
+                    'content' => 'This is the content.',
+                    'tags' => [
+                        [
+                            'tag' => 'test1',
+                        ],
+                        [
+                            'tag' => 'test2',
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Test 2',
+                    'content' => 'This is the content.',
+                    'tags' => [
+                        [
+                            'tag' => 'test3',
+                        ],
+                        [
+                            'tag' => 'test4',
+                        ],
+                    ],
+                ],
+            ],
+            'address' => [
+                'suburb' => 'Test',
+            ],
+        ]);
+
+        $this->assertTrue(
+            $Users->save($user)
+        );
+
+        $this->assertSame(
+            [1],
+            $this->modelRegistry->use('Posts')
+                ->find()
+                ->notMatching('Tags', [
+                    'Tags.tag' => 'test4',
+                ])
+                ->all()
+                ->map(fn(Entity $item): int => $item->id)
+                ->toArray()
+        );
+    }
+
     public function testNotMatchingConditionsSql(): void
     {
         $this->assertSame(
-            'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id AND Tags.tag = \'test\' WHERE Tags.id IS NULL',
+            'SELECT Users.id AS Users__id FROM users AS Users WHERE NOT EXISTS (SELECT * FROM posts AS Posts INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id AND Tags.tag = \'test\' WHERE Posts.user_id = Users.id)',
             $this->modelRegistry->use('Users')
                 ->find()
                 ->notMatching('Posts.Tags', [
@@ -209,7 +264,7 @@ trait MatchingTestTrait
     public function testNotMatchingMerge(): void
     {
         $this->assertSame(
-            'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN addresses AS Addresses ON Addresses.user_id = Users.id LEFT JOIN posts AS Posts ON Posts.user_id = Users.id LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id WHERE Addresses.id IS NULL AND Tags.id IS NULL',
+            'SELECT Users.id AS Users__id FROM users AS Users WHERE NOT EXISTS (SELECT * FROM addresses AS Addresses WHERE Addresses.user_id = Users.id) AND NOT EXISTS (SELECT * FROM posts AS Posts INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id WHERE Posts.user_id = Users.id)',
             $this->modelRegistry->use('Users')
                 ->find()
                 ->notMatching('Addresses')
@@ -222,7 +277,7 @@ trait MatchingTestTrait
     public function testNotMatchingSql(): void
     {
         $this->assertSame(
-            'SELECT Users.id AS Users__id FROM users AS Users LEFT JOIN posts AS Posts ON Posts.user_id = Users.id LEFT JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id LEFT JOIN tags AS Tags ON Tags.id = PostsTags.tag_id WHERE Tags.id IS NULL',
+            'SELECT Users.id AS Users__id FROM users AS Users WHERE NOT EXISTS (SELECT * FROM posts AS Posts INNER JOIN posts_tags AS PostsTags ON PostsTags.post_id = Posts.id INNER JOIN tags AS Tags ON Tags.id = PostsTags.tag_id WHERE Posts.user_id = Users.id)',
             $this->modelRegistry->use('Users')
                 ->find()
                 ->notMatching('Posts.Tags')

@@ -33,7 +33,7 @@ trait JoinTestTrait
     public function testContainInnerJoinMerge(): void
     {
         $this->assertSame(
-            'SELECT Posts.id AS "Posts__id" FROM posts AS Posts LEFT JOIN users AS Users ON Users.id = Posts.user_id INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
+            'SELECT Posts.id AS "Posts__id" FROM posts AS Posts INNER JOIN users AS Users ON Users.id = Posts.user_id INNER JOIN addresses AS Addresses ON Addresses.user_id = Users.id',
             $this->modelRegistry->use('Posts')
                 ->find()
                 ->leftJoinWith('Users')

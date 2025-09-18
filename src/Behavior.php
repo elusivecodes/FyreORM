@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Fyre\ORM;
 
 use Fyre\Event\EventListenerInterface;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function array_filter;
 use function array_replace;
@@ -14,6 +15,8 @@ use function method_exists;
  */
 abstract class Behavior implements EventListenerInterface
 {
+    use MacroTrait;
+
     protected static array $defaults = [];
 
     protected array $config;

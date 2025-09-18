@@ -50,7 +50,7 @@ trait SchemaTestTrait
         $Items = $this->modelRegistry->use('Items');
 
         $this->assertSame(
-            $this->schemaRegistry->use($Items->getConnection())->describe('items'),
+            $this->schemaRegistry->use($Items->getConnection())->table('items'),
             $Items->getSchema()
         );
     }

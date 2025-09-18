@@ -5,12 +5,14 @@ namespace Fyre\ORM\Queries;
 
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
+use Fyre\Utility\Traits\MacroTrait;
 
 /**
  * InsertQuery
  */
 class InsertQuery extends \Fyre\DB\Queries\InsertQuery
 {
+    use MacroTrait;
     use ModelTrait;
 
     /**

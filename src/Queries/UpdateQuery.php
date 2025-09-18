@@ -5,12 +5,14 @@ namespace Fyre\ORM\Queries;
 
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
+use Fyre\Utility\Traits\MacroTrait;
 
 /**
  * UpdateQuery
  */
 class UpdateQuery extends \Fyre\DB\Queries\UpdateQuery
 {
+    use MacroTrait;
     use ModelTrait;
 
     /**

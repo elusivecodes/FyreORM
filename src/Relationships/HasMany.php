@@ -7,7 +7,9 @@ use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Relationship;
 use Fyre\Utility\Inflector;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function array_filter;
 use function array_map;
@@ -18,6 +20,8 @@ use function in_array;
  */
 class HasMany extends Relationship
 {
+    use MacroTrait;
+
     protected string $saveStrategy = 'append';
 
     protected array|string|null $sort = null;
@@ -41,6 +45,22 @@ class HasMany extends Relationship
         if (array_key_exists('sort', $options)) {
             $this->setSort($options['sort']);
         }
+    }
+
+    /**
+     * Call a method on the target model.
+     *
+     * @param string $method The method name.
+     * @param array $arguments The method arguments.
+     * @return mixed The result.
+     */
+    public function __call(string $method, array $arguments): mixed
+    {
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $arguments);
+        }
+
+        return parent::__call($method, $arguments);
     }
 
     /**

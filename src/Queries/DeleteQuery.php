@@ -6,12 +6,14 @@ namespace Fyre\ORM\Queries;
 use Fyre\DB\DbFeature;
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
+use Fyre\Utility\Traits\MacroTrait;
 
 /**
  * DeleteQuery
  */
 class DeleteQuery extends \Fyre\DB\Queries\DeleteQuery
 {
+    use MacroTrait;
     use ModelTrait;
 
     /**

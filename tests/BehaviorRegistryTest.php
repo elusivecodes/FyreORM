@@ -15,7 +15,10 @@ use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\ModelRegistry;
 use Fyre\Schema\SchemaRegistry;
 use Fyre\Utility\Inflector;
+use Fyre\Utility\Traits\MacroTrait;
 use PHPUnit\Framework\TestCase;
+
+use function class_uses;
 
 final class BehaviorRegistryTest extends TestCase
 {
@@ -79,6 +82,14 @@ final class BehaviorRegistryTest extends TestCase
         $Items = $this->modelRegistry->use('Items');
 
         $this->behaviorRegistry->build('Invalid', $Items);
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(BehaviorRegistry::class)
+        );
     }
 
     public function testNamespaceNoLeadingSlash(): void

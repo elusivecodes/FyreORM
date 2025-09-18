@@ -4,9 +4,16 @@ declare(strict_types=1);
 namespace Tests\Postgres;
 
 use Fyre\Entity\Entity;
+use Fyre\ORM\Queries\DeleteQuery;
+use Fyre\ORM\Queries\InsertQuery;
+use Fyre\ORM\Queries\ReplaceQuery;
 use Fyre\ORM\Queries\SelectQuery;
+use Fyre\ORM\Queries\UpdateQuery;
+use Fyre\Utility\Traits\MacroTrait;
 use PHPUnit\Framework\TestCase;
 use Tests\Mock\Entity\Item;
+
+use function class_uses;
 
 final class QueryTest extends TestCase
 {
@@ -182,6 +189,34 @@ final class QueryTest extends TestCase
         $this->assertSame(
             'Test 2',
             $result2->name
+        );
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(DeleteQuery::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(InsertQuery::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(ReplaceQuery::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(SelectQuery::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(UpdateQuery::class)
         );
     }
 

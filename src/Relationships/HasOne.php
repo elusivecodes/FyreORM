@@ -4,15 +4,35 @@ declare(strict_types=1);
 namespace Fyre\ORM\Relationships;
 
 use Fyre\Entity\Entity;
+use Fyre\ORM\Relationship;
+use Fyre\Utility\Traits\MacroTrait;
 
 /**
  * HasOne
  */
 class HasOne extends Relationship
 {
+    use MacroTrait;
+
     protected string $strategy = 'join';
 
     protected array $validStrategies = ['join', 'select'];
+
+    /**
+     * Call a method on the target model.
+     *
+     * @param string $method The method name.
+     * @param array $arguments The method arguments.
+     * @return mixed The result.
+     */
+    public function __call(string $method, array $arguments): mixed
+    {
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $arguments);
+        }
+
+        return parent::__call($method, $arguments);
+    }
 
     /**
      * Determine whether the relationship has multiple related items.

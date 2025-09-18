@@ -5,6 +5,7 @@ namespace Fyre\ORM;
 
 use Fyre\Container\Container;
 use Fyre\ORM\Exceptions\OrmException;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function array_key_exists;
 use function array_splice;
@@ -18,6 +19,8 @@ use function trim;
  */
 class ModelRegistry
 {
+    use MacroTrait;
+
     protected string $defaultModelClass = Model::class;
 
     protected array $instances = [];

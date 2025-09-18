@@ -25,10 +25,10 @@ use Fyre\ORM\Relationships\BelongsTo;
 use Fyre\ORM\Relationships\HasMany;
 use Fyre\ORM\Relationships\HasOne;
 use Fyre\ORM\Relationships\ManyToMany;
-use Fyre\ORM\Relationships\Relationship;
 use Fyre\Schema\SchemaRegistry;
-use Fyre\Schema\TableSchema;
+use Fyre\Schema\Table;
 use Fyre\Utility\Inflector;
+use Fyre\Utility\Traits\MacroTrait;
 use Fyre\Validation\Validator;
 use InvalidArgumentException;
 use ReflectionClass;
@@ -62,6 +62,9 @@ use const ARRAY_FILTER_USE_KEY;
 class Model implements EventListenerInterface
 {
     use EventDispatcherTrait;
+    use MacroTrait {
+        __call as protected macroCall;
+    }
 
     public const READ = 'read';
 
@@ -242,19 +245,23 @@ class Model implements EventListenerInterface
     /**
      * Call a method on the behaviors.
      *
-     * @param string $name The method name.
+     * @param string $method The method name.
      * @param array $arguments The method arguments.
      * @return mixed The result.
      */
-    public function __call(string $name, array $arguments): mixed
+    public function __call(string $method, array $arguments): mixed
     {
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $arguments);
+        }
+
         foreach ($this->behaviors as $behavior) {
-            if (method_exists($behavior, $name)) {
-                return $behavior->$name(...$arguments);
+            if (method_exists($behavior, $method)) {
+                return $behavior->$method(...$arguments);
             }
         }
 
-        throw new BadMethodCallException('Invalid method: '.$name);
+        throw new BadMethodCallException('Invalid method: '.$method);
     }
 
     /**
@@ -588,7 +595,7 @@ class Model implements EventListenerInterface
             foreach ($this->getPrimaryKey() as $key) {
                 $column = $schema->column($key);
 
-                if (!array_key_exists('autoIncrement', $column) || !$column['autoIncrement']) {
+                if (!$column->isAutoIncrement()) {
                     continue;
                 }
 
@@ -714,15 +721,15 @@ class Model implements EventListenerInterface
     }
 
     /**
-     * Get the TableSchema.
+     * Get the schema Table.
      *
      * @param string|null $type The connection type.
-     * @return TableSchema The TableSchema.
+     * @return Table The Table.
      */
-    public function getSchema(string|null $type = null): TableSchema
+    public function getSchema(string|null $type = null): Table
     {
         return $this->schemaRegistry->use($this->getConnection($type))
-            ->describe($this->getTable());
+            ->table($this->getTable());
     }
 
     /**
@@ -947,7 +954,8 @@ class Model implements EventListenerInterface
             }
 
             $data[$field] = $schema
-                ->getType($field)
+                ->column($field)
+                ->type()
                 ->parse($value);
         }
 
@@ -1340,7 +1348,8 @@ class Model implements EventListenerInterface
 
         foreach ($data as $field => $value) {
             $data[$field] = $schema
-                ->getType($field)
+                ->column($field)
+                ->type()
                 ->toDatabase($value);
         }
 
@@ -1390,7 +1399,7 @@ class Model implements EventListenerInterface
      * Delete a single Entity.
      *
      * @param Entity $entity The Entity.
-     * @param array $options The options for saving.
+     * @param array $options The options for deleting.
      * @return bool TRUE if the save was successful, otherwise FALSE.
      */
     protected function _delete(Entity $entity, array $options): bool
@@ -1398,7 +1407,7 @@ class Model implements EventListenerInterface
         if ($options['events']) {
             $event = $this->dispatchEvent('Orm.beforeDelete', ['entity' => $entity, 'options' => $options]);
 
-            if ($event->isStopped()) {
+            if ($event->isDefaultPrevented()) {
                 return (bool) $event->getResult();
             }
         }
@@ -1418,7 +1427,7 @@ class Model implements EventListenerInterface
         if ($options['events']) {
             $event = $this->dispatchEvent('Orm.afterDelete', ['entity' => $entity, 'options' => $options]);
 
-            if ($event->isStopped()) {
+            if ($event->isDefaultPrevented()) {
                 return (bool) $event->getResult();
             }
         }
@@ -1439,7 +1448,7 @@ class Model implements EventListenerInterface
             if ($options['events']) {
                 $event = $this->dispatchEvent('Orm.beforeRules', ['entity' => $entity, 'options' => $options]);
 
-                if ($event->isStopped()) {
+                if ($event->isDefaultPrevented()) {
                     return (bool) $event->getResult();
                 }
             }
@@ -1451,7 +1460,7 @@ class Model implements EventListenerInterface
             if ($options['events']) {
                 $event = $this->dispatchEvent('Orm.afterRules', ['entity' => $entity, 'options' => $options]);
 
-                if ($event->isStopped()) {
+                if ($event->isDefaultPrevented()) {
                     return (bool) $event->getResult();
                 }
             }
@@ -1460,7 +1469,7 @@ class Model implements EventListenerInterface
         if ($options['events']) {
             $event = $this->dispatchEvent('Orm.beforeSave', ['entity' => $entity, 'options' => $options]);
 
-            if ($event->isStopped()) {
+            if ($event->isDefaultPrevented()) {
                 return (bool) $event->getResult();
             }
         }
@@ -1496,7 +1505,9 @@ class Model implements EventListenerInterface
                     continue;
                 }
 
-                $value = $schema->getType($primaryKey)->parse($value);
+                $value = $schema->column($primaryKey)
+                    ->type()
+                    ->parse($value);
 
                 $entity->set($primaryKey, $value, ['temporary' => true]);
             }
@@ -1513,7 +1524,7 @@ class Model implements EventListenerInterface
         if ($options['events']) {
             $event = $this->dispatchEvent('Orm.afterSave', ['entity' => $entity, 'options' => $options]);
 
-            if ($event->isStopped()) {
+            if ($event->isDefaultPrevented()) {
                 return (bool) $event->getResult();
             }
         }

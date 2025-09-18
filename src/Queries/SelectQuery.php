@@ -3,19 +3,22 @@ declare(strict_types=1);
 
 namespace Fyre\ORM\Queries;
 
+use Fyre\DB\Exceptions\DbException;
 use Fyre\DB\ResultSet;
 use Fyre\DB\ValueBinder;
 use Fyre\Entity\Entity;
 use Fyre\ORM\Exceptions\OrmException;
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
-use Fyre\ORM\Relationships\Relationship;
+use Fyre\ORM\Relationship;
 use Fyre\ORM\Result;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function array_key_exists;
 use function array_map;
 use function count;
 use function explode;
+use function in_array;
 use function is_numeric;
 use function is_string;
 use function str_replace;
@@ -25,6 +28,7 @@ use function str_replace;
  */
 class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 {
+    use MacroTrait;
     use ModelTrait;
 
     public const QUERY_METHODS = [
@@ -323,11 +327,6 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     public function getResult(): Result
     {
         if ($this->result === null) {
-            if ($this->options['events'] && !$this->beforeFindTriggered) {
-                $this->model->dispatchEvent('Orm.beforeFind', ['query' => $this, 'options' => $this->options]);
-                $this->beforeFindTriggered = true;
-            }
-
             $result = $this->execute();
 
             $this->result = new Result($result, $this, $this->buffering);
@@ -385,7 +384,55 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
      */
     public function notMatching(string $contain, array $conditions = []): static
     {
-        return $this->containJoin($contain, $conditions, 'LEFT', false);
+        $contain = explode('.', $contain);
+        $lastContain = count($contain) - 1;
+
+        $model = $this->model;
+        $sourceAlias = $this->alias;
+
+        $query = null;
+
+        foreach ($contain as $i => $alias) {
+            $isLastJoin = $i === $lastContain;
+
+            $relationship = $model->getRelationship($alias);
+
+            if (!$relationship) {
+                throw OrmException::forInvalidRelationship($alias);
+            }
+
+            $model = $relationship->getTarget();
+
+            $joins = $relationship->buildJoins([
+                'alias' => $alias,
+                'sourceAlias' => $sourceAlias,
+                'conditions' => $isLastJoin ?
+                    $conditions :
+                    [],
+                'type' => 'INNER',
+            ]);
+
+            foreach ($joins as $joinAlias => $join) {
+                if (!$query) {
+                    $query = $this->getConnection()
+                        ->select()
+                        ->from([
+                            $joinAlias => $join['table'],
+                        ])
+                        ->where($join['conditions'] ?? []);
+                } else {
+                    $query->join([$joinAlias => $join]);
+                }
+            }
+
+            $sourceAlias = $alias;
+        }
+
+        $this->where([
+            'NOT EXISTS ('.$query->sql().')',
+        ]);
+
+        return $this;
     }
 
     /**
@@ -397,6 +444,11 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
     {
         if ($this->prepared) {
             return $this;
+        }
+
+        if ($this->options['events'] && !$this->beforeFindTriggered) {
+            $this->model->dispatchEvent('Orm.beforeFind', ['query' => $this, 'options' => $this->options]);
+            $this->beforeFindTriggered = true;
         }
 
         $fields = $this->fields;
@@ -428,6 +480,24 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
         foreach ($this->containJoin as $alias => $join) {
             unset($join['path']);
 
+            if (array_key_exists($alias, $this->joins)) {
+                foreach ($this->joins[$alias]['conditions'] as $key => $condition) {
+                    if (is_numeric($key)) {
+                        if (!in_array($condition, $join['conditions'])) {
+                            $join['conditions'][] = $condition;
+                        }
+
+                        continue;
+                    }
+
+                    if (array_key_exists($key, $join['conditions'])) {
+                        continue;
+                    }
+
+                    $join['conditions'][$key] = $condition;
+                }
+            }
+
             $this->joins[$alias] = $join;
         }
 
@@ -436,8 +506,8 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
                 $alias = $join['alias'] ?? $join['table'] ?? null;
             }
 
-            if (!$alias) {
-                continue;
+            if (!is_string($alias)) {
+                throw DbException::forInvalidJoinAlias();
             }
 
             if (array_key_exists($alias, $this->joins)) {
@@ -729,10 +799,10 @@ class SelectQuery extends \Fyre\DB\Queries\SelectQuery
 
                 $join['path'] = $path;
 
-                if ($isLastJoin) {
+                if ($isLastJoin || !array_key_exists($joinAlias, $this->containJoin)) {
                     $this->containJoin[$joinAlias] = $join;
-                } else {
-                    $this->containJoin[$joinAlias] ??= $join;
+                } else if ($join['type'] === 'INNER') {
+                    $this->containJoin[$joinAlias]['type'] = $join['type'];
                 }
             }
 

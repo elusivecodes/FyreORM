@@ -5,8 +5,11 @@ namespace Tests\Postgres;
 
 use Fyre\ORM\Queries\SelectQuery;
 use Fyre\ORM\RuleSet;
+use Fyre\Utility\Traits\MacroTrait;
 use Fyre\Validation\Validator;
 use PHPUnit\Framework\TestCase;
+
+use function class_uses;
 
 final class RulesTest extends TestCase
 {
@@ -443,6 +446,14 @@ final class RulesTest extends TestCase
 
         $this->assertTrue(
             $Items->save($item)
+        );
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(RuleSet::class)
         );
     }
 }

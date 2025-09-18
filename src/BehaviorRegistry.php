@@ -5,6 +5,7 @@ namespace Fyre\ORM;
 
 use Fyre\Container\Container;
 use Fyre\ORM\Exceptions\OrmException;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function class_exists;
 use function in_array;
@@ -16,6 +17,8 @@ use function trim;
  */
 class BehaviorRegistry
 {
+    use MacroTrait;
+
     protected array $behaviors = [];
 
     protected array $namespaces = [];

@@ -109,6 +109,7 @@ trait SqliteConnectionTrait
             CREATE TABLE users (
                 id INTEGER NOT NULL,
                 name VARCHAR(255) NULL DEFAULT NULL,
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             )
         EOT);
@@ -121,6 +122,7 @@ trait SqliteConnectionTrait
                 address_2 VARCHAR(255) NULL DEFAULT NULL,
                 suburb VARCHAR(255) NULL DEFAULT NULL,
                 state VARCHAR(255) NULL DEFAULT NULL,
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             )
         EOT);
@@ -131,6 +133,7 @@ trait SqliteConnectionTrait
                 user_id INTEGER NULL DEFAULT NULL,
                 title VARCHAR(255) NULL DEFAULT NULL,
                 content TEXT NULL DEFAULT NULL,
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             )
         EOT);
@@ -141,6 +144,7 @@ trait SqliteConnectionTrait
                 user_id INTEGER NULL DEFAULT NULL,
                 post_id INTEGER NULL DEFAULT NULL,
                 content TEXT NULL DEFAULT NULL,
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             )
         EOT);

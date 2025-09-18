@@ -5,12 +5,14 @@ namespace Fyre\ORM\Queries;
 
 use Fyre\ORM\Model;
 use Fyre\ORM\Queries\Traits\ModelTrait;
+use Fyre\Utility\Traits\MacroTrait;
 
 /**
  * ReplaceQuery
  */
 class ReplaceQuery extends \Fyre\DB\Queries\ReplaceQuery
 {
+    use MacroTrait;
     use ModelTrait;
 
     /**

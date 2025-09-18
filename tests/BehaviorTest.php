@@ -9,11 +9,15 @@ use Fyre\DB\ConnectionManager;
 use Fyre\DB\TypeParser;
 use Fyre\Entity\EntityLocator;
 use Fyre\Event\EventManager;
+use Fyre\ORM\Behavior;
 use Fyre\ORM\BehaviorRegistry;
 use Fyre\ORM\ModelRegistry;
 use Fyre\Schema\SchemaRegistry;
 use Fyre\Utility\Inflector;
+use Fyre\Utility\Traits\MacroTrait;
 use PHPUnit\Framework\TestCase;
+
+use function class_uses;
 
 final class BehaviorTest extends TestCase
 {
@@ -46,6 +50,14 @@ final class BehaviorTest extends TestCase
         $this->assertSame(
             $Items,
             $Items->getBehavior('Mock')->getModel()
+        );
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(Behavior::class)
         );
     }
 

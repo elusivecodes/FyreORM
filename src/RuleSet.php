@@ -8,6 +8,7 @@ use Fyre\Container\Container;
 use Fyre\DB\QueryGenerator;
 use Fyre\Entity\Entity;
 use Fyre\Lang\Lang;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function array_all;
 use function array_any;
@@ -20,6 +21,8 @@ use function implode;
  */
 class RuleSet
 {
+    use MacroTrait;
+
     protected array $rules = [];
 
     /**
@@ -79,7 +82,7 @@ class RuleSet
                 $schema = $this->model->getSchema();
 
                 foreach ($values as $field => $value) {
-                    if ($value === null && $schema->isNullable($field)) {
+                    if ($value === null && $schema->column($field)->isNullable()) {
                         return true;
                     }
                 }
@@ -179,7 +182,7 @@ class RuleSet
                 $schema = $this->model->getSchema();
 
                 foreach ($values as $field => $value) {
-                    if ($value === null && $schema->isNullable($field)) {
+                    if ($value === null && $schema->column($field)->isNullable()) {
                         return true;
                     }
                 }
@@ -217,6 +220,7 @@ class RuleSet
             if (!$query->count()) {
                 return true;
             }
+
             $options['message'] ??= $this->lang->get('RuleSet.isUnique', [
                 'fields' => implode(', ', $fields),
             ]) ?? 'invalid';

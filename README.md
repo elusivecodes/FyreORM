@@ -30,6 +30,7 @@
     - [Many To Many](#many-to-many)
 - [Behavior Registry](#behavior-registry)
 - [Behaviors](#behaviors)
+    - [Soft Delete](#soft-delete)
     - [Timestamp](#timestamp)
 - [Rules](#rules)
 
@@ -381,10 +382,10 @@ $routeKey = $model->getRouteKey();
 
 **Get Schema**
 
-Get the [*TableSchema*](https://github.com/elusivecodes/FyreSchema#table-schemas).
+Get the schema [*Table*](https://github.com/elusivecodes/FyreSchema#tables).
 
 ```php
-$tableSchema = $model->getSchema();
+$table = $model->getSchema();
 ```
 
 **Get Table**
@@ -1824,9 +1825,114 @@ Get the [*Model*](#models).
 $model = $behavior->getModel();
 ```
 
+### Soft Delete
+
+- `$options` is an array containing behavior options.
+    - `field` is a string representing the deleted field name, and will default to "*deleted*".
+
+```php
+$model->addBehavior('SoftDelete', $options);
+```
+
+**Find Only Deleted**
+
+Find only soft deleted records.
+
+- `$data` is an array containing the query data.
+    - `connectionType` is a string representing the connection type, and will default to `self::READ`.
+    - `fields` is an array or string representing the fields to select.
+    - `contain` is a string or array containing the relationships to contain.
+    - `join` is an array containing the tables to join.
+    - `conditions` is an array or string representing the where conditions.
+    - `orderBy` is an array or string representing the fields to order by.
+    - `groupBy` is an array or string representing the fields to group by.
+    - `having` is an array or string representing the having conditions.
+    - `limit` is a number indicating the query limit.
+    - `offset` is a number indicating the query offset.
+    - `epilog` is a string representing the epilog for the query.
+    - `autoFields` is a boolean indicating whether to enable auto fields.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
+
+```php
+$query = $model->findOnlyDeleted($data);
+```
+
+**Find With Deleted**
+
+Find all records including soft deleted.
+
+- `$data` is an array containing the query data.
+    - `connectionType` is a string representing the connection type, and will default to `self::READ`.
+    - `fields` is an array or string representing the fields to select.
+    - `contain` is a string or array containing the relationships to contain.
+    - `join` is an array containing the tables to join.
+    - `conditions` is an array or string representing the where conditions.
+    - `orderBy` is an array or string representing the fields to order by.
+    - `groupBy` is an array or string representing the fields to group by.
+    - `having` is an array or string representing the having conditions.
+    - `limit` is a number indicating the query limit.
+    - `offset` is a number indicating the query offset.
+    - `epilog` is a string representing the epilog for the query.
+    - `autoFields` is a boolean indicating whether to enable auto fields.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
+
+```php
+$query = $model->findWithDeleted($data);
+```
+
+**Purge**
+
+Delete an [*Entity*](https://github.com/elusivecodes/FyreEntity) (permanently).
+
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
+- `$options` is an array containing delete options.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
+    - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
+
+```php
+$result = $model->purge($entity, $options);
+```
+
+**Purge Many**
+
+Delete multiple entities (permanently).
+
+- `$entities` is an array or *Traversable* containing the entities.
+- `$options` is an array containing delete options.
+    - `events` is a boolean indicating whether to trigger model/behavior events, and will default to *true*.
+    - `cascade` is a boolean indicating whether to cascade deletes, and will default to *true*.
+
+```php
+$result = $model->purgeMany($entities, $options);
+```
+
+**Restore**
+
+Restore an [*Entity*](https://github.com/elusivecodes/FyreEntity).
+
+- `$entity` is an [*Entity*](https://github.com/elusivecodes/FyreEntity).
+- `$options` is an array containing save options.
+    - `dependents` is a boolean indicating whether to restore dependents, and will default to *true*.
+
+```php
+$result = $model->restore($entity, $options);
+```
+
+**Restore Many**
+
+Restore multiple entities.
+
+- `$entities` is an array or *Traversable* containing the entities.
+- `$options` is an array containing save options.
+    - `dependents` is a boolean indicating whether to restore dependents, and will default to *true*.
+
+```php
+$result = $model->restoreMany($entities, $options);
+```
+
 ### Timestamp
 
-The timestamp behavior provided a simple way to automatically update created/modified timestamps when saving data via models.
+The timestamp behavior provides a simple way to automatically update created/modified timestamps when saving data via models.
 
 - `$options` is an array containing behavior options.
     - `createdField` is a string representing the created field name, and will default to "*created*".

@@ -3,8 +3,17 @@ declare(strict_types=1);
 
 namespace Tests\Mysql\Model;
 
+use Fyre\ORM\Model;
+use Fyre\ORM\ModelRegistry;
+use Fyre\ORM\Relationships\BelongsTo;
+use Fyre\ORM\Relationships\HasMany;
+use Fyre\ORM\Relationships\HasOne;
+use Fyre\ORM\Relationships\ManyToMany;
+use Fyre\Utility\Traits\MacroTrait;
 use PHPUnit\Framework\TestCase;
 use Tests\Mysql\MysqlConnectionTrait;
+
+use function class_uses;
 
 final class ModelTest extends TestCase
 {
@@ -62,6 +71,39 @@ final class ModelTest extends TestCase
     {
         $this->assertFalse(
             $this->modelRegistry->hasNamespace('Tests\Invalid\Model')
+        );
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(ModelRegistry::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(Model::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(BelongsTo::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(HasMany::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(HasOne::class)
+        );
+
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(ManyToMany::class)
         );
     }
 

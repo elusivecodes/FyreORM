@@ -119,6 +119,7 @@ trait MysqlConnectionTrait
             CREATE TABLE users (
                 id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 name VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);
@@ -131,6 +132,7 @@ trait MysqlConnectionTrait
                 address_2 VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
                 suburb VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
                 state VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);
@@ -141,6 +143,7 @@ trait MysqlConnectionTrait
                 user_id INT(10) UNSIGNED NULL DEFAULT NULL,
                 title VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
                 content TEXT NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);
@@ -151,6 +154,7 @@ trait MysqlConnectionTrait
                 user_id INT(10) UNSIGNED NULL DEFAULT NULL,
                 post_id INT(10) UNSIGNED NULL DEFAULT NULL,
                 content TEXT NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+                deleted DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (id)
             ) COLLATE='utf8mb4_unicode_ci' ENGINE=InnoDB
         EOT);
