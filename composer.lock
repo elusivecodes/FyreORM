@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0669a5bf3246d80b246abd1fa8f93406",
+    "content-hash": "fda4477fb715239bcf61f4b196bae53c",
     "packages": [
         {
             "name": "fyre/array",
@@ -702,16 +702,16 @@
         },
         {
             "name": "fyre/schema",
-            "version": "v7.0",
+            "version": "v7.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/elusivecodes/FyreSchema.git",
-                "reference": "b2391af5ed416c3e789f57b63545920e730f2fe1"
+                "reference": "ebe37c6e664f9ea7eef3ebfcca1d1b3a46514938"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elusivecodes/FyreSchema/zipball/b2391af5ed416c3e789f57b63545920e730f2fe1",
-                "reference": "b2391af5ed416c3e789f57b63545920e730f2fe1",
+                "url": "https://api.github.com/repos/elusivecodes/FyreSchema/zipball/ebe37c6e664f9ea7eef3ebfcca1d1b3a46514938",
+                "reference": "ebe37c6e664f9ea7eef3ebfcca1d1b3a46514938",
                 "shasum": ""
             },
             "require": {
@@ -746,9 +746,9 @@
             "description": "A database schema library.",
             "support": {
                 "issues": "https://github.com/elusivecodes/FyreSchema/issues",
-                "source": "https://github.com/elusivecodes/FyreSchema/tree/v7.0"
+                "source": "https://github.com/elusivecodes/FyreSchema/tree/v7.0.1"
             },
-            "time": "2025-09-07T01:34:31+00:00"
+            "time": "2025-09-20T02:45:09+00:00"
         },
         {
             "name": "fyre/typeparser",
@@ -1623,16 +1623,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "12.3.7",
+            "version": "12.3.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "bbede0f5593dad37af3be6a6f8e6ae1885e8a0a9"
+                "reference": "99e692c6a84708211f7536ba322bbbaef57ac7fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/bbede0f5593dad37af3be6a6f8e6ae1885e8a0a9",
-                "reference": "bbede0f5593dad37af3be6a6f8e6ae1885e8a0a9",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/99e692c6a84708211f7536ba322bbbaef57ac7fc",
+                "reference": "99e692c6a84708211f7536ba322bbbaef57ac7fc",
                 "shasum": ""
             },
             "require": {
@@ -1688,7 +1688,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/12.3.7"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/12.3.8"
             },
             "funding": [
                 {
@@ -1708,7 +1708,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-10T09:59:06+00:00"
+            "time": "2025-09-17T11:31:43+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1957,16 +1957,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.3.9",
+            "version": "12.3.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "bcaadc492e1424a6ebdd997259b7b3e788e895c0"
+                "reference": "6a62f2b394e042884e4997ddc8b8db1ce56a0009"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/bcaadc492e1424a6ebdd997259b7b3e788e895c0",
-                "reference": "bcaadc492e1424a6ebdd997259b7b3e788e895c0",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/6a62f2b394e042884e4997ddc8b8db1ce56a0009",
+                "reference": "6a62f2b394e042884e4997ddc8b8db1ce56a0009",
                 "shasum": ""
             },
             "require": {
@@ -1985,7 +1985,7 @@
                 "phpunit/php-invoker": "^6.0.0",
                 "phpunit/php-text-template": "^5.0.0",
                 "phpunit/php-timer": "^8.0.0",
-                "sebastian/cli-parser": "^4.0.0",
+                "sebastian/cli-parser": "^4.1.0",
                 "sebastian/comparator": "^7.1.3",
                 "sebastian/diff": "^7.0.0",
                 "sebastian/environment": "^8.0.3",
@@ -2034,7 +2034,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.3.9"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.3.11"
             },
             "funding": [
                 {
@@ -2058,7 +2058,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-11T06:22:47+00:00"
+            "time": "2025-09-14T06:21:44+00:00"
         },
         {
             "name": "psr/container",
@@ -2741,16 +2741,16 @@
         },
         {
             "name": "sebastian/cli-parser",
-            "version": "4.0.0",
+            "version": "4.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/cli-parser.git",
-                "reference": "6d584c727d9114bcdc14c86711cd1cad51778e7c"
+                "reference": "90f41072d220e5c40df6e8635f5dafba2d9d4d04"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/cli-parser/zipball/6d584c727d9114bcdc14c86711cd1cad51778e7c",
-                "reference": "6d584c727d9114bcdc14c86711cd1cad51778e7c",
+                "url": "https://api.github.com/repos/sebastianbergmann/cli-parser/zipball/90f41072d220e5c40df6e8635f5dafba2d9d4d04",
+                "reference": "90f41072d220e5c40df6e8635f5dafba2d9d4d04",
                 "shasum": ""
             },
             "require": {
@@ -2762,7 +2762,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "4.0-dev"
+                    "dev-main": "4.2-dev"
                 }
             },
             "autoload": {
@@ -2786,15 +2786,27 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/cli-parser/issues",
                 "security": "https://github.com/sebastianbergmann/cli-parser/security/policy",
-                "source": "https://github.com/sebastianbergmann/cli-parser/tree/4.0.0"
+                "source": "https://github.com/sebastianbergmann/cli-parser/tree/4.2.0"
             },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
                     "type": "github"
+                },
+                {
+                    "url": "https://liberapay.com/sebastianbergmann",
+                    "type": "liberapay"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/sebastianbergmann",
+                    "type": "thanks_dev"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/sebastian/cli-parser",
+                    "type": "tidelift"
                 }
             ],
-            "time": "2025-02-07T04:53:50+00:00"
+            "time": "2025-09-14T09:36:45+00:00"
         },
         {
             "name": "sebastian/comparator",
